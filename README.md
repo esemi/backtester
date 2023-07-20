@@ -1,12 +1,15 @@
 # WIP
 
 
-### Local setup
+### Setup on windows
+- [install python 3.11](https://www.python.org/downloads/windows/)
+- [install git](https://gitforwindows.org/)
+
+
+### Download code
 ```shell
-$ git clone git@github.com:esemi/backtester.git
+$ git clone https://github.com/esemi/backtester.git
 $ cd backtester
-$ python3.11 -m venv venv
-$ source venv/bin/activate
 ```
 
 
