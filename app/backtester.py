@@ -15,7 +15,7 @@ init_buy_amount: int = 3
 continue_buy_amount: int = 1
 
 # имя файла с ценой монеты, от старой к новой
-rates_filename = 'sol.csv'
+rates_filename = 'BINANCE_SOLUSDT, 60.csv'
 
 
 def main() -> None:
@@ -105,10 +105,15 @@ def get_rates(filename: str) -> list[float]:
         'rates',
         filename,
     ))
+
+    output: list[float] = []
     with open(filepath) as fd:
-        return [
-            float(line) for line in fd if line
-        ]
+        for num, line in enumerate(fd):
+            if not num or not line:
+                continue
+
+            output.append(float(line.split(',')[1]))
+    return output
 
 
 def _show_results(closed_positions: list[Position], open_positions: list[Position], last_rate: float) -> None:
@@ -128,6 +133,8 @@ def _show_results(closed_positions: list[Position], open_positions: list[Positio
     print(f'потратили на покупки монет {buy_amount}$')
     print(f'получили монет с продажи монет {sell_amount}$')
     print(f'сумма за ликвидацию зависших монет {hold_amount}$')
+
+    buy_amount = buy_amount or 1.0
     print(f'доходность без учёта зависших монет: {(sell_amount - buy_amount) / buy_amount * 100}%')
     print(f'доходность с учётом зависших монет: {(sell_amount + hold_amount - buy_amount) / buy_amount * 100}%')
 
