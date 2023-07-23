@@ -1,18 +1,18 @@
 import os
 
-from app.models import Position
+from app.models import Position, OnHoldPositions
 
 # шаг в абсолютных значениях для условия сделок.
 step: float = 0.02
 
 # шаг в процентах для условия сделок. 5% = 1.05
-avg_rate_sell_limit: float = 1.20
+avg_rate_sell_limit: float = 1.05
 
 # сколько позиций открываем в самом начале теста
 init_buy_amount: int = 3
 
 # сколько монет в одной позиции
-continue_buy_amount: int = 1
+continue_buy_amount: float = 1.0
 
 # имя файла с ценой монеты, от старой к новой
 rates_filename = 'BINANCE_SOLUSDT, 60.csv'
@@ -22,9 +22,18 @@ def main() -> None:
     history_rates = get_rates(rates_filename)
     open_positions: list[Position] = []
     closed_positions: list[Position] = []
+    max_onhold_positions: OnHoldPositions | None = None
 
     for tick_number, tick_rate in enumerate(history_rates):
         print('tick', tick_number, tick_rate)
+
+        on_hold_current = OnHoldPositions(
+            amount=sum([pos.amount for pos in open_positions]),
+            tick_number=tick_number,
+            rate=tick_rate,
+        )
+        if not max_onhold_positions or max_onhold_positions.amount < on_hold_current.amount:
+            max_onhold_positions = on_hold_current
 
         if not tick_number:
             print('init buy')
@@ -95,7 +104,7 @@ def main() -> None:
                 open_tick_number=tick_number,
             ))
 
-    _show_results(closed_positions, open_positions, last_rate=history_rates[-1])
+    _show_results(closed_positions, open_positions, last_rate=history_rates[-1], onhold=max_onhold_positions)
 
 
 def get_rates(filename: str) -> list[float]:
@@ -116,7 +125,12 @@ def get_rates(filename: str) -> list[float]:
     return output
 
 
-def _show_results(closed_positions: list[Position], open_positions: list[Position], last_rate: float) -> None:
+def _show_results(
+    closed_positions: list[Position],
+    open_positions: list[Position],
+    last_rate: float,
+    onhold: OnHoldPositions | None,
+) -> None:
     # считаем доходность
     buy_amount = sum(
         [pos.open_rate * pos.amount for pos in closed_positions]
@@ -137,6 +151,9 @@ def _show_results(closed_positions: list[Position], open_positions: list[Positio
     buy_amount = buy_amount or 1.0
     print(f'доходность без учёта зависших монет: {(sell_amount - buy_amount) / buy_amount * 100}%')
     print(f'доходность с учётом зависших монет: {(sell_amount + hold_amount - buy_amount) / buy_amount * 100}%')
+
+    if onhold:
+        print(f'максимум монет на руках: {onhold.amount} монет на тике {onhold.tick_number} (курс {onhold.rate})')
 
 
 if __name__ == '__main__':
