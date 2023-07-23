@@ -150,7 +150,9 @@ def _show_results(
 
     buy_amount = buy_amount or 1.0
     print(f'доходность без учёта зависших монет: {(sell_amount - buy_amount) / buy_amount * 100}%')
+    print(f'доходность без учёта зависших монет: {sell_amount - buy_amount}$')
     print(f'доходность с учётом зависших монет: {(sell_amount + hold_amount - buy_amount) / buy_amount * 100}%')
+    print(f'доходность с учётом зависших монет: {sell_amount + hold_amount - buy_amount}$')
 
     if onhold:
         print(f'максимум монет на руках: {onhold.amount} монет на тике {onhold.tick_number} (курс {onhold.rate})')
