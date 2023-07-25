@@ -1,25 +1,11 @@
 import os
 
 from app.models import Position, OnHoldPositions
-
-# шаг в абсолютных значениях для условия сделок.
-step: float = 0.02
-
-# шаг в процентах для условия сделок. 5% = 1.05
-avg_rate_sell_limit: float = 1.05
-
-# сколько позиций открываем в самом начале теста
-init_buy_amount: int = 3
-
-# сколько монет в одной позиции
-continue_buy_amount: float = 1.0
-
-# имя файла с ценой монеты, от старой к новой
-rates_filename = 'BINANCE_SOLUSDT, 60.csv'
+from app.settings import app_settings
 
 
 def main() -> None:
-    history_rates = get_rates(rates_filename)
+    history_rates = get_rates(app_settings.rates_filename)
     open_positions: list[Position] = []
     closed_positions: list[Position] = []
     max_onhold_positions: OnHoldPositions | None = None
@@ -37,9 +23,9 @@ def main() -> None:
 
         if not tick_number:
             print('init buy')
-            for _ in range(init_buy_amount):
+            for _ in range(app_settings.init_buy_amount):
                 open_positions.append(Position(
-                    amount=continue_buy_amount,
+                    amount=app_settings.continue_buy_amount,
                     open_rate=tick_rate,
                     open_tick_number=tick_number,
                 ))
@@ -60,12 +46,12 @@ def main() -> None:
             # условия на продажу
             # - средняя превысила цену покупки на 5%
             print('check sale by avg rate and open rate. Open rate +5% {0}. Average rate +5% {1}'.format(
-                position.open_rate * avg_rate_sell_limit,
-                avg_rate * avg_rate_sell_limit,
+                position.open_rate * app_settings.avg_rate_sell_limit,
+                avg_rate * app_settings.avg_rate_sell_limit,
             ))
-            if avg_rate >= position.open_rate * avg_rate_sell_limit:
+            if avg_rate >= position.open_rate * app_settings.avg_rate_sell_limit:
                 # - текущая цена выше чем средняя +5%
-                if tick_rate >= avg_rate * avg_rate_sell_limit:
+                if tick_rate >= avg_rate * app_settings.avg_rate_sell_limit:
                     print('close position')
                     sale_position = open_positions.pop(open_position_index)
                     sale_position.close_rate = tick_rate
@@ -76,9 +62,9 @@ def main() -> None:
 
             # - текущая цена выше цены покупки на 0.02+5%
             print('check sale by tick rate and open rate. Open rate + step + 5%: {0}'.format(
-                position.open_rate * avg_rate_sell_limit + step,
+                position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
             ))
-            if tick_rate >= position.open_rate * avg_rate_sell_limit + step:
+            if tick_rate >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step:
                 print('close position')
                 sale_position = open_positions.pop(open_position_index)
                 sale_position.close_rate = tick_rate
@@ -96,10 +82,10 @@ def main() -> None:
             history_rates[tick_number - 1],
             rate_go_down,
         ))
-        if rate_go_down >= step:
+        if rate_go_down >= app_settings.step:
             print('open position')
             open_positions.append(Position(
-                amount=continue_buy_amount,
+                amount=app_settings.continue_buy_amount,
                 open_rate=tick_rate,
                 open_tick_number=tick_number,
             ))

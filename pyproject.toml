@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "backtester"
+version = "0.1.0"
+description = ""
+authors = ["Simon <spam@esemi.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.0.3"
+pydantic-settings = {extras = ["dotenv"], version = "^2.0.2"}
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.4.1"
+
+[tool.mypy]
+python_version = 3.11
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

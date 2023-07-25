@@ -6,8 +6,8 @@ class Position:
     amount: float
     open_tick_number: int
     open_rate: float
-    close_rate: float | None = None
-    close_tick_number: int | None = None
+    close_rate: float = 0.0
+    close_tick_number: int = -1
 
 
 @dataclass
