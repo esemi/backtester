@@ -35,6 +35,13 @@ def main() -> None:
             print('skip')
             continue
 
+        # check global stop loss
+        if tick_rate <= app_settings.global_stop_loss:
+            print('global stop loss fired!', len(open_positions), len(closed_positions))
+            closed_positions = _close_all(open_positions, closed_positions, tick_rate, tick_number)
+            open_positions = []
+            break
+
         # search position for sale
         avg_rate: float = (history_rates[tick_number - 2] + history_rates[tick_number - 1]) / 2
         print('search position for sell. Avg rate: {0}, tick rate: {1}'.format(avg_rate, tick_rate))
@@ -142,6 +149,19 @@ def _show_results(
 
     if onhold:
         print(f'максимум монет на руках: {onhold.amount} монет на тике {onhold.tick_number} (курс {onhold.rate})')
+
+
+def _close_all(
+    open_positions: list[Position],
+    closed_positions: list[Position],
+    tick_rate: float,
+    tick_number: int,
+) -> list[Position]:
+    for open_position_index, position in enumerate(open_positions):
+        position.close_rate = tick_rate
+        position.close_tick_number = tick_number
+        closed_positions.append(position)
+    return closed_positions
 
 
 if __name__ == '__main__':
