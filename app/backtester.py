@@ -15,11 +15,12 @@ def main() -> None:
         logging.debug('tick {0} {1}'.format(tick_number, tick_rate))
 
         on_hold_current = OnHoldPositions(
-            amount=sum([pos.amount for pos in open_positions]),
+            quantity=sum([pos.amount for pos in open_positions]),
+            buy_amount=sum([pos.amount * pos.open_rate for pos in open_positions]),
             tick_number=tick_number,
-            rate=tick_rate,
+            tick_rate=tick_rate,
         )
-        if not max_onhold_positions or max_onhold_positions.amount < on_hold_current.amount:
+        if not max_onhold_positions or max_onhold_positions.quantity < on_hold_current.quantity:
             max_onhold_positions = on_hold_current
 
         if not tick_number:
@@ -162,10 +163,11 @@ def _show_results(
 
     if onhold:
         print('')
-        print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик)' % (
-            onhold.amount,
+        print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик, цена открытия $%.2f)' % (
+            onhold.quantity,
             onhold.tick_number,
-            onhold.rate * onhold.amount,
+            onhold.tick_rate * onhold.quantity,
+            onhold.buy_amount,
         ))
 
 

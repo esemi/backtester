@@ -12,6 +12,7 @@ class Position:
 
 @dataclass
 class OnHoldPositions:
-    amount: float
+    quantity: float
+    buy_amount: float
     tick_number: int
-    rate: float
+    tick_rate: float
