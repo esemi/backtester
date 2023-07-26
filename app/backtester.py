@@ -1,115 +1,32 @@
 import logging
 import os
 
-from app.models import Position, OnHoldPositions
+from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
+from app.strategy import Strategy
+
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    history_rates = get_rates(app_settings.rates_filename)
-    open_positions: list[Position] = []
-    closed_positions: list[Position] = []
-    max_onhold_positions: OnHoldPositions | None = None
+    strategy = Strategy()
+    for tick in get_rates(app_settings.rates_filename):
+        logger.info('tick {0}'.format(tick))
 
-    for tick_number, tick_rate in enumerate(history_rates):
-        logging.debug('tick {0} {1}'.format(tick_number, tick_rate))
-
-        on_hold_current = OnHoldPositions(
-            quantity=sum([pos.amount for pos in open_positions]),
-            buy_amount=sum([pos.amount * pos.open_rate for pos in open_positions]),
-            tick_number=tick_number,
-            tick_rate=tick_rate,
-        )
-        if not max_onhold_positions or max_onhold_positions.quantity < on_hold_current.quantity:
-            max_onhold_positions = on_hold_current
-
-        if not tick_number:
-            logging.info('init buy')
-            for _ in range(app_settings.init_buy_amount):
-                open_positions.append(Position(
-                    amount=app_settings.continue_buy_amount,
-                    open_rate=tick_rate,
-                    open_tick_number=tick_number,
-                ))
-            continue
-
-        if tick_number == 1:
-            logging.debug('skip')
-            continue
-
-        if tick_number >= app_settings.ticks_amount_limit:
-            logging.warning('end trading session by tick limit')
+        go_to_next_step = strategy.tick(tick=tick)
+        if not go_to_next_step:
+            logger.info('end trading')
             break
 
-        # check global stop loss
-        if tick_rate <= app_settings.global_stop_loss:
-            logging.warning('global stop loss fired! open: {0}. closed: {1}'.format(
-                len(open_positions),
-                len(closed_positions),
-            ))
-            closed_positions = _close_all(open_positions, closed_positions, tick_rate, tick_number)
-            open_positions = []
-            break
-
-        # search position for sale
-        avg_rate: float = (history_rates[tick_number - 2] + history_rates[tick_number - 1]) / 2
-        logging.debug('search position for sell. Avg rate: {0}, tick rate: {1}'.format(avg_rate, tick_rate))
-
-        sale_completed: bool = False
-        for open_position_index, position in enumerate(open_positions):
-            logging.debug(position)
-
-            # условия на продажу
-            # - средняя превысила цену покупки на 5%
-            logging.debug('check sale by avg rate and open rate. Open rate +5% {0}. Average rate +5% {1}'.format(
-                position.open_rate * app_settings.avg_rate_sell_limit,
-                avg_rate * app_settings.avg_rate_sell_limit,
-            ))
-            if avg_rate >= position.open_rate * app_settings.avg_rate_sell_limit:
-                # - текущая цена выше чем средняя +5%
-                if tick_rate >= avg_rate * app_settings.avg_rate_sell_limit:
-                    sale_position = open_positions.pop(open_position_index)
-                    sale_position.close_rate = tick_rate
-                    sale_position.close_tick_number = tick_number
-                    closed_positions.append(sale_position)
-                    logging.info('close position {0}'.format(sale_position))
-                    sale_completed = True
-                    break
-
-            # - текущая цена выше цены покупки на 0.02+5%
-            logging.debug('check sale by tick rate and open rate. Open rate + step + 5%: {0}'.format(
-                position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
-            ))
-            if tick_rate >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step:
-                sale_position = open_positions.pop(open_position_index)
-                sale_position.close_rate = tick_rate
-                sale_position.close_tick_number = tick_number
-                closed_positions.append(sale_position)
-                logging.info('close position {0}'.format(sale_position))
-                sale_completed = True
-                break
-
-        if sale_completed:
-            continue
-
-        # вот смотри там где разница была больше или равно 0.02 мы закупали
-        rate_go_down = history_rates[tick_number - 1] - tick_rate
-        logging.debug('check rates for buy. Prev rate: {0}, diff {1}'.format(
-            history_rates[tick_number - 1],
-            rate_go_down,
-        ))
-        if rate_go_down >= app_settings.step:
-            logging.info('open new position')
-            open_positions.append(Position(
-                amount=app_settings.continue_buy_amount,
-                open_rate=tick_rate,
-                open_tick_number=tick_number,
-            ))
-
-    _show_results(closed_positions, open_positions, last_rate=history_rates[-1], onhold=max_onhold_positions)
+    _show_results(
+        strategy.closed_positions,
+        strategy.open_positions,
+        last_rate=strategy.get_ticks_history()[-1].price,
+        onhold=strategy.max_onhold_positions,
+    )
 
 
-def get_rates(filename: str) -> list[float]:
+def get_rates(filename: str) -> list[Tick]:
     filepath = os.path.abspath(os.path.join(
         os.path.dirname(__file__),
         '..',
@@ -117,13 +34,18 @@ def get_rates(filename: str) -> list[float]:
         filename,
     ))
 
-    output: list[float] = []
+    output: list[Tick] = []
     with open(filepath) as fd:
+        tick_number = 0
         for num, line in enumerate(fd):
             if not num or not line:
                 continue
 
-            output.append(float(line.split(',')[1]))
+            output.append(Tick(
+                number=tick_number,
+                price=float(line.split(',')[1]),
+            ))
+            tick_number += 1
     return output
 
 
@@ -171,19 +93,6 @@ def _show_results(
             onhold.tick_rate * onhold.quantity,
             onhold.buy_amount,
         ))
-
-
-def _close_all(
-    open_positions: list[Position],
-    closed_positions: list[Position],
-    tick_rate: float,
-    tick_number: int,
-) -> list[Position]:
-    for open_position_index, position in enumerate(open_positions):
-        position.close_rate = tick_rate
-        position.close_tick_number = tick_number
-        closed_positions.append(position)
-    return closed_positions
 
 
 if __name__ == '__main__':
