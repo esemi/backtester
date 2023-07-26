@@ -100,7 +100,7 @@ def main() -> None:
                 open_rate=tick_rate,
                 open_tick_number=tick_number,
             ))
-    
+
     _show_results(closed_positions, open_positions, last_rate=history_rates[-1], onhold=max_onhold_positions)
 
 

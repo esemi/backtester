@@ -10,14 +10,12 @@
 ```bash
 git clone https://github.com/esemi/backtester.git
 cd backtester
-pip install -U pip poetry setuptools
-poetry install
+pip install -r requirements.txt
 ```
 
 Create env file to override default config
 ```bash
-cat > .env << EOF
-EOF
+cp .env.example .env
 ```
 
 ### Run backtesting tool
