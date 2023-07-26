@@ -36,6 +36,10 @@ def main() -> None:
             logging.debug('skip')
             continue
 
+        if tick_number >= app_settings.ticks_amount_limit:
+            logging.warning('end trading session by tick limit')
+            break
+
         # check global stop loss
         if tick_rate <= app_settings.global_stop_loss:
             logging.warning('global stop loss fired! open: {0}. closed: {1}'.format(
@@ -158,7 +162,11 @@ def _show_results(
 
     if onhold:
         print('')
-        print(f'максимум монет на руках: {onhold.amount} монет на тике {onhold.tick_number} (курс {onhold.rate})')
+        print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик)' % (
+            onhold.amount,
+            onhold.tick_number,
+            onhold.rate * onhold.amount,
+        ))
 
 
 def _close_all(
