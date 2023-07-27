@@ -63,6 +63,47 @@ class Strategy:
 
         return True
 
+    def show_results(self) -> None:
+        # считаем доходность
+        buy_amount = sum(
+            [pos.open_rate * pos.amount for pos in self.closed_positions]
+        ) + sum(
+            [pos.open_rate * pos.amount for pos in self.open_positions]
+        )
+        sell_amount = sum(
+            [pos.close_rate * pos.amount for pos in self.closed_positions]
+        )
+        hold_amount = sum(
+            [self.get_ticks_history()[-1].price * pos.amount for pos in self.open_positions]
+        )
+
+        print('')
+        print('Результаты тестирования:')
+        print(f'открытых позиций на конец торгов {len(self.open_positions)}')
+        print(f'закрытых позиций на конец торгов {len(self.closed_positions)}')
+        print('')
+        print('потратили на покупки монет $%.2f' % buy_amount)
+        print('получили монет с продажи монет $%.2f' % sell_amount)
+        print('сумма за ликвидацию зависших монет $%.2f' % hold_amount)
+        print('')
+
+        buy_amount = buy_amount or 1.0
+        print('доходность без учёта зависших монет: %.2f%%' % ((sell_amount - buy_amount) / buy_amount * 100))
+        print('доходность без учёта зависших монет: $%.2f' % (sell_amount - buy_amount))
+        print('')
+        print('доходность с учётом зависших монет: %.2f%%' % (
+                    (sell_amount + hold_amount - buy_amount) / buy_amount * 100))
+        print('доходность с учётом зависших монет: $%.2f' % (sell_amount + hold_amount - buy_amount))
+
+        if self.max_onhold_positions:
+            print('')
+            print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик, цена открытия $%.2f)' % (
+                self.max_onhold_positions.quantity,
+                self.max_onhold_positions.tick_number,
+                self.max_onhold_positions.tick_rate * self.max_onhold_positions.quantity,
+                self.max_onhold_positions.buy_amount,
+            ))
+
     def _update_max_hold_positions(self, tick: Tick):
         on_hold_current = OnHoldPositions(
             quantity=sum([pos.amount for pos in self.open_positions]),

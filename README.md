@@ -22,3 +22,8 @@ cp .env.example .env
 ```bash
 python -m app.backtester
 ```
+
+### Run trading tool
+```bash
+python -m app.trader
+```

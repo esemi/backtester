@@ -1,7 +1,7 @@
 import logging
 import os
 
-from app.models import Position, OnHoldPositions, Tick
+from app.models import Tick
 from app.settings import app_settings
 from app.strategy import Strategy
 
@@ -18,12 +18,7 @@ def main() -> None:
             logger.info('end trading')
             break
 
-    _show_results(
-        strategy.closed_positions,
-        strategy.open_positions,
-        last_rate=strategy.get_ticks_history()[-1].price,
-        onhold=strategy.max_onhold_positions,
-    )
+    strategy.show_results()
 
 
 def get_rates(filename: str) -> list[Tick]:
@@ -47,52 +42,6 @@ def get_rates(filename: str) -> list[Tick]:
             ))
             tick_number += 1
     return output
-
-
-def _show_results(
-    closed_positions: list[Position],
-    open_positions: list[Position],
-    last_rate: float,
-    onhold: OnHoldPositions | None,
-) -> None:
-    # считаем доходность
-    buy_amount = sum(
-        [pos.open_rate * pos.amount for pos in closed_positions]
-    ) + sum(
-        [pos.open_rate * pos.amount for pos in open_positions]
-    )
-    sell_amount = sum(
-        [pos.close_rate * pos.amount for pos in closed_positions]
-    )
-    hold_amount = sum(
-        [last_rate * pos.amount for pos in open_positions]
-    )
-
-    print('')
-    print('Результаты тестирования:')
-    print(f'открытых позиций на конец торгов {len(open_positions)}')
-    print(f'закрытых позиций на конец торгов {len(closed_positions)}')
-    print('')
-    print('потратили на покупки монет $%.2f' % buy_amount)
-    print('получили монет с продажи монет $%.2f' % sell_amount)
-    print('сумма за ликвидацию зависших монет $%.2f' % hold_amount)
-    print('')
-
-    buy_amount = buy_amount or 1.0
-    print('доходность без учёта зависших монет: %.2f%%' % ((sell_amount - buy_amount) / buy_amount * 100))
-    print('доходность без учёта зависших монет: $%.2f' % (sell_amount - buy_amount))
-    print('')
-    print('доходность с учётом зависших монет: %.2f%%' % ((sell_amount + hold_amount - buy_amount) / buy_amount * 100))
-    print('доходность с учётом зависших монет: $%.2f' % (sell_amount + hold_amount - buy_amount))
-
-    if onhold:
-        print('')
-        print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик, цена открытия $%.2f)' % (
-            onhold.quantity,
-            onhold.tick_number,
-            onhold.tick_rate * onhold.quantity,
-            onhold.buy_amount,
-        ))
 
 
 if __name__ == '__main__':
