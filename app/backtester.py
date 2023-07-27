@@ -1,5 +1,6 @@
 import logging
 import os
+from decimal import Decimal
 
 from app.models import Tick
 from app.settings import app_settings
@@ -38,7 +39,7 @@ def get_rates(filename: str) -> list[Tick]:
 
             output.append(Tick(
                 number=tick_number,
-                price=float(line.split(',')[1]),
+                price=Decimal(line.split(',')[1]),
             ))
             tick_number += 1
     return output

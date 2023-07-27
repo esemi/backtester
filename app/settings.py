@@ -19,10 +19,13 @@ class AppSettings(BaseSettings):
         default='BINANCE_SOLUSDT, 60.csv',
         description='имя файла с ценой монеты, от старой к новой',
     )
+    throttling_failure_time: int = 10
     throttling_time: int = 5
-    symbol: str = 'SOLUSDT'
     show_stats_every_ticks: int = 10
     failure_limit: int = 15
+    symbol: str = 'SOLUSDT'
+    binance_api_key: str = ''
+    binance_api_secret: str = ''
 
 
 app_settings = AppSettings(

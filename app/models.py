@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 
 @dataclass
@@ -21,4 +22,4 @@ class OnHoldPositions:
 @dataclass
 class Tick:
     number: int
-    price: float
+    price: Decimal

@@ -1,4 +1,4 @@
-name: linters
+name: tests
 
 on: [push]
 
@@ -18,9 +18,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
         pip install -r requirements-dev.txt
 
     - name: Run MyPy
       run: |
         mypy app/
+
+    - name: Run unittests
+      run: |
+        pytest
