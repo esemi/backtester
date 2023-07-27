@@ -136,6 +136,8 @@ def _show_results(
     # считаем доходность
     buy_amount = sum(
         [pos.open_rate * pos.amount for pos in closed_positions]
+    ) + sum(
+        [pos.open_rate * pos.amount for pos in open_positions]
     )
     sell_amount = sum(
         [pos.close_rate * pos.amount for pos in closed_positions]
