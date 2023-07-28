@@ -18,11 +18,11 @@ class Binance(BaseClient):
     def next_price(self) -> Generator[Tick | None, None, None]:
         tick_number: int = -1
         while True:
-            tick_number += 1
             try:
                 response = self._client.ticker_price(
                     symbol=self._symbol,
                 )
+                tick_number += 1
                 yield Tick(number=tick_number, price=Decimal(response.get('price')))
             except Exception as e:
                 logger.exception(e)
