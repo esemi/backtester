@@ -70,15 +70,16 @@ class Strategy:
 
     def show_results(self) -> None:
         # считаем доходность
-        buy_amount = sum(
+        buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self.closed_positions]
-        ) + sum(
+        )
+        buy_amount_total = buy_amount_without_current_opened + sum(
             [pos.open_rate * pos.amount for pos in self.open_positions]
         )
-        sell_amount = sum(
+        sell_amount_without_current_opened = sum(
             [pos.close_rate * pos.amount for pos in self.closed_positions]
         )
-        hold_amount = sum(
+        liquidation_amount = sum(
             [float(self.get_last_tick().price) * pos.amount for pos in self.open_positions]
         )
 
@@ -87,18 +88,25 @@ class Strategy:
         print(f'открытых позиций на конец торгов {len(self.open_positions)}')
         print(f'закрытых позиций на конец торгов {len(self.closed_positions)}')
         print('')
-        print('потратили на покупки монет $%.2f' % buy_amount)
-        print('получили монет с продажи монет $%.2f' % sell_amount)
-        print('сумма за ликвидацию зависших монет $%.2f' % hold_amount)
+        print('потратили на покупки реализованных монет $%.2f' % buy_amount_without_current_opened)
+        print('потратили на покупки монет всего $%.2f' % buy_amount_total)
+        print('получили денег с продажи монет $%.2f' % sell_amount_without_current_opened)
+        print('сумма за ликвидацию зависших монет $%.2f' % liquidation_amount)
         print('')
 
-        buy_amount = buy_amount or 1.0
-        print('доходность без учёта зависших монет: %.2f%%' % ((sell_amount - buy_amount) / buy_amount * 100))
-        print('доходность без учёта зависших монет: $%.2f' % (sell_amount - buy_amount))
-        print('')
-        print('доходность с учётом зависших монет: %.2f%%' % (
-                    (sell_amount + hold_amount - buy_amount) / buy_amount * 100))
-        print('доходность с учётом зависших монет: $%.2f' % (sell_amount + hold_amount - buy_amount))
+        if buy_amount_without_current_opened:
+            print('доходность без учёта зависших монет: %.2f%%' % (
+                (sell_amount_without_current_opened - buy_amount_without_current_opened) / buy_amount_without_current_opened * 100,
+            ))
+            print('доходность без учёта зависших монет: $%.2f' % (sell_amount_without_current_opened - buy_amount_without_current_opened))
+            print('')
+
+        if buy_amount_total:
+            print('доходность с учётом зависших монет: %.2f%%' % (
+                (sell_amount_without_current_opened + liquidation_amount - buy_amount_total) / buy_amount_total * 100),
+            )
+            print('доходность с учётом зависших монет: $%.2f' % (sell_amount_without_current_opened + liquidation_amount - buy_amount_total))
+            print('')
 
         if self.max_onhold_positions:
             print('')
