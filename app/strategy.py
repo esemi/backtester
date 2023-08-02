@@ -1,3 +1,4 @@
+import copy
 import logging
 from decimal import Decimal
 
@@ -52,8 +53,8 @@ class Strategy:
                 len(self.open_positions),
                 len(self.closed_positions),
             ))
-            while len(self.open_positions):
-                self._close_position(open_position_index=0, price=float(tick.price), tick_number=tick.number)
+            for position_for_close in copy.deepcopy(self.open_positions):
+                self._close_position(position_for_close, price=float(tick.price), tick_number=tick.number)
             self._update_max_hold_positions(tick)
             return False
 
@@ -137,10 +138,10 @@ class Strategy:
         ))
         return True
 
-    def _close_position(self, open_position_index: int, price: float, tick_number: int) -> bool:
+    def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
         # todo use self._exchange_client here
         logger.info('close position')
-        position_for_close = self.open_positions.pop(open_position_index)
+        self.open_positions.remove(position_for_close)
         position_for_close.close_rate = price
         position_for_close.close_tick_number = tick_number
         self.closed_positions.append(position_for_close)
@@ -151,7 +152,8 @@ class Strategy:
         logger.info('search position for sell. Tick price: {0}'.format(price))
 
         sale_completed: bool = False
-        for open_position_index, position in enumerate(self.open_positions):
+        iterable_open_positions = copy.deepcopy(self.open_positions)
+        for position in iterable_open_positions:
             logger.debug(position)
 
             # условия на продажу
@@ -170,9 +172,9 @@ class Strategy:
             if float(avg_rate) >= position.open_rate * app_settings.avg_rate_sell_limit:
                 # - текущая цена выше чем средняя +5%
                 if price >= float(avg_rate) * app_settings.avg_rate_sell_limit:
-                    self._close_position(open_position_index=open_position_index, price=price, tick_number=tick_number)
+                    self._close_position(position, price=price, tick_number=tick_number)
                     sale_completed = True
-                    break
+                    continue
 
             # - текущая цена выше цены покупки на 0.02+5%
             logger.info('check sale by tick rate and open rate.')
@@ -183,9 +185,9 @@ class Strategy:
                 price >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
             ))
             if price >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step:
-                self._close_position(open_position_index=open_position_index, price=price, tick_number=tick_number)
+                self._close_position(position, price=price, tick_number=tick_number)
                 sale_completed = True
-                break
+                continue
 
         return sale_completed
 
