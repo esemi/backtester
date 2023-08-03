@@ -27,7 +27,7 @@ class Strategy:
 
     def tick(self, tick: Tick) -> bool:
         self._push_ticks_history(tick)
-        self._update_max_hold_positions(tick)
+        self._update_max_hold_amount(tick)
 
         if not tick.number:
             logger.info('init buy')
@@ -55,7 +55,7 @@ class Strategy:
             ))
             for position_for_close in copy.deepcopy(self.open_positions):
                 self._close_position(position_for_close, price=float(tick.price), tick_number=tick.number)
-            self._update_max_hold_positions(tick)
+            self._update_max_hold_amount(tick)
             return False
 
         # search position for sale
@@ -66,7 +66,7 @@ class Strategy:
             logger.debug('try to buy something')
             self._buy_something(price=tick.price, tick_number=tick.number)
 
-        self._update_max_hold_positions(tick)
+        self._update_max_hold_amount(tick)
         return True
 
     def show_results(self) -> None:
@@ -141,14 +141,14 @@ class Strategy:
             self.max_onhold_positions.quantity if self.max_onhold_positions else 0,
         ))
 
-    def _update_max_hold_positions(self, tick: Tick):
+    def _update_max_hold_amount(self, tick: Tick):
         on_hold_current = OnHoldPositions(
             quantity=sum([pos.amount for pos in self.open_positions]),
             buy_amount=sum([pos.amount * pos.open_rate for pos in self.open_positions]),
             tick_number=tick.number,
             tick_rate=float(tick.price),
         )
-        if not self.max_onhold_positions or self.max_onhold_positions.quantity < on_hold_current.quantity:
+        if not self.max_onhold_positions or self.max_onhold_positions.buy_amount < on_hold_current.buy_amount:
             self.max_onhold_positions = on_hold_current
 
     def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:

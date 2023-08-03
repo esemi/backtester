@@ -21,7 +21,7 @@ class AppSettings(BaseSettings):
     )
     throttling_failure_time: int = 10
     throttling_time: int = 5
-    show_stats_every_ticks: int = 10
+    show_stats_every_ticks: int = 1
     failure_limit: int = 15
     symbol: str = 'SOLUSDT'
     binance_api_key: str = ''
