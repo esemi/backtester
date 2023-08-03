@@ -63,7 +63,7 @@ class Strategy:
 
         # вот смотри там где разница была больше или равно 0.02 мы закупали
         if not sale_completed:
-            logger.info('try to buy something')
+            logger.debug('try to buy something')
             self._buy_something(price=tick.price, tick_number=tick.number)
 
         self._update_max_hold_positions(tick)
@@ -149,7 +149,7 @@ class Strategy:
 
     def _sell_something(self, price: float, tick_number: int) -> bool:
         avg_rate: Decimal = self._get_history_average_price()
-        logger.info('search position for sell. Tick price: {0}'.format(price))
+        logger.debug('search position for sell. Tick price: {0}'.format(price))
 
         sale_completed: bool = False
         iterable_open_positions = copy.deepcopy(self.open_positions)
@@ -157,14 +157,14 @@ class Strategy:
             logger.debug(position)
 
             # условия на продажу
-            logger.info('check sale by avg rate and open rate.')
-            logger.info('Position: {3}. Open rate +5% {0}. Average rate {1}. Average+5% {2}'.format(
+            logger.debug('check sale by avg rate and open rate.')
+            logger.debug('Position: {3}. Open rate +5% {0}. Average rate {1}. Average+5% {2}'.format(
                 position.open_rate * app_settings.avg_rate_sell_limit,
                 float(avg_rate),
                 float(avg_rate) * app_settings.avg_rate_sell_limit,
                 position,
             ))
-            logger.info('Средняя цена превысила цену покупки на N% {0}. Текущая цена выше чем средняя+N% {1}'.format(
+            logger.debug('Средняя цена превысила цену покупки на N% {0}. Текущая цена выше чем средняя+N% {1}'.format(
                 float(avg_rate) >= position.open_rate * app_settings.avg_rate_sell_limit,
                 price >= float(avg_rate) * app_settings.avg_rate_sell_limit,
             ))
@@ -177,8 +177,8 @@ class Strategy:
                     continue
 
             # - текущая цена выше цены покупки на 0.02+5%
-            logger.info('check sale by tick rate and open rate.')
-            logger.info('Position: {2}. Open rate + step + 5%: {0}. Current price {1}. Check {3}'.format(
+            logger.debug('check sale by tick rate and open rate.')
+            logger.debug('Position: {2}. Open rate + step + 5%: {0}. Current price {1}. Check {3}'.format(
                 position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
                 price,
                 position,
@@ -193,7 +193,7 @@ class Strategy:
 
     def _buy_something(self, price: Decimal, tick_number: int) -> None:
         rate_go_down = self.get_previous_tick().price - price
-        logger.info('check rates for buy. Prev rate: %.4f, diff %.4f' % (
+        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f' % (
             float(self.get_previous_tick().price),
             float(rate_go_down),
         ))
