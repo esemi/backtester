@@ -70,7 +70,6 @@ class Strategy:
         return True
 
     def show_results(self) -> None:
-        # считаем доходность
         buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self.closed_positions]
         )
@@ -96,51 +95,51 @@ class Strategy:
             [pos.amount for pos in self.open_positions]
         )
 
-        print('')
+        # считаем доходность относительно максимума средств в обороте
+        max_amount_onhold = self.max_onhold_positions.buy_amount
+        profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
+        profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
+        profit_percent_without_current_opened = profit_amount_without_current_opened / (max_amount_onhold or 0.0) * 100
+        profit_percent_total = profit_amount_total / (max_amount_onhold or 0.0) * 100
+
         print('Результаты тестирования:')
-        print(f'открытых позиций на конец торгов {len(self.open_positions)}')
-        print(f'закрытых позиций на конец торгов {len(self.closed_positions)}')
         print('')
-        print('потратили на покупки реализованных монет $%.2f (%.2f монет)' % (
-            buy_amount_without_current_opened,
-            buy_without_current_opened,
-        ))
-        print('потратили на покупки монет всего $%.2f (%.2f монет)' % (
+        print('Общая оборотная сумма денег с начала запуска $%.2f (%.2f монет)' % (
             buy_amount_total,
             buy_total,
         ))
-        print('получили денег с продажи монет $%.2f (%.2f монет)' % (
+
+        print('')
+        print('Оборотная сумма денег на покупки реализованных монет $%.2f (%.2f монет)' % (
+            buy_amount_without_current_opened,
+            buy_without_current_opened,
+        ))
+
+        print('')
+        print('Оборотная сумма денег за продажу реализованных монет $%.2f (%.2f монет)' % (
             sell_amount_without_current_opened,
             sell_without_current_opened,
         ))
-        print('сумма за ликвидацию зависших монет $%.2f (%.2f монет)' % (
+        print('Доходность без учёта зависших монет: $%.2f (%.2f%%)' % (
+            profit_amount_without_current_opened,
+            profit_percent_without_current_opened,
+        ))
+
+        print('')
+        print('Сумма денег за ликвидацию зависших монет $%.2f (%.2f монет)' % (
             liquidation_amount,
             liquidation,
         ))
+        print('Доходность с учётом зависших монет: $%.2f (%.2f%%)' % (
+            profit_amount_total,
+            profit_percent_total,
+        ))
+
         print('')
-
-        if buy_amount_without_current_opened:
-            print('доходность без учёта зависших монет: %.2f%%' % (
-                (sell_amount_without_current_opened - buy_amount_without_current_opened) / buy_amount_without_current_opened * 100,
-            ))
-            print('доходность без учёта зависших монет: $%.2f' % (sell_amount_without_current_opened - buy_amount_without_current_opened))
-            print('')
-
-        if buy_amount_total:
-            print('доходность с учётом зависших монет: %.2f%%' % (
-                (sell_amount_without_current_opened + liquidation_amount - buy_amount_total) / buy_amount_total * 100),
-            )
-            print('доходность с учётом зависших монет: $%.2f' % (sell_amount_without_current_opened + liquidation_amount - buy_amount_total))
-            print('')
-
-        if self.max_onhold_positions:
-            print('')
-            print('максимум %.2f монет на руках на тике %d ($%.2f по курсу на этот тик, цена открытия $%.2f)' % (
-                self.max_onhold_positions.quantity,
-                self.max_onhold_positions.tick_number,
-                self.max_onhold_positions.tick_rate * self.max_onhold_positions.quantity,
-                self.max_onhold_positions.buy_amount,
-            ))
+        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f (%.1f монет)' % (
+            self.max_onhold_positions.buy_amount if self.max_onhold_positions else 0,
+            self.max_onhold_positions.quantity if self.max_onhold_positions else 0,
+        ))
 
     def _update_max_hold_positions(self, tick: Tick):
         on_hold_current = OnHoldPositions(
