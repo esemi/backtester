@@ -62,7 +62,7 @@ def test_sell_something():
     strategy = Strategy(exchange_client=Mock())
     buy_price = 10.0
     hold_price = 11.0
-    minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit + app_settings.step
+    minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit
     strategy.tick(Tick(number=0, price=Decimal(buy_price)))
     strategy.tick(Tick(number=1, price=Decimal(buy_price)))
     strategy.tick(Tick(number=2, price=Decimal(buy_price) - Decimal(1)))

@@ -74,14 +74,26 @@ class Strategy:
         buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self.closed_positions]
         )
+        buy_without_current_opened = sum(
+            [pos.amount for pos in self.closed_positions]
+        )
         buy_amount_total = buy_amount_without_current_opened + sum(
             [pos.open_rate * pos.amount for pos in self.open_positions]
+        )
+        buy_total = buy_without_current_opened + sum(
+            [pos.amount for pos in self.open_positions]
         )
         sell_amount_without_current_opened = sum(
             [pos.close_rate * pos.amount for pos in self.closed_positions]
         )
+        sell_without_current_opened = sum(
+            [pos.amount for pos in self.closed_positions]
+        )
         liquidation_amount = sum(
             [float(self.get_last_tick().price) * pos.amount for pos in self.open_positions]
+        )
+        liquidation = sum(
+            [pos.amount for pos in self.open_positions]
         )
 
         print('')
@@ -89,10 +101,22 @@ class Strategy:
         print(f'открытых позиций на конец торгов {len(self.open_positions)}')
         print(f'закрытых позиций на конец торгов {len(self.closed_positions)}')
         print('')
-        print('потратили на покупки реализованных монет $%.2f' % buy_amount_without_current_opened)
-        print('потратили на покупки монет всего $%.2f' % buy_amount_total)
-        print('получили денег с продажи монет $%.2f' % sell_amount_without_current_opened)
-        print('сумма за ликвидацию зависших монет $%.2f' % liquidation_amount)
+        print('потратили на покупки реализованных монет $%.2f (%.2f монет)' % (
+            buy_amount_without_current_opened,
+            buy_without_current_opened,
+        ))
+        print('потратили на покупки монет всего $%.2f (%.2f монет)' % (
+            buy_amount_total,
+            buy_total,
+        ))
+        print('получили денег с продажи монет $%.2f (%.2f монет)' % (
+            sell_amount_without_current_opened,
+            sell_without_current_opened,
+        ))
+        print('сумма за ликвидацию зависших монет $%.2f (%.2f монет)' % (
+            liquidation_amount,
+            liquidation,
+        ))
         print('')
 
         if buy_amount_without_current_opened:
@@ -148,7 +172,6 @@ class Strategy:
         return True
 
     def _sell_something(self, price: float, tick_number: int) -> bool:
-        avg_rate: Decimal = self._get_history_average_price()
         logger.debug('search position for sell. Tick price: {0}'.format(price))
 
         sale_completed: bool = False
@@ -157,34 +180,15 @@ class Strategy:
             logger.debug(position)
 
             # условия на продажу
-            logger.debug('check sale by avg rate and open rate.')
-            logger.debug('Position: {3}. Open rate +5% {0}. Average rate {1}. Average+5% {2}'.format(
-                position.open_rate * app_settings.avg_rate_sell_limit,
-                float(avg_rate),
-                float(avg_rate) * app_settings.avg_rate_sell_limit,
-                position,
-            ))
-            logger.debug('Средняя цена превысила цену покупки на N% {0}. Текущая цена выше чем средняя+N% {1}'.format(
-                float(avg_rate) >= position.open_rate * app_settings.avg_rate_sell_limit,
-                price >= float(avg_rate) * app_settings.avg_rate_sell_limit,
-            ))
-            # - средняя превысила цену покупки на 5%
-            if float(avg_rate) >= position.open_rate * app_settings.avg_rate_sell_limit:
-                # - текущая цена выше чем средняя +5%
-                if price >= float(avg_rate) * app_settings.avg_rate_sell_limit:
-                    self._close_position(position, price=price, tick_number=tick_number)
-                    sale_completed = True
-                    continue
-
-            # - текущая цена выше цены покупки на 0.02+5%
+            # - текущая цена выше цены покупки на 5%
             logger.debug('check sale by tick rate and open rate.')
-            logger.debug('Position: {2}. Open rate + step + 5%: {0}. Current price {1}. Check {3}'.format(
-                position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
-                price,
+            logger.debug('Position: {0}. Current price {1}. Open rate + 5%: {2}. Check {3}'.format(
                 position,
-                price >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step,
+                price,
+                position.open_rate * app_settings.avg_rate_sell_limit,
+                price >= position.open_rate * app_settings.avg_rate_sell_limit,
             ))
-            if price >= position.open_rate * app_settings.avg_rate_sell_limit + app_settings.step:
+            if price >= position.open_rate * app_settings.avg_rate_sell_limit:
                 self._close_position(position, price=price, tick_number=tick_number)
                 sale_completed = True
                 continue
