@@ -18,6 +18,11 @@ Create env file to override default config
 cp .env.example .env
 ```
 
+### Run rates loader tool
+```bash
+python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01
+```
+
 ### Run backtesting tool
 ```bash
 python -m app.backtester

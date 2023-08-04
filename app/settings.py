@@ -26,6 +26,7 @@ class AppSettings(BaseSettings):
     symbol: str = 'SOLUSDT'
     binance_api_key: str = ''
     binance_api_secret: str = ''
+    rates_path: str = os.path.join(os.path.dirname(__file__), '..', 'rates')
 
 
 app_settings = AppSettings(

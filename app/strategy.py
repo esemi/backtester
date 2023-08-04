@@ -96,11 +96,11 @@ class Strategy:
         )
 
         # считаем доходность относительно максимума средств в обороте
-        max_amount_onhold = self.max_onhold_positions.buy_amount
+        max_amount_onhold = self.max_onhold_positions.buy_amount if self.max_onhold_positions else 0
         profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
         profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
-        profit_percent_without_current_opened = profit_amount_without_current_opened / (max_amount_onhold or 0.0) * 100
-        profit_percent_total = profit_amount_total / (max_amount_onhold or 0.0) * 100
+        profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * 100) if max_amount_onhold else 0
+        profit_percent_total = (profit_amount_total / max_amount_onhold * 100) if max_amount_onhold else 0
 
         print('Результаты тестирования:')
         print('')

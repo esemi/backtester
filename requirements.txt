@@ -1,4 +1,4 @@
 pydantic==2.1.1
 pydantic-settings==2.0.2
 python-dotenv==1.0.0
-binance-connector==3.1.1
+binance-connector==3.2.0

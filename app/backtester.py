@@ -24,9 +24,7 @@ def main() -> None:
 
 def get_rates(filename: str) -> list[Tick]:
     filepath = os.path.abspath(os.path.join(
-        os.path.dirname(__file__),
-        '..',
-        'rates',
+        app_settings.rates_path,
         filename,
     ))
 
