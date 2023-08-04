@@ -43,6 +43,8 @@ def main() -> None:
             failure_counter += 1
             continue
 
+        failure_counter = 0
+
         go_to_next_step = strategy.tick(tick=tick)
         if not go_to_next_step:
             logger.info('end trading by strategy reason')
