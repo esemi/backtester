@@ -58,7 +58,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', required=True, help='Symbol code')
     parser.add_argument('--from-date', required=True, help='History from date to now (eg. 2023-01-25)', type=valid_date)
-    parser.add_argument('--interval', choices=['1s', '1m', '5m', '1h', '1d'], help='Candle interval', default='5m')
+    parser.add_argument(
+        '--interval',
+        choices=['1m', '3m', '5m', '10m', '30m', '1h'],
+        help='Candle interval',
+        default='5m',
+    )
     args = parser.parse_args()
 
     main(args.symbol, args.from_date, args.interval)
