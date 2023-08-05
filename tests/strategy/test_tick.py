@@ -12,8 +12,8 @@ def test_init_buy():
     response = strategy.tick(Tick(number=0, price=Decimal(10)))
 
     assert response is True
-    assert len(strategy.open_positions) == 3
-    assert not strategy.closed_positions
+    assert len(strategy._open_positions) == 3
+    assert not strategy._closed_positions
 
 
 def test_skip_first_tick():
@@ -23,8 +23,8 @@ def test_skip_first_tick():
     response = strategy.tick(Tick(number=1, price=Decimal(9)))
 
     assert response is True
-    assert len(strategy.open_positions) == 3
-    assert not strategy.closed_positions
+    assert len(strategy._open_positions) == 3
+    assert not strategy._closed_positions
 
 
 def test_break_by_tick_limit():
@@ -42,8 +42,8 @@ def test_break_by_global_stop_loss():
     response = strategy.tick(Tick(number=2, price=Decimal(app_settings.global_stop_loss)))
 
     assert response is False
-    assert len(strategy.open_positions) == 0
-    assert len(strategy.closed_positions) == 3
+    assert len(strategy._open_positions) == 0
+    assert len(strategy._closed_positions) == 3
 
 
 def test_buy_something():
@@ -54,8 +54,8 @@ def test_buy_something():
     response = strategy.tick(Tick(number=2, price=Decimal(8)))
 
     assert response is True
-    assert len(strategy.open_positions) == 4
-    assert strategy.open_positions[-1].open_rate == Decimal(8)
+    assert len(strategy._open_positions) == 4
+    assert strategy._open_positions[-1].open_rate == Decimal(8)
 
 
 def test_sell_something():
@@ -66,16 +66,16 @@ def test_sell_something():
     strategy.tick(Tick(number=0, price=Decimal(buy_price)))
     strategy.tick(Tick(number=1, price=Decimal(buy_price)))
     strategy.tick(Tick(number=2, price=Decimal(buy_price) - Decimal(1)))
-    strategy.open_positions[-1].open_rate = hold_price
+    strategy._open_positions[-1].open_rate = hold_price
 
     response = strategy.tick(Tick(number=3, price=Decimal(minimal_sell_price)))
 
     assert response is True
-    assert len(strategy.open_positions) == 1
-    assert strategy.open_positions[0].open_rate == hold_price
-    assert strategy.open_positions[0].open_tick_number == 2
-    assert len(strategy.closed_positions) == 3
-    for position in strategy.closed_positions:
+    assert len(strategy._open_positions) == 1
+    assert strategy._open_positions[0].open_rate == hold_price
+    assert strategy._open_positions[0].open_tick_number == 2
+    assert len(strategy._closed_positions) == 3
+    for position in strategy._closed_positions:
         assert position.open_rate == buy_price
         assert position.open_tick_number == 0
         assert position.close_rate == minimal_sell_price

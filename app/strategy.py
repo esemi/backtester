@@ -13,9 +13,9 @@ class Strategy:
     tick_history_limit: int = 10
 
     def __init__(self, exchange_client: BaseClient | None = None) -> None:
-        self.open_positions: list[Position] = []
-        self.closed_positions: list[Position] = []
-        self.max_onhold_positions: OnHoldPositions | None = None
+        self._open_positions: list[Position] = []
+        self._closed_positions: list[Position] = []
+        self._max_onhold_positions: OnHoldPositions | None = None
         self._ticks_history: list[Tick] = []
         self._exchange_client = exchange_client
 
@@ -50,10 +50,10 @@ class Strategy:
         # check global stop loss
         if tick.price <= app_settings.global_stop_loss:
             logger.warning('global stop loss fired! open: {0}. closed: {1}'.format(
-                len(self.open_positions),
-                len(self.closed_positions),
+                len(self._open_positions),
+                len(self._closed_positions),
             ))
-            for position_for_close in copy.deepcopy(self.open_positions):
+            for position_for_close in self._get_open_positions_for_sell():
                 self._close_position(position_for_close, price=float(tick.price), tick_number=tick.number)
             self._update_max_hold_amount(tick)
             return False
@@ -71,32 +71,32 @@ class Strategy:
 
     def show_results(self) -> None:
         buy_amount_without_current_opened = sum(
-            [pos.open_rate * pos.amount for pos in self.closed_positions]
+            [pos.open_rate * pos.amount for pos in self._closed_positions]
         )
         buy_without_current_opened = sum(
-            [pos.amount for pos in self.closed_positions]
+            [pos.amount for pos in self._closed_positions]
         )
         buy_amount_total = buy_amount_without_current_opened + sum(
-            [pos.open_rate * pos.amount for pos in self.open_positions]
+            [pos.open_rate * pos.amount for pos in self._open_positions]
         )
         buy_total = buy_without_current_opened + sum(
-            [pos.amount for pos in self.open_positions]
+            [pos.amount for pos in self._open_positions]
         )
         sell_amount_without_current_opened = sum(
-            [pos.close_rate * pos.amount for pos in self.closed_positions]
+            [pos.close_rate * pos.amount for pos in self._closed_positions]
         )
         sell_without_current_opened = sum(
-            [pos.amount for pos in self.closed_positions]
+            [pos.amount for pos in self._closed_positions]
         )
         liquidation_amount = sum(
-            [float(self.get_last_tick().price) * pos.amount for pos in self.open_positions]
+            [float(self.get_last_tick().price) * pos.amount for pos in self._open_positions]
         )
         liquidation = sum(
-            [pos.amount for pos in self.open_positions]
+            [pos.amount for pos in self._open_positions]
         )
 
         # считаем доходность относительно максимума средств в обороте
-        max_amount_onhold = self.max_onhold_positions.buy_amount if self.max_onhold_positions else 0
+        max_amount_onhold = self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0
         profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
         profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
         profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * 100) if max_amount_onhold else 0
@@ -137,24 +137,27 @@ class Strategy:
 
         print('')
         print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f (%.1f монет)' % (
-            self.max_onhold_positions.buy_amount if self.max_onhold_positions else 0,
-            self.max_onhold_positions.quantity if self.max_onhold_positions else 0,
+            self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
+            self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
         ))
 
     def _update_max_hold_amount(self, tick: Tick):
         on_hold_current = OnHoldPositions(
-            quantity=sum([pos.amount for pos in self.open_positions]),
-            buy_amount=sum([pos.amount * pos.open_rate for pos in self.open_positions]),
+            quantity=sum([pos.amount for pos in self._open_positions]),
+            buy_amount=sum([pos.amount * pos.open_rate for pos in self._open_positions]),
             tick_number=tick.number,
             tick_rate=float(tick.price),
         )
-        if not self.max_onhold_positions or self.max_onhold_positions.buy_amount < on_hold_current.buy_amount:
-            self.max_onhold_positions = on_hold_current
+        if not self._max_onhold_positions or self._max_onhold_positions.buy_amount < on_hold_current.buy_amount:
+            self._max_onhold_positions = on_hold_current
+
+    def _get_open_positions_for_sell(self) -> list[Position]:
+        return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
     def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:
         # todo use self._exchange_client here
         logger.info('open new position')
-        self.open_positions.append(Position(
+        self._open_positions.append(Position(
             amount=quantity,
             open_rate=price,
             open_tick_number=tick_number,
@@ -164,18 +167,17 @@ class Strategy:
     def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
         # todo use self._exchange_client here
         logger.info('close position')
-        self.open_positions.remove(position_for_close)
+        self._open_positions.remove(position_for_close)
         position_for_close.close_rate = price
         position_for_close.close_tick_number = tick_number
-        self.closed_positions.append(position_for_close)
+        self._closed_positions.append(position_for_close)
         return True
 
     def _sell_something(self, price: float, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(price))
 
         sale_completed: bool = False
-        iterable_open_positions = copy.deepcopy(self.open_positions)
-        for position in iterable_open_positions:
+        for position in self._get_open_positions_for_sell():
             logger.debug(position)
 
             # условия на продажу

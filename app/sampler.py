@@ -61,7 +61,7 @@ if __name__ == '__main__':
     parser.add_argument('--from-date', required=True, help='History from date to now (eg. 2023-01-25)', type=valid_date)
     parser.add_argument(
         '--interval',
-        choices=['1m', '3m', '5m', '10m', '30m', '1h'],
+        choices=['1m', '3m', '5m', '15m', '30m', '1h'],
         help='Candle interval',
         default='5m',
     )
