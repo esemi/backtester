@@ -30,8 +30,9 @@ def main(symbol: str, start_date: datetime, interval: str = '5m') -> int:
         while True:
             rates = binance_client.get_klines(interval, start_ms, limit)
             counter += len(rates)
-            for rate in rates:
-                output_fd.write('%d,%s\n' % rate)
+            for tick_time, tick_rate in rates:
+                tick_date = datetime.utcfromtimestamp(tick_time / 1000)
+                output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), tick_rate))
 
             if len(rates) < limit:
                 break
