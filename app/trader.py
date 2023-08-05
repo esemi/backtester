@@ -23,6 +23,7 @@ def main() -> None:
         symbol=app_settings.symbol,
         api_key=app_settings.binance_api_key,
         api_secret=app_settings.binance_api_secret,
+        test_mode=app_settings.dry_run,
     )
     failure_counter: int = 0
     strategy = Strategy(exchange_client=exchange_client)

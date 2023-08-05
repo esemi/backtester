@@ -4,7 +4,7 @@ from app.exchange_client.binance import Binance
 
 
 def test_get_klines_happy_path():
-    client = Binance(symbol='SOLUSDT')
+    client = Binance(symbol='BTCUSDT', test_mode=True)
     start_ms = round((datetime.utcnow() - timedelta(days=1)).timestamp() * 1000)
 
     response = client.get_klines(

@@ -12,11 +12,7 @@ logger = logging.getLogger(__file__)
 
 def main(symbol: str, start_date: datetime, interval: str = '5m') -> int:
     logger.info('load sample for {0}-{1} from {2}'.format(symbol, interval, start_date))
-    binance_client = Binance(
-        symbol=symbol,
-        api_key=app_settings.binance_api_key,
-        api_secret=app_settings.binance_api_secret,
-    )
+    binance_client = Binance(symbol=symbol)
     limit: int = 1000
     counter: int = 0
     filepath = os.path.join(

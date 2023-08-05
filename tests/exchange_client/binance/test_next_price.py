@@ -2,7 +2,7 @@ from app.exchange_client.binance import Binance
 
 
 def test_next_price_happy_path():
-    client = Binance(symbol='BTCUSDT')
+    client = Binance(symbol='BTCUSDT', test_mode=True)
     response = next(client.next_price())
 
     assert response.number == 0
