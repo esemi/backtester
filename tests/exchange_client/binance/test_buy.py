@@ -12,19 +12,16 @@ def test_buy_happy_path():
         api_secret=app_settings.binance_api_secret,
     )
     actual_price = next(client.next_price()).price + Decimal(1)
+    qty = Decimal('0.00035')  # ~$10
 
     response = client.buy(
-        quantity=Decimal('0.00035'),  # ~$10
+        quantity=qty,
         price=actual_price,
     )
 
     assert response['status'] == 'FILLED'
-    assert response['price'] == str(actual_price)
-    assert response['price'] == str(actual_price)
-
-    assert len(response) == 100
-    assert response[0][0] > 0
-    assert response[0][1]
+    assert Decimal(response['cummulativeQuoteQty']) <= actual_price
+    assert Decimal(response['executedQty']) == qty
 
 
 def test_buy_canceled():
@@ -41,6 +38,6 @@ def test_buy_canceled():
         price=actual_price.price - Decimal(10),
     )
 
-    assert len(response) == 100
-    assert response[0][0] > 0
-    assert response[0][1]
+    assert response['status'] == 'EXPIRED'
+    assert Decimal(response['executedQty']) == Decimal(0)
+    assert Decimal(response['cummulativeQuoteQty']) == Decimal(0)

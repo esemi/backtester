@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class Strategy:
     tick_history_limit: int = 10
 
-    def __init__(self, exchange_client: BaseClient | None = None) -> None:
+    def __init__(self, exchange_client: BaseClient) -> None:
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
         self._max_onhold_positions: OnHoldPositions | None = None
@@ -156,16 +156,20 @@ class Strategy:
 
     def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:
         buy_response = self._exchange_client.buy(
-            quantity=quantity,
-            price=price,
+            quantity=Decimal(quantity),
+            price=Decimal(price),
         )
-        print(buy_response)
-        # todo impl
-        # todo test
+        logger.debug('open new position response {0}'.format(buy_response))
+        if not buy_response or buy_response.get('status') != 'FILLED':
+            logger.info('open new position - unsuccessfully "{0}"'.format(
+                buy_response,
+            ))
+            return False
+
         logger.info('open new position')
         self._open_positions.append(Position(
-            amount=quantity,
-            open_rate=price,
+            amount=float(buy_response['executedQty']),
+            open_rate=float(buy_response['cummulativeQuoteQty']) / float(buy_response['executedQty']),
             open_tick_number=tick_number,
         ))
         return True

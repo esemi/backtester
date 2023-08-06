@@ -49,14 +49,18 @@ class Binance(BaseClient):
             for line in response
         ]
 
-    def buy(self, quantity: Decimal, price: Decimal) -> dict:
-        return self._client_spot.new_order(
-            symbol=self._symbol,
-            side='BUY',
-            type='LIMIT',
-            timeInForce='FOK',
-            quantity=quantity,
-            price=price,
-            recvWindow=15000,
-            timestamp=int(datetime.utcnow().timestamp() * 1000),
-        )
+    def buy(self, quantity: Decimal, price: Decimal) -> dict | None:
+        try:
+            return self._client_spot.new_order(
+                symbol=self._symbol,
+                side='BUY',
+                type='LIMIT',
+                timeInForce='FOK',
+                quantity=quantity,
+                price=price,
+                recvWindow=15000,
+                timestamp=int(datetime.utcnow().timestamp() * 1000),
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None

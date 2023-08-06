@@ -2,6 +2,7 @@ import logging
 import os
 from decimal import Decimal
 
+from app.exchange_client.dummy import Dummy
 from app.models import Tick
 from app.settings import app_settings
 from app.strategy import Strategy
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    strategy = Strategy()
+    strategy = Strategy(exchange_client=Dummy(symbol='dummy'))
     for tick in get_rates(app_settings.rates_filename):
         logger.info('tick {0}'.format(tick))
 
