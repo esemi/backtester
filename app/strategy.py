@@ -155,7 +155,13 @@ class Strategy:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
     def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:
-        # todo use self._exchange_client here
+        buy_response = self._exchange_client.buy(
+            quantity=quantity,
+            price=price,
+        )
+        print(buy_response)
+        # todo impl
+        # todo test
         logger.info('open new position')
         self._open_positions.append(Position(
             amount=quantity,

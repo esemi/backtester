@@ -1,4 +1,6 @@
 import logging
+import time
+from datetime import datetime
 from decimal import Decimal
 from typing import Generator
 
@@ -46,3 +48,15 @@ class Binance(BaseClient):
             )
             for line in response
         ]
+
+    def buy(self, quantity: Decimal, price: Decimal) -> dict:
+        return self._client_spot.new_order(
+            symbol=self._symbol,
+            side='BUY',
+            type='LIMIT',
+            timeInForce='FOK',
+            quantity=quantity,
+            price=price,
+            recvWindow=15000,
+            timestamp=int(datetime.utcnow().timestamp() * 1000),
+        )
