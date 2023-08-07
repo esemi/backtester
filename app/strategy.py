@@ -29,6 +29,10 @@ class Strategy:
         self._push_ticks_history(tick)
         self._update_max_hold_amount(tick)
 
+        if tick.number >= app_settings.ticks_amount_limit:
+            logger.warning('end trading session by tick limit')
+            return False
+
         if not tick.number:
             logger.info('init buy')
             for _ in range(app_settings.init_buy_amount):
@@ -42,10 +46,6 @@ class Strategy:
         if tick.number == 1:
             logger.info('skip')
             return True
-
-        if tick.number >= app_settings.ticks_amount_limit:
-            logger.warning('end trading session by tick limit')
-            return False
 
         # check global stop loss
         if tick.price <= app_settings.global_stop_loss:
@@ -179,7 +179,6 @@ class Strategy:
         return True
 
     def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
-        # todo test
         sell_response = self._exchange_client.sell(
             quantity=Decimal(position_for_close.amount),
             price=Decimal(price),

@@ -1,0 +1,48 @@
+name: deploy-prod-#1
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: production_deploy
+      cancel-in-progress: true
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: deploy
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        env:
+          TARGET_DIR: /home/trader1
+          VENV_BIN: venv/bin
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          user: trader1
+          pass: ${{ secrets.PROD_PASSWORD }}
+          port: 22
+          connect_timeout: 10s
+          first_ssh: |-
+            mkdir -p app
+            mkdir -p logs
+            test -d venv || python3.11 -m venv venv
+
+          scp: |-
+            './app/*' => $TARGET_DIR/app/
+            './instances/*' => $TARGET_DIR/instances/
+            ./requirements.txt => $TARGET_DIR
+
+          last_ssh: |-
+            $VENV_BIN/pip install pip setuptools --upgrade
+            $VENV_BIN/pip install -r requirements.txt
+            $VENV_BIN/pip cache purge
+            mv instances/env#1 .env
+            echo 'binance_api_key=${{ secrets.BINANCE_API_KEY }}' >> .env
+            echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET }}' >> .env
+            supervisorctl restart trader1

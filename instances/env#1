@@ -1,0 +1,13 @@
+# strategy settings
+step=0.02
+avg_rate_sell_limit=1.05
+init_buy_amount=1
+continue_buy_amount=1.0
+global_stop_loss=0.0
+ticks_amount_limit=0
+
+# trader settings
+title=FIRST_BOT_BINANCE
+throttling_time=15
+symbol=BTCUSDT
+dry_run=true

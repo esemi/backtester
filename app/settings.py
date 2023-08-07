@@ -27,6 +27,7 @@ class AppSettings(BaseSettings):
     )
 
     # trader settings
+    title: str = 'Trader-bot [dev]'
     throttling_failure_time: int = 10
     throttling_time: int = Field(default=5, description='Минимальная частота тика в секундах')
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
