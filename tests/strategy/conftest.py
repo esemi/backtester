@@ -11,4 +11,9 @@ def exchange_client_pass_mock() -> Mock:
         'cummulativeQuoteQty': '456.3',
         'status': 'FILLED',
     })
+    mock.sell = Mock(return_value={
+        'executedQty': '12.888',
+        'cummulativeQuoteQty': '123.456',
+        'status': 'FILLED',
+    })
     yield mock

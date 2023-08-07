@@ -12,7 +12,6 @@ class BaseClient(ABC):
 
     @abstractmethod
     def next_price(self) -> Generator[Tick | None, None, None]:
-        # todo abstract
         yield None
 
     @abstractmethod
@@ -21,4 +20,8 @@ class BaseClient(ABC):
 
     @abstractmethod
     def buy(self, quantity: Decimal, price: Decimal) -> dict | None:
+        pass
+
+    @abstractmethod
+    def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
         pass

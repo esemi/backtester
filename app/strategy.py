@@ -102,6 +102,8 @@ class Strategy:
         profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * 100) if max_amount_onhold else 0
         profit_percent_total = (profit_amount_total / max_amount_onhold * 100) if max_amount_onhold else 0
 
+        print('')
+        print('')
         print('Результаты тестирования:')
         print('')
         print('Общая оборотная сумма денег с начала запуска $%.2f (%.2f монет)' % (
@@ -140,6 +142,8 @@ class Strategy:
             self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
         ))
+        print('')
+        print('')
 
     def _update_max_hold_amount(self, tick: Tick):
         on_hold_current = OnHoldPositions(
@@ -175,9 +179,20 @@ class Strategy:
         return True
 
     def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
-        # todo use self._exchange_client here
-        logger.info('close position')
+        # todo test
+        sell_response = self._exchange_client.sell(
+            quantity=Decimal(position_for_close.amount),
+            price=Decimal(price),
+        )
+        logger.debug('close position response {0}'.format(sell_response))
+        if not sell_response or sell_response.get('status') != 'FILLED':
+            logger.info('close position - unsuccessfully "{0}"'.format(
+                sell_response,
+            ))
+            return False
+
         self._open_positions.remove(position_for_close)
+        price = float(sell_response['cummulativeQuoteQty']) / float(sell_response['executedQty'])
         position_for_close.close_rate = price
         position_for_close.close_tick_number = tick_number
         self._closed_positions.append(position_for_close)
@@ -200,8 +215,8 @@ class Strategy:
                 price >= position.open_rate * app_settings.avg_rate_sell_limit,
             ))
             if price >= position.open_rate * app_settings.avg_rate_sell_limit:
-                self._close_position(position, price=price, tick_number=tick_number)
-                sale_completed = True
+                sell_response = self._close_position(position, price=price, tick_number=tick_number)
+                sale_completed = sell_response or sale_completed
                 continue
 
         return sale_completed

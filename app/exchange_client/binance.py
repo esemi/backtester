@@ -1,5 +1,4 @@
 import logging
-import time
 from datetime import datetime
 from decimal import Decimal
 from typing import Generator
@@ -54,6 +53,22 @@ class Binance(BaseClient):
             return self._client_spot.new_order(
                 symbol=self._symbol,
                 side='BUY',
+                type='LIMIT',
+                timeInForce='FOK',
+                quantity=quantity,
+                price=price,
+                recvWindow=15000,
+                timestamp=int(datetime.utcnow().timestamp() * 1000),
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+    def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
+        try:
+            return self._client_spot.new_order(
+                symbol=self._symbol,
+                side='SELL',
                 type='LIMIT',
                 timeInForce='FOK',
                 quantity=quantity,

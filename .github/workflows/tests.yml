@@ -25,5 +25,7 @@ jobs:
         mypy app/
 
     - name: Run unittests
-      run: |
+      run: |        
+        echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET_TEST }}' > .env
+        echo 'binance_api_key=${{ secrets.BINANCE_API_KEY_TEST }}' >> .env
         pytest
