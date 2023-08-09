@@ -18,7 +18,7 @@ usermod -a -G supervisor trader1
 usermod -a -G supervisor root
 service supervisor restart
 
-vi /etc/supervisor/conf.d/trader1.conf
+cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
 
 # run deploy from github actions
 
@@ -29,4 +29,13 @@ mkdir /var/www/trader
 chown root:supervisor /var/www/trader 
 chmod 0771 /var/www/trader
 usermod -a -G supervisor www-data
+```
+
+
+New user adding
+```shell
+adduser traderN
+usermod -a -G supervisor traderN
+cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
+service supervisor restart
 ```
