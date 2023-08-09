@@ -36,6 +36,7 @@ class AppSettings(BaseSettings):
     binance_api_key: str = ''
     binance_api_secret: str = ''
     dry_run: bool = Field(default=True)
+    exchange_test_mode: bool = Field(default=False)
 
 
 app_settings = AppSettings(

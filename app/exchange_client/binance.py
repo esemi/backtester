@@ -12,7 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class Binance(BaseClient):
-    def __init__(self, symbol: str, api_key: str = '', api_secret: str = '', test_mode: bool = False):
+    def __init__(
+        self,
+        symbol: str,
+        api_key: str = '',
+        api_secret: str = '',
+        test_mode: bool = False,
+    ):
         super().__init__(symbol)
         self._client_spot = Spot(
             api_key=api_key or None,

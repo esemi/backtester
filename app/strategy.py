@@ -12,12 +12,13 @@ logger = logging.getLogger(__name__)
 class Strategy:
     tick_history_limit: int = 10
 
-    def __init__(self, exchange_client: BaseClient) -> None:
+    def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
         self._max_onhold_positions: OnHoldPositions | None = None
         self._ticks_history: list[Tick] = []
-        self._exchange_client = exchange_client
+        self._exchange_client: BaseClient = exchange_client
+        self._dry_run: bool = dry_run
 
     def get_last_tick(self) -> Tick:
         return self._get_ticks_history()[-1]
@@ -159,10 +160,18 @@ class Strategy:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
     def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:
-        buy_response = self._exchange_client.buy(
-            quantity=Decimal(quantity),
-            price=Decimal(price),
-        )
+        if self._dry_run:
+            buy_response: dict | None = {
+                'executedQty': quantity,
+                'cummulativeQuoteQty': quantity * price,
+                'status': 'FILLED',
+            }
+        else:
+            buy_response = self._exchange_client.buy(
+                quantity=Decimal(quantity),
+                price=Decimal(price),
+            )
+
         logger.debug('open new position response {0}'.format(buy_response))
         if not buy_response or buy_response.get('status') != 'FILLED':
             logger.info('open new position - unsuccessfully "{0}"'.format(
@@ -179,10 +188,18 @@ class Strategy:
         return True
 
     def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
-        sell_response = self._exchange_client.sell(
-            quantity=Decimal(position_for_close.amount),
-            price=Decimal(price),
-        )
+        if self._dry_run:
+            sell_response: dict | None = {
+                'executedQty': position_for_close.amount,
+                'cummulativeQuoteQty': position_for_close.amount * price,
+                'status': 'FILLED',
+            }
+        else:
+            sell_response = self._exchange_client.sell(
+                quantity=Decimal(position_for_close.amount),
+                price=Decimal(price),
+            )
+
         logger.debug('close position response {0}'.format(sell_response))
         if not sell_response or sell_response.get('status') != 'FILLED':
             logger.info('close position - unsuccessfully "{0}"'.format(
