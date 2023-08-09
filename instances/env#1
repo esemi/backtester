@@ -4,10 +4,10 @@ avg_rate_sell_limit=1.01
 init_buy_amount=1
 continue_buy_amount=0.1
 global_stop_loss=0.0
-ticks_amount_limit=0
+ticks_amount_limit=999999999999999
 
 # trader settings
 title=FIRST_BOT_BINANCE
-throttling_time=15
+throttling_time=60
 symbol=SOLUSDT
 dry_run=true
