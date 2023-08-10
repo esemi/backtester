@@ -1,10 +1,10 @@
 # strategy settings
 step=0.001
-avg_rate_sell_limit=1.01
+avg_rate_sell_limit=1.00
 init_buy_amount=1
 continue_buy_amount=1.0
 global_stop_loss=0.0
-ticks_amount_limit=0  # 24h in minutes
+ticks_amount_limit=1440  # 24h in minutes
 
 # trader settings
 throttling_time=60
