@@ -4,7 +4,7 @@ avg_rate_sell_limit=1.0
 init_buy_amount=1
 continue_buy_amount=1.0
 global_stop_loss=0.0
-ticks_amount_limit=1440
+ticks_amount_limit=0
 
 # trader settings
 throttling_time=60
