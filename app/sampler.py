@@ -7,7 +7,7 @@ from app.exchange_client.binance import Binance
 from app.settings import app_settings
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def main(symbol: str, start_date: datetime, interval: str = '5m') -> int:
