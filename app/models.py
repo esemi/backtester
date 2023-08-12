@@ -4,19 +4,19 @@ from decimal import Decimal
 
 @dataclass
 class Position:
-    amount: float
+    amount: Decimal
     open_tick_number: int
-    open_rate: float
-    close_rate: float = 0.0
+    open_rate: Decimal
+    close_rate: Decimal = Decimal(0)
     close_tick_number: int = -1
 
 
 @dataclass
 class OnHoldPositions:
-    quantity: float
-    buy_amount: float
+    quantity: Decimal
+    buy_amount: Decimal
     tick_number: int
-    tick_rate: float
+    tick_rate: Decimal
 
 
 @dataclass

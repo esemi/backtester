@@ -39,7 +39,7 @@ class Strategy:
             for _ in range(app_settings.init_buy_amount):
                 self._open_position(
                     quantity=app_settings.continue_buy_amount,
-                    price=float(tick.price),
+                    price=tick.price,
                     tick_number=tick.number,
                 )
             return True
@@ -55,12 +55,12 @@ class Strategy:
                 len(self._closed_positions),
             ))
             for position_for_close in self._get_open_positions_for_sell():
-                self._close_position(position_for_close, price=float(tick.price), tick_number=tick.number)
+                self._close_position(position_for_close, price=tick.price, tick_number=tick.number)
             self._update_max_hold_amount(tick)
             return False
 
         # search position for sale
-        sale_completed = self._sell_something(price=float(tick.price), tick_number=tick.number)
+        sale_completed = self._sell_something(price=tick.price, tick_number=tick.number)
 
         # вот смотри там где разница была больше или равно 0.02 мы закупали
         if not sale_completed:
@@ -90,18 +90,18 @@ class Strategy:
             [pos.amount for pos in self._closed_positions]
         )
         liquidation_amount = sum(
-            [float(self.get_last_tick().price) * pos.amount for pos in self._open_positions]
+            [self.get_last_tick().price * pos.amount for pos in self._open_positions]
         )
         liquidation = sum(
             [pos.amount for pos in self._open_positions]
         )
 
         # считаем доходность относительно максимума средств в обороте
-        max_amount_onhold = self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0
+        max_amount_onhold: Decimal = self._max_onhold_positions.buy_amount if self._max_onhold_positions else Decimal(0)
         profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
         profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
-        profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * 100) if max_amount_onhold else 0
-        profit_percent_total = (profit_amount_total / max_amount_onhold * 100) if max_amount_onhold else 0
+        profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
+        profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
         print('')
         print('')
@@ -125,7 +125,7 @@ class Strategy:
         ))
         print('Доходность без учёта зависших монет: $%.2f (%.2f%%)' % (
             profit_amount_without_current_opened,
-            profit_percent_without_current_opened,
+            float(profit_percent_without_current_opened),
         ))
 
         print('')
@@ -135,7 +135,7 @@ class Strategy:
         ))
         print('Доходность с учётом зависших монет: $%.2f (%.2f%%)' % (
             profit_amount_total,
-            profit_percent_total,
+            float(profit_percent_total),
         ))
 
         print('')
@@ -148,10 +148,10 @@ class Strategy:
 
     def _update_max_hold_amount(self, tick: Tick):
         on_hold_current = OnHoldPositions(
-            quantity=sum([pos.amount for pos in self._open_positions]),
-            buy_amount=sum([pos.amount * pos.open_rate for pos in self._open_positions]),
+            quantity=Decimal(sum([pos.amount for pos in self._open_positions])),
+            buy_amount=Decimal(sum([pos.amount * pos.open_rate for pos in self._open_positions])),
             tick_number=tick.number,
-            tick_rate=float(tick.price),
+            tick_rate=tick.price,
         )
         if not self._max_onhold_positions or self._max_onhold_positions.buy_amount < on_hold_current.buy_amount:
             self._max_onhold_positions = on_hold_current
@@ -159,11 +159,11 @@ class Strategy:
     def _get_open_positions_for_sell(self) -> list[Position]:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
-    def _open_position(self, quantity: float, price: float, tick_number: int) -> bool:
+    def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int) -> bool:
         if self._dry_run:
             buy_response: dict | None = {
-                'executedQty': quantity,
-                'cummulativeQuoteQty': quantity * price,
+                'executedQty': str(quantity),
+                'cummulativeQuoteQty': str(quantity * price),
                 'status': 'FILLED',
             }
         else:
@@ -181,13 +181,13 @@ class Strategy:
 
         logger.info('open new position')
         self._open_positions.append(Position(
-            amount=float(buy_response['executedQty']),
-            open_rate=float(buy_response['cummulativeQuoteQty']) / float(buy_response['executedQty']),
+            amount=Decimal(buy_response['executedQty']),
+            open_rate=Decimal(buy_response['cummulativeQuoteQty']) / Decimal(buy_response['executedQty']),
             open_tick_number=tick_number,
         ))
         return True
 
-    def _close_position(self, position_for_close: Position, price: float, tick_number: int) -> bool:
+    def _close_position(self, position_for_close: Position, price: Decimal, tick_number: int) -> bool:
         if self._dry_run:
             sell_response: dict | None = {
                 'executedQty': position_for_close.amount,
@@ -208,13 +208,13 @@ class Strategy:
             return False
 
         self._open_positions.remove(position_for_close)
-        price = float(sell_response['cummulativeQuoteQty']) / float(sell_response['executedQty'])
+        price = Decimal(sell_response['cummulativeQuoteQty']) / Decimal(sell_response['executedQty'])
         position_for_close.close_rate = price
         position_for_close.close_tick_number = tick_number
         self._closed_positions.append(position_for_close)
         return True
 
-    def _sell_something(self, price: float, tick_number: int) -> bool:
+    def _sell_something(self, price: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(price))
 
         sale_completed: bool = False
@@ -246,7 +246,7 @@ class Strategy:
         if rate_go_down >= app_settings.step:
             self._open_position(
                 quantity=app_settings.continue_buy_amount,
-                price=float(price),
+                price=price,
                 tick_number=tick_number,
             )
 

@@ -1,5 +1,4 @@
 from decimal import Decimal
-from unittest.mock import Mock
 
 from app.models import Tick, Position
 from app.settings import app_settings
@@ -59,13 +58,13 @@ def test_buy_something(exchange_client_pass_mock):
 
 def test_sell_something(exchange_client_pass_mock):
     strategy = Strategy(exchange_client=exchange_client_pass_mock)
-    buy_price = 10.0
-    hold_price = 11.0
+    buy_price = Decimal('10.0')
+    hold_price = Decimal('11.0')
     minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit
-    strategy._open_positions.append(Position(amount=1, open_tick_number=0, open_rate=buy_price))
-    strategy._open_positions.append(Position(amount=1, open_tick_number=0, open_rate=buy_price))
-    strategy._open_positions.append(Position(amount=1, open_tick_number=0, open_rate=buy_price))
-    strategy._open_positions.append(Position(amount=1, open_tick_number=2, open_rate=hold_price))
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=2, open_rate=hold_price))
 
     response = strategy.tick(Tick(number=3, price=Decimal(minimal_sell_price)))
 
