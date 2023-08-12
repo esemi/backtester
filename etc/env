@@ -1,12 +1,18 @@
 # strategy settings
+strategy_type=floating
 step=0.0001
-avg_rate_sell_limit=1.05
+avg_rate_sell_limit=1.00
 init_buy_amount=1
-continue_buy_amount=1.0
+continue_buy_amount=1.05
+ticker_amount_digits=0.0001
 global_stop_loss=0.0
-ticks_amount_limit=1440
+ticks_amount_limit=99999999
+hold_position_limit=850
+fee_percent=0.1
+symbol_to_usdt_rate=1.0
 
 # trader settings
-throttling_time=60
-symbol=PYRUSDT
-dry_run=true
+throttling_time=20
+symbol=XRP3LUSDT
+dry_run=false
+exchange=bybit
