@@ -31,9 +31,12 @@ class FloatingSteps:
         return self.step_tries[step]
 
     def to_prev_step(self) -> None:
-        # todo impl
-        # todo test
-        pass
+        current_step_index = self.steps.index(self.current_step)
+        self.tries_left -= 1
+
+        if self.tries_left < 0 and current_step_index:
+            self.current_step = self.steps[current_step_index - 1]
+            self.tries_left = self.get_step_tries_limit(self.current_step)
 
     def to_next_step(self) -> None:
         current_step_index = self.steps.index(self.current_step)
