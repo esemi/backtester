@@ -32,6 +32,7 @@ jobs:
 
           scp: |-
             './app/*' => $TARGET_DIR/app/
+            './etc/*' => $TARGET_DIR/etc/
             ./etc/env => $TARGET_DIR/.env
             ./requirements.txt => $TARGET_DIR
 
