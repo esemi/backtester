@@ -1,6 +1,7 @@
 """Application settings."""
 import os
 from decimal import getcontext, Decimal
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -16,6 +17,7 @@ class AppSettings(BaseSettings):
     rates_path: str = os.path.join(os.path.dirname(__file__), '..', 'rates')
 
     # strategy settings
+    strategy_type: Literal['basic', 'floating'] = 'basic'
     step: Decimal = Field(default=0.02, description='шаг в абсолютных значениях для условия на открытие новой позиции')
     float_steps_path: str = os.path.join(os.path.dirname(__file__), '..', 'etc', 'float_strategy.csv')
     avg_rate_sell_limit: Decimal = Field(default=1.05, description='шаг в процентах для условия сделок. 5% = 1.05')

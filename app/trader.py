@@ -4,8 +4,9 @@ import signal
 import time
 
 from app.exchange_client.binance import Binance
+from app.floating_steps import FloatingSteps
 from app.settings import app_settings
-from app.strategy import Strategy
+from app.strategy import BasicStrategy, FloatingStrategy
 
 logger = logging.getLogger(__name__)
 _has_stop_request: bool = False
@@ -26,7 +27,19 @@ def main() -> None:
         test_mode=app_settings.exchange_test_mode,
     )
     failure_counter: int = 0
-    strategy = Strategy(exchange_client=exchange_client, dry_run=app_settings.dry_run)
+
+    if app_settings.strategy_type == 'basic':
+        strategy = BasicStrategy(exchange_client=exchange_client, dry_run=app_settings.dry_run)
+
+    elif app_settings.strategy_type == 'floating':
+        strategy = FloatingStrategy(
+            exchange_client=exchange_client,
+            steps_instance=FloatingSteps(app_settings.float_steps_path),
+            dry_run=app_settings.dry_run,
+        )
+
+    else:
+        raise RuntimeError('Unknown strategy type!')
 
     for tick in exchange_client.next_price():
         logger.info('tick {0}'.format(tick))

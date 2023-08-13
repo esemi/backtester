@@ -3,15 +3,30 @@ import os
 from decimal import Decimal
 
 from app.exchange_client.dummy import Dummy
+from app.floating_steps import FloatingSteps
 from app.models import Tick
 from app.settings import app_settings
-from app.strategy import Strategy
+from app.strategy import BasicStrategy, FloatingStrategy
 
 logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    strategy = Strategy(exchange_client=Dummy(symbol='dummy'))
+    exchange_client = Dummy(symbol='dummy')
+
+    if app_settings.strategy_type == 'basic':
+        strategy = BasicStrategy(exchange_client=exchange_client, dry_run=True)
+
+    elif app_settings.strategy_type == 'floating':
+        strategy = FloatingStrategy(
+            exchange_client=exchange_client,
+            steps_instance=FloatingSteps(app_settings.float_steps_path),
+            dry_run=True,
+        )
+
+    else:
+        raise RuntimeError('Unknown strategy type!')
+
     for tick in get_rates(app_settings.rates_filename):
         logger.info('tick {0}'.format(tick))
 

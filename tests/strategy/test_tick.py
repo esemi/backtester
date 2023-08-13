@@ -2,11 +2,11 @@ from decimal import Decimal
 
 from app.models import Tick, Position
 from app.settings import app_settings
-from app.strategy import Strategy
+from app.strategy import BasicStrategy
 
 
 def test_init_buy(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     response = strategy.tick(Tick(number=0, price=Decimal(10)))
 
@@ -16,7 +16,7 @@ def test_init_buy(exchange_client_pass_mock):
 
 
 def test_skip_first_tick(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     strategy.tick(Tick(number=0, price=Decimal(10)))
     response = strategy.tick(Tick(number=1, price=Decimal(9)))
@@ -27,7 +27,7 @@ def test_skip_first_tick(exchange_client_pass_mock):
 
 
 def test_break_by_tick_limit(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     response = strategy.tick(Tick(number=app_settings.ticks_amount_limit, price=Decimal(9)))
 
@@ -35,7 +35,7 @@ def test_break_by_tick_limit(exchange_client_pass_mock):
 
 
 def test_break_by_global_stop_loss(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     strategy.tick(Tick(number=0, price=Decimal(10)))
     response = strategy.tick(Tick(number=2, price=Decimal(app_settings.global_stop_loss)))
@@ -46,7 +46,7 @@ def test_break_by_global_stop_loss(exchange_client_pass_mock):
 
 
 def test_buy_something(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     strategy.tick(Tick(number=0, price=Decimal(10)))
     strategy.tick(Tick(number=1, price=Decimal(9)))
@@ -57,7 +57,7 @@ def test_buy_something(exchange_client_pass_mock):
 
 
 def test_sell_something(exchange_client_pass_mock):
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
     buy_price = Decimal('10.0')
     hold_price = Decimal('11.0')
     minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit

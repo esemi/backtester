@@ -3,13 +3,14 @@ import logging
 from decimal import Decimal
 
 from app.exchange_client.base import BaseClient
+from app.floating_steps import FloatingSteps
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
 
 logger = logging.getLogger(__name__)
 
 
-class Strategy:
+class BasicStrategy:
     tick_history_limit: int = 10
 
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
@@ -260,3 +261,41 @@ class Strategy:
 
     def _get_history_average_price(self) -> Decimal:
         return (self._get_ticks_history()[-3].price + self.get_previous_tick().price) / 2
+
+
+class FloatingStrategy(BasicStrategy):
+    def __init__(self, exchange_client: BaseClient, steps_instance: FloatingSteps, dry_run: bool = False) -> None:
+        super().__init__(exchange_client, dry_run)
+        self._steps: FloatingSteps = steps_instance
+
+    def _sell_something(self, price: Decimal, tick_number: int) -> bool:
+        logger.debug('search position for sell. Tick price: {0}'.format(price))
+        sale_completed: bool = False
+        has_positions = len(self._open_positions) > 0
+
+        for position in self._get_open_positions_for_sell():
+            logger.debug(position)
+
+            # условия на продажу
+            # - текущая цена выше цены покупки на N%
+            step_percent = self._steps.current_step / Decimal(100) + Decimal(1)
+            logger.debug('check sale by tick rate and open rate.')
+            logger.debug('Position: {0}. Current price {1}. Open rate +N% {2}. Check {3}. Percent {4}'.format(
+                position,
+                price,
+                position.open_rate * step_percent,
+                price >= position.open_rate * step_percent,
+                step_percent,
+            ))
+            if price >= position.open_rate * step_percent:
+                sell_response = self._close_position(position, price=price, tick_number=tick_number)
+                sale_completed = sell_response or sale_completed
+                continue
+
+        if has_positions:
+            if sale_completed:
+                self._steps.to_next_step()
+            else:
+                self._steps.to_prev_step()
+
+        return sale_completed

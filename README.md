@@ -35,22 +35,29 @@ python -m app.trader
 
 ### How to
 #### Как поменять настройки бота
-- идём в [файл настроек](https://github.com/esemi/backtester/tree/master/instances) нашего бота
+- идём в [файл настроек](https://github.com/esemi/backtester/blob/trader1/etc/env) нашего бота
 - изменяем любые настройки (пример можно [посмотреть тут](https://github.com/esemi/backtester/blob/master/.env.example))
 - сохраняем изменения
 - в ближайшую минуту новые настройки попадут на сервер, остановят запущенного бота и запустят нового с указанными настройками.
 
 
 #### Как включить реальную торговлю в боте
-- идём в [файл настроек](https://github.com/esemi/backtester/tree/master/instances) нашего бота
+- идём в [файл настроек](https://github.com/esemi/backtester/blob/trader1/etc/env) нашего бота
 - меняем или добавляем строчку `dry_run=false`
 - сохраняем изменения
 - в ближайшую минуту новые настройки попадут на сервер и перезапустят бота для реальных торгов
 
 
 #### Как выключить бота
-- идём в [файл настроек](https://github.com/esemi/backtester/tree/master/instances) нашего бота
+- идём в [файл настроек](https://github.com/esemi/backtester/blob/trader1/etc/env) нашего бота
 - меняем или добавляем строчку `ticks_amount_limit=0`
+- сохраняем изменения
+- в ближайшую минуту новые настройки попадут на сервер и остановят работающего бота
+
+
+#### Как переключиться на стратегию с плавающей ставкой
+- идём в [файл настроек](https://github.com/esemi/backtester/blob/trader1/etc/env) нашего бота
+- меняем или добавляем строчку `strategy_type=floating`
 - сохраняем изменения
 - в ближайшую минуту новые настройки попадут на сервер и остановят работающего бота
 

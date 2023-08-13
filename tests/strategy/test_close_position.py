@@ -2,7 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 from app.models import Position
-from app.strategy import Strategy
+from app.strategy import BasicStrategy
 
 
 def test_close_position_exception():
@@ -13,7 +13,7 @@ def test_close_position_exception():
         open_tick_number=0,
         open_rate=Decimal(123.1)
     )
-    strategy = Strategy(exchange_client=mock)
+    strategy = BasicStrategy(exchange_client=mock)
     strategy._open_positions.append(position)
 
     response = strategy._close_position(position, price=Decimal(123.1111), tick_number=1)
@@ -35,7 +35,7 @@ def test_close_position_expired():
         open_tick_number=0,
         open_rate=Decimal(123.1)
     )
-    strategy = Strategy(exchange_client=mock)
+    strategy = BasicStrategy(exchange_client=mock)
     strategy._open_positions.append(position)
 
     response = strategy._close_position(position, price=Decimal(123.1), tick_number=1)
@@ -51,7 +51,7 @@ def test_open_position_filled(exchange_client_pass_mock):
         open_tick_number=0,
         open_rate=Decimal('123.1')
     )
-    strategy = Strategy(exchange_client=exchange_client_pass_mock)
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
     strategy._open_positions.append(position)
 
     response = strategy._close_position(position, price=Decimal('123.1'), tick_number=999)
