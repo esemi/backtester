@@ -1,8 +1,10 @@
 
 import logging
+import pickle
 import signal
 import time
 
+from app import storage
 from app.exchange_client.binance import Binance
 from app.floating_steps import FloatingSteps
 from app.settings import app_settings
@@ -41,10 +43,14 @@ def main() -> None:
     else:
         raise RuntimeError('Unknown strategy type!')
 
-    for tick in exchange_client.next_price():
+    _restore_strategy_state(app_settings.symbol, strategy)
+    start_tick_numeration = strategy.get_last_tick().number if strategy.has_tick_history() else -1
+
+    for tick in exchange_client.next_price(start_tick_numeration):
         logger.info('tick {0}'.format(tick))
         if _has_stop_request:
             logger.warning('end trading by signal')
+            _save_strategy_state(app_settings.symbol, strategy)
             break
 
         if failure_counter >= app_settings.failure_limit:
@@ -52,7 +58,7 @@ def main() -> None:
             break
 
         if not tick:
-            logging.warning('skip tick by failure')
+            logger.warning('skip tick by failure')
             time.sleep(app_settings.throttling_failure_time)
             failure_counter += 1
             continue
@@ -70,6 +76,36 @@ def main() -> None:
         time.sleep(app_settings.throttling_time)
 
     strategy.show_results()
+
+
+def _save_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:
+    state = {
+        '_open_positions': strategy_instance._open_positions,
+        '_closed_positions': strategy_instance._closed_positions,
+        '_max_onhold_positions': strategy_instance._max_onhold_positions,
+        '_max_sell_percent': strategy_instance._max_sell_percent,
+        '_max_sell_percent_tick': strategy_instance._max_sell_percent_tick,
+        '_ticks_history': strategy_instance._ticks_history,
+    }
+
+    serialized_state = pickle.dumps(state)
+    storage.save_state(symbol, serialized_state)
+    logger.info('state saved to redis')
+
+
+def _restore_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:
+    saved_state = storage.get_saved_state(symbol)
+    if not saved_state:
+        return
+
+    logger.info('previous state restored by redis')
+    deserialized_state = pickle.loads(saved_state)
+    strategy_instance._open_positions = deserialized_state.get('_open_positions')
+    strategy_instance._closed_positions = deserialized_state.get('_closed_positions')
+    strategy_instance._max_onhold_positions = deserialized_state.get('_max_onhold_positions')
+    strategy_instance._max_sell_percent = deserialized_state.get('_max_sell_percent')
+    strategy_instance._max_sell_percent_tick = deserialized_state.get('_max_sell_percent_tick')
+    strategy_instance._ticks_history = deserialized_state.get('_ticks_history')
 
 
 if __name__ == '__main__':

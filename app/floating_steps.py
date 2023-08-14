@@ -1,4 +1,7 @@
+import logging
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 
 class FloatingSteps:
@@ -31,19 +34,23 @@ class FloatingSteps:
         return self.step_tries[step]
 
     def to_prev_step(self) -> None:
+        logger.info(f'to_prev_step start {self.current_step=} {self.tries_left}')
         current_step_index = self.steps.index(self.current_step)
         self.tries_left -= 1
 
         if self.tries_left < 0 and current_step_index:
             self.current_step = self.steps[current_step_index - 1]
             self.tries_left = self.get_step_tries_limit(self.current_step)
+        logger.info(f'to_prev_step end {self.current_step=} {self.tries_left}')
 
     def to_next_step(self) -> None:
+        logger.info(f'to_next_step start {self.current_step=} {self.tries_left}')
         current_step_index = self.steps.index(self.current_step)
         if current_step_index + 1 < len(self.steps):
             self.current_step = self.steps[current_step_index + 1]
 
         self.tries_left = self.get_step_tries_limit(self.current_step)
+        logger.info(f'to_next_step end {self.current_step=} {self.tries_left}')
 
 
 

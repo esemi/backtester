@@ -17,9 +17,15 @@ class BasicStrategy:
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
         self._max_onhold_positions: OnHoldPositions | None = None
+        self._max_sell_percent: Decimal = Decimal(0)
+        self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
+
         self._exchange_client: BaseClient = exchange_client
         self._dry_run: bool = dry_run
+
+    def has_tick_history(self) -> bool:
+        return len(self._ticks_history) > 0
 
     def get_last_tick(self) -> Tick:
         return self._get_ticks_history()[-1]
@@ -206,6 +212,7 @@ class BasicStrategy:
             ))
             return False
 
+        logger.info('close position')
         self._open_positions.remove(position_for_close)
         price = Decimal(sell_response['cummulativeQuoteQty']) / Decimal(sell_response['executedQty'])
         position_for_close.close_rate = price
@@ -257,16 +264,11 @@ class BasicStrategy:
     def _get_ticks_history(self) -> list[Tick]:
         return self._ticks_history
 
-    def _get_history_average_price(self) -> Decimal:
-        return (self._get_ticks_history()[-3].price + self.get_previous_tick().price) / 2
-
 
 class FloatingStrategy(BasicStrategy):
     def __init__(self, exchange_client: BaseClient, steps_instance: FloatingSteps, dry_run: bool = False) -> None:
         super().__init__(exchange_client, dry_run)
         self._steps: FloatingSteps = steps_instance
-        self._max_sell_percent: Decimal = Decimal(0)
-        self._max_sell_percent_tick: int = 0
 
     def _sell_something(self, price: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(price))

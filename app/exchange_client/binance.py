@@ -26,8 +26,8 @@ class Binance(BaseClient):
             base_url='https://testnet.binance.vision' if test_mode else 'https://api.binance.com',
         )
 
-    def next_price(self) -> Generator[Tick | None, None, None]:
-        tick_number: int = -1
+    def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
+        tick_number: int = start_tick_numeration
         while True:
             try:
                 response = self._client_spot.ticker_price(

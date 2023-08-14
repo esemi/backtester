@@ -4,6 +4,7 @@
 ### Setup on windows
 - [install python 3.11](https://www.python.org/downloads/windows/)
 - [install git](https://gitforwindows.org/)
+- [install redis](https://redis.io/docs/getting-started/installation/install-redis-on-windows/)
 
 
 ### Download code

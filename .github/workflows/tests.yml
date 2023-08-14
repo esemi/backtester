@@ -23,6 +23,11 @@ jobs:
     - name: Run MyPy
       run: |
         mypy app/
+    
+    - name: actions-setup-redis
+      uses: shogo82148/actions-setup-redis@v1.26.1
+    - run: redis-cli ping
+
 
     - name: Run unittests
       run: |        

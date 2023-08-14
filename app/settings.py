@@ -3,7 +3,7 @@ import os
 from decimal import getcontext, Decimal
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, RedisDsn
 from pydantic_settings import BaseSettings
 
 getcontext().prec = 20
@@ -15,6 +15,7 @@ class AppSettings(BaseSettings):
     # common settings
     debug: bool = Field(default=False)
     rates_path: str = os.path.join(os.path.dirname(__file__), '..', 'rates')
+    redis_dsn: RedisDsn = Field(default='redis://localhost/4')
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
