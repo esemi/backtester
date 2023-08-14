@@ -29,7 +29,7 @@ class BasicStrategy:
 
     def tick(self, tick: Tick) -> bool:
         self._push_ticks_history(tick)
-        self._update_max_hold_amount(tick)
+        self._update_stats(tick)
 
         if tick.number >= app_settings.ticks_amount_limit:
             logger.warning('end trading session by tick limit')
@@ -57,7 +57,7 @@ class BasicStrategy:
             ))
             for position_for_close in self._get_open_positions_for_sell():
                 self._close_position(position_for_close, price=tick.price, tick_number=tick.number)
-            self._update_max_hold_amount(tick)
+            self._update_stats(tick)
             return False
 
         # search position for sale
@@ -68,7 +68,7 @@ class BasicStrategy:
             logger.debug('try to buy something')
             self._buy_something(price=tick.price, tick_number=tick.number)
 
-        self._update_max_hold_amount(tick)
+        self._update_stats(tick)
         return True
 
     def show_results(self) -> None:
@@ -144,10 +144,8 @@ class BasicStrategy:
             self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
         ))
-        print('')
-        print('')
 
-    def _update_max_hold_amount(self, tick: Tick):
+    def _update_stats(self, tick: Tick):
         on_hold_current = OnHoldPositions(
             quantity=Decimal(sum([pos.amount for pos in self._open_positions])),
             buy_amount=Decimal(sum([pos.amount * pos.open_rate for pos in self._open_positions])),
@@ -267,6 +265,8 @@ class FloatingStrategy(BasicStrategy):
     def __init__(self, exchange_client: BaseClient, steps_instance: FloatingSteps, dry_run: bool = False) -> None:
         super().__init__(exchange_client, dry_run)
         self._steps: FloatingSteps = steps_instance
+        self._max_sell_percent: Decimal = Decimal(0)
+        self._max_sell_percent_tick: int = 0
 
     def _sell_something(self, price: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(price))
@@ -299,3 +299,18 @@ class FloatingStrategy(BasicStrategy):
                 self._steps.to_prev_step()
 
         return sale_completed
+
+    def _update_stats(self, tick: Tick):
+        super()._update_stats(tick)
+        if self._steps.current_step > self._max_sell_percent:
+            self._max_sell_percent = self._steps.current_step
+            self._max_sell_percent_tick = tick.number
+
+    def show_results(self) -> None:
+        super().show_results()
+        print('')
+        print('Максимальный %% торговли: %.2f%% на тике %d' % (
+            float(self._max_sell_percent),
+            self._max_sell_percent_tick,
+        ))
+
