@@ -81,32 +81,36 @@ class BasicStrategy:
         buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self._closed_positions]
         )
+        buy_amount_without_current_opened_fee = buy_amount_without_current_opened * app_settings.fee_percent / 100
         buy_without_current_opened = sum(
             [pos.amount for pos in self._closed_positions]
         )
         buy_amount_total = buy_amount_without_current_opened + sum(
             [pos.open_rate * pos.amount for pos in self._open_positions]
         )
+        buy_amount_total_fee = buy_amount_total * app_settings.fee_percent / 100
         buy_total = buy_without_current_opened + sum(
             [pos.amount for pos in self._open_positions]
         )
         sell_amount_without_current_opened = sum(
             [pos.close_rate * pos.amount for pos in self._closed_positions]
         )
+        sell_amount_without_current_opened_fee = sell_amount_without_current_opened * app_settings.fee_percent / 100
         sell_without_current_opened = sum(
             [pos.amount for pos in self._closed_positions]
         )
         liquidation_amount = sum(
             [self.get_last_tick().price * pos.amount for pos in self._open_positions]
         )
+        liquidation_amount_fee = liquidation_amount * app_settings.fee_percent / 100
         liquidation = sum(
             [pos.amount for pos in self._open_positions]
         )
 
         # считаем доходность относительно максимума средств в обороте
         max_amount_onhold: Decimal = self._max_onhold_positions.buy_amount if self._max_onhold_positions else Decimal(0)
-        profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
-        profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
+        profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened - sell_amount_without_current_opened_fee - buy_amount_without_current_opened_fee
+        profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total - sell_amount_without_current_opened_fee - liquidation_amount_fee - buy_amount_total_fee
         profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
@@ -115,19 +119,19 @@ class BasicStrategy:
         print('Результаты тестирования:')
         print('')
         print('Общая оборотная сумма денег с начала запуска $%.2f (%.2f монет)' % (
-            buy_amount_total,
+            buy_amount_total + buy_amount_total_fee,
             buy_total,
         ))
 
         print('')
         print('Оборотная сумма денег на покупки реализованных монет $%.2f (%.2f монет)' % (
-            buy_amount_without_current_opened,
+            buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
             buy_without_current_opened,
         ))
 
         print('')
         print('Оборотная сумма денег за продажу реализованных монет $%.2f (%.2f монет)' % (
-            sell_amount_without_current_opened,
+            sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
             sell_without_current_opened,
         ))
         print('Доходность без учёта зависших монет: $%.2f (%.2f%%)' % (
@@ -137,7 +141,7 @@ class BasicStrategy:
 
         print('')
         print('Сумма денег за ликвидацию зависших монет $%.2f (%.2f монет)' % (
-            liquidation_amount,
+            liquidation_amount - liquidation_amount_fee,
             liquidation,
         ))
         print('Доходность с учётом зависших монет: $%.2f (%.2f%%)' % (
