@@ -40,6 +40,7 @@ class AppSettings(BaseSettings):
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
     failure_limit: int = 15
     symbol: str = 'SOLUSDT'
+    symbol_to_usdt_rate: Decimal = Decimal(1)
     binance_api_key: str = ''
     binance_api_secret: str = ''
     dry_run: bool = Field(default=True)
