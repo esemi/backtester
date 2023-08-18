@@ -10,15 +10,20 @@ from app.settings import app_settings
 logger = logging.getLogger(__name__)
 
 
-def main(symbol: str, start_date: datetime, interval: str = '5m') -> int:
-    logger.info('load sample for {0}-{1} from {2}'.format(symbol, interval, start_date))
+def main(symbol: str, start_date: datetime, end_date: datetime = None, interval: str = '5m') -> int:
+    logger.info('load sample for {0}-{1} from {2} to {3}'.format(symbol, interval, start_date, end_date))
+    if end_date is None:
+        end_date = datetime.utcnow()
+
     binance_client = Binance(symbol=symbol, test_mode=False)
     limit: int = 1000
     counter: int = 0
+
     filepath = os.path.join(
         app_settings.rates_path,
-        f'BINANCE_{symbol}_{interval}_{start_date.date().isoformat()}.csv',
+        f'BINANCE_{symbol}_{interval}_{start_date.date().isoformat()}_{end_date.date().isoformat()}.csv',
     )
+
     with open(filepath, 'w') as output_fd:
         output_fd.write('time,open\n')
         start_ms: int = int(start_date.timestamp() * 1000)
@@ -28,12 +33,15 @@ def main(symbol: str, start_date: datetime, interval: str = '5m') -> int:
             counter += len(rates)
             for tick_time, tick_rate in rates:
                 tick_date = datetime.utcfromtimestamp(tick_time / 1000)
-                output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), tick_rate))
+                if tick_date <= end_date:
+                    output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), tick_rate))
 
             if len(rates) < limit:
                 break
 
             start_ms = rates[-1][0]+1
+            if start_ms >= int(end_date.timestamp() * 1000):
+                break
 
     logger.info('saved {0} rows'.format(counter))
     return counter
@@ -54,7 +62,8 @@ if __name__ == '__main__':
     )
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', required=True, help='Symbol code')
-    parser.add_argument('--from-date', required=True, help='History from date to now (eg. 2023-01-25)', type=valid_date)
+    parser.add_argument('--from-date', required=True, help='History from date (eg. 2023-01-01)', type=valid_date)
+    parser.add_argument('--end-date', default=None, required=False, help='History to date (eg. 2023-01-25)', type=valid_date)
     parser.add_argument(
         '--interval',
         choices=['1m', '3m', '5m', '15m', '30m', '1h'],
@@ -63,4 +72,4 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(args.symbol, args.from_date, args.interval)
+    main(args.symbol, args.from_date, args.end_date, args.interval)
