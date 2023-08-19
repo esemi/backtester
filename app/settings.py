@@ -16,17 +16,19 @@ class AppSettings(BaseSettings):
     debug: bool = Field(default=False)
     rates_path: str = os.path.join(os.path.dirname(__file__), '..', 'rates')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
+    float_steps_path: str = os.path.join(os.path.dirname(__file__), '..', 'etc', 'float_strategy.csv')
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
     step: Decimal = Field(default=0.02, description='шаг в абсолютных значениях для условия на открытие новой позиции')
-    float_steps_path: str = os.path.join(os.path.dirname(__file__), '..', 'etc', 'float_strategy.csv')
     fee_percent: Decimal = Field(default=0.1, description='Процент комиссий от суммы сделки')
     avg_rate_sell_limit: Decimal = Field(default=1.05, description='шаг в процентах для условия сделок. 5% = 1.05')
     init_buy_amount: int = Field(default=3, description='сколько позиций открываем в самом начале теста')
     continue_buy_amount: Decimal = Field(default=1.0, description='сколько монет в одной позиции')
     global_stop_loss: Decimal = Field(default=0.0, description='цена, при которой продаём всё и заканчиваем работу')
     ticks_amount_limit: int = Field(default=100500, description='максимальное количество тиков для торговой сессии')
+    symbol_to_usdt_rate: Decimal = Field(default=1, description='Курс текущего тикера в USDT.')
+    hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
 
     # backtester settings
     rates_filename: str = Field(
@@ -40,7 +42,6 @@ class AppSettings(BaseSettings):
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
     failure_limit: int = 15
     symbol: str = 'SOLUSDT'
-    symbol_to_usdt_rate: Decimal = Decimal(1)
     binance_api_key: str = ''
     binance_api_secret: str = ''
     dry_run: bool = Field(default=True)

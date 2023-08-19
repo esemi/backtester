@@ -69,6 +69,10 @@ class BasicStrategy:
         # search position for sale
         sale_completed = self._sell_something(price=tick.price, tick_number=tick.number)
 
+        if app_settings.hold_position_limit and len(self._open_positions) >= app_settings.hold_position_limit:
+            logger.debug('skip by hold_position_limit')
+            return True
+
         # вот смотри там где разница была больше или равно 0.02 мы закупали
         if not sale_completed:
             logger.debug('try to buy something')
