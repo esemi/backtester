@@ -154,9 +154,10 @@ class BasicStrategy:
         ))
 
         print('')
-        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f (%.1f монет)' % (
+        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f (%.1f монет, на тике %d)' % (
             self._max_onhold_positions.buy_amount * app_settings.symbol_to_usdt_rate if self._max_onhold_positions else 0,
             self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
+            self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
         ))
 
     def _update_stats(self, tick: Tick):
