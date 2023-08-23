@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from app.exchange_client.binance import Binance
 from app.settings import app_settings
+from app.strategy import calculate_ticker_quantity
 
 
 def test_buy_happy_path():
@@ -12,16 +13,20 @@ def test_buy_happy_path():
         api_secret=app_settings.binance_api_secret,
     )
     actual_price = next(client.next_price()).price + Decimal(1)
-    qty = Decimal('0.00035')  # ~$10
+    quantity = calculate_ticker_quantity(
+        app_settings.continue_buy_amount,
+        actual_price,
+        Decimal('0.00001'),
+    )
 
     response = client.buy(
-        quantity=qty,
+        quantity=quantity,
         price=actual_price,
     )
 
     assert response['status'] == 'FILLED'
     assert Decimal(response['cummulativeQuoteQty']) <= actual_price
-    assert Decimal(response['executedQty']) == qty
+    assert Decimal(response['executedQty']) == quantity
 
 
 def test_buy_canceled():
@@ -32,9 +37,14 @@ def test_buy_canceled():
         api_secret=app_settings.binance_api_secret,
     )
     actual_price = next(client.next_price())
+    quantity = calculate_ticker_quantity(
+        app_settings.continue_buy_amount,
+        actual_price.price,
+        Decimal('0.00001'),
+    )
 
     response = client.buy(
-        quantity=Decimal('0.00035'),  # ~$10
+        quantity=quantity,
         price=actual_price.price - Decimal(10),
     )
 

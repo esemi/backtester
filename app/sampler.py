@@ -10,7 +10,7 @@ from app.settings import app_settings
 logger = logging.getLogger(__name__)
 
 
-def main(symbol: str, start_date: datetime, end_date: datetime = None, interval: str = '5m') -> int:
+def main(symbol: str, start_date: datetime, end_date: datetime | None = None, interval: str = '5m') -> int:
     logger.info('load sample for {0}-{1} from {2} to {3}'.format(symbol, interval, start_date, end_date))
     if end_date is None:
         end_date = datetime.utcnow()

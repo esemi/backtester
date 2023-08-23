@@ -45,7 +45,11 @@ class BasicStrategy:
             logger.info('init buy')
             for _ in range(app_settings.init_buy_amount):
                 self._open_position(
-                    quantity=app_settings.continue_buy_amount,
+                    quantity=calculate_ticker_quantity(
+                        app_settings.continue_buy_amount,
+                        tick.price,
+                        app_settings.ticker_amount_digits,
+                    ),
                     price=tick.price,
                     tick_number=tick.number,
                 )
@@ -260,7 +264,11 @@ class BasicStrategy:
         ))
         if rate_go_down >= app_settings.step:
             self._open_position(
-                quantity=app_settings.continue_buy_amount,
+                quantity=calculate_ticker_quantity(
+                    app_settings.continue_buy_amount,
+                    price,
+                    app_settings.ticker_amount_digits,
+                ),
                 price=price,
                 tick_number=tick_number,
             )
@@ -325,3 +333,7 @@ class FloatingStrategy(BasicStrategy):
             self._max_sell_percent_tick,
         ))
 
+
+def calculate_ticker_quantity(needed_amount: Decimal, current_price: Decimal, round_digits: Decimal) -> Decimal:
+    """Return ticker quantity by current price and needed amount in ticker currency (USDT for common cases)."""
+    return (needed_amount / current_price).quantize(round_digits)

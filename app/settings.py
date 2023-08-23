@@ -20,14 +20,21 @@ class AppSettings(BaseSettings):
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
-    step: Decimal = Field(default=0.02, description='шаг в абсолютных значениях для условия на открытие новой позиции')
-    fee_percent: Decimal = Field(default=0.1, description='Процент комиссий от суммы сделки')
-    avg_rate_sell_limit: Decimal = Field(default=1.05, description='шаг в процентах для условия сделок. 5% = 1.05')
+    step: Decimal = Field(default='0.02', description='шаг в абсолютных значениях для условия на открытие новой позиции')
+    fee_percent: Decimal = Field(default='0.1', description='Процент комиссий от суммы сделки')
+    avg_rate_sell_limit: Decimal = Field(default='1.05', description='шаг в процентах для условия сделок. 5% = 1.05')
     init_buy_amount: int = Field(default=3, description='сколько позиций открываем в самом начале теста')
-    continue_buy_amount: Decimal = Field(default=1.0, description='сколько монет в одной позиции')
-    global_stop_loss: Decimal = Field(default=0.0, description='цена, при которой продаём всё и заканчиваем работу')
+    continue_buy_amount: Decimal = Field(
+        default='15.0',
+        description='Количество денег, на которое открываем новые позиции. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',
+    )
+    ticker_amount_digits: Decimal = Field(
+        default='0.01',
+        description='До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule',
+    )
+    global_stop_loss: Decimal = Field(default='0.0', description='цена, при которой продаём всё и заканчиваем работу')
     ticks_amount_limit: int = Field(default=100500, description='максимальное количество тиков для торговой сессии')
-    symbol_to_usdt_rate: Decimal = Field(default=1, description='Курс текущего тикера в USDT.')
+    symbol_to_usdt_rate: Decimal = Field(default='1', description='Курс текущего тикера в USDT.')
     hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
 
     # backtester settings
