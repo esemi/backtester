@@ -186,18 +186,19 @@ class BasicStrategy:
             }
         else:
             buy_response = self._exchange_client.buy(
-                quantity=Decimal(quantity),
-                price=Decimal(price),
+                quantity=quantity,
+                price=price,
             )
 
         logger.debug('open new position response {0}'.format(buy_response))
         if not buy_response or buy_response.get('status') != 'FILLED':
-            logger.info('open new position - unsuccessfully "{0}"'.format(
+            logger.info('open new position - unsuccessfully "{0}" {1}'.format(
                 buy_response,
+                {'quantity': quantity, 'price': price},
             ))
             return False
 
-        logger.info('open new position')
+        logger.info('open new position {0}'.format(quantity))
         self._open_positions.append(Position(
             amount=Decimal(buy_response['executedQty']),
             open_rate=Decimal(buy_response['cummulativeQuoteQty']) / Decimal(buy_response['executedQty']),

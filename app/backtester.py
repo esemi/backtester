@@ -61,7 +61,7 @@ def get_rates(filename: str) -> list[Tick]:
 
 if __name__ == '__main__':
     logging.basicConfig(
-        level=logging.DEBUG if app_settings.debug else logging.INFO,
+        level=logging.DEBUG if app_settings.debug else logging.WARNING,
         format='%(asctime)s %(levelname)-8s %(message)s',
     )
     main()
