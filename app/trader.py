@@ -3,6 +3,7 @@ import logging
 import pickle
 import signal
 import time
+from datetime import datetime
 
 from app import storage
 from app.exchange_client.binance import Binance
@@ -76,8 +77,7 @@ def main() -> None:
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
             strategy.show_results()
 
-        # todo big sleep by small intervals
-        time.sleep(app_settings.throttling_time)
+        _continue_or_break()
 
     strategy.show_results()
 
@@ -110,6 +110,16 @@ def _restore_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> No
     strategy_instance._max_sell_percent = deserialized_state.get('_max_sell_percent')
     strategy_instance._max_sell_percent_tick = deserialized_state.get('_max_sell_percent_tick')
     strategy_instance._ticks_history = deserialized_state.get('_ticks_history')
+
+
+def _continue_or_break() -> None:
+    throttling_tick_time = min(app_settings.throttling_time_small_tick, app_settings.throttling_time)
+    sleep_end_timestamp: float = datetime.utcnow().timestamp() + float(app_settings.throttling_time)
+
+    while datetime.utcnow().timestamp() < sleep_end_timestamp:
+        if _has_stop_request:
+            return
+        time.sleep(throttling_tick_time)
 
 
 if __name__ == '__main__':

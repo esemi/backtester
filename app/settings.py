@@ -46,6 +46,7 @@ class AppSettings(BaseSettings):
     # trader settings
     throttling_failure_time: int = 10
     throttling_time: int = Field(default=5, description='Минимальная частота тика в секундах')
+    throttling_time_small_tick: int = 3
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
     failure_limit: int = 15
     symbol: str = 'SOLUSDT'
