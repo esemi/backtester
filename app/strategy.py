@@ -192,16 +192,18 @@ class BasicStrategy:
 
         logger.debug('open new position response {0}'.format(buy_response))
         if not buy_response or buy_response.get('status') != 'FILLED':
-            logger.info('open new position - unsuccessfully "{0}" {1}'.format(
+            logger.warning('open new position - unsuccessfully "{0}" {1}'.format(
                 buy_response,
                 {'quantity': quantity, 'price': price},
             ))
             return False
 
-        logger.info('open new position {0}'.format(quantity))
+        fact_price = Decimal(buy_response['cummulativeQuoteQty']) / Decimal(buy_response['executedQty'])
+        fact_quantity = Decimal(buy_response['executedQty'])
+        logger.info('open new position {0} {1}'.format(fact_quantity, fact_price))
         self._open_positions.append(Position(
-            amount=Decimal(buy_response['executedQty']),
-            open_rate=Decimal(buy_response['cummulativeQuoteQty']) / Decimal(buy_response['executedQty']),
+            amount=fact_quantity,
+            open_rate=fact_price,
             open_tick_number=tick_number,
         ))
         return True
@@ -221,8 +223,9 @@ class BasicStrategy:
 
         logger.debug('close position response {0}'.format(sell_response))
         if not sell_response or sell_response.get('status') != 'FILLED':
-            logger.info('close position - unsuccessfully "{0}"'.format(
+            logger.info('close position - unsuccessfully "{0}" {1}'.format(
                 sell_response,
+                {'quantity': Decimal(position_for_close.amount), 'price': Decimal(price)},
             ))
             return False
 

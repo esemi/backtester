@@ -9,6 +9,7 @@ from app.exchange_client.binance import Binance
 from app.floating_steps import FloatingSteps
 from app.settings import app_settings
 from app.strategy import BasicStrategy, FloatingStrategy
+from app.storage import drop_state
 
 logger = logging.getLogger(__name__)
 _has_stop_request: bool = False
@@ -50,7 +51,6 @@ def main() -> None:
         logger.info('tick {0}'.format(tick))
         if _has_stop_request:
             logger.warning('end trading by signal')
-            _save_strategy_state(app_settings.symbol, strategy)
             break
 
         if failure_counter >= app_settings.failure_limit:
@@ -68,11 +68,15 @@ def main() -> None:
         go_to_next_step = strategy.tick(tick=tick)
         if not go_to_next_step:
             logger.info('end trading by strategy reason')
+            drop_state(app_settings.symbol)
             break
+
+        _save_strategy_state(app_settings.symbol, strategy)
 
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
             strategy.show_results()
 
+        # todo big sleep by small intervals
         time.sleep(app_settings.throttling_time)
 
     strategy.show_results()

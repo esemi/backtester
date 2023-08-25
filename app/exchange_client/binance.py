@@ -36,7 +36,6 @@ class Binance(BaseClient):
                 tick_number += 1
                 yield Tick(number=tick_number, price=Decimal(response.get('price')))
             except Exception as e:
-                logger.exception(e)
                 yield None
 
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[tuple[int, str]]:
@@ -67,7 +66,6 @@ class Binance(BaseClient):
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
         except Exception as exc:
-            logger.exception(exc)
             return None
 
     def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
@@ -83,5 +81,4 @@ class Binance(BaseClient):
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
         except Exception as exc:
-            logger.exception(exc)
             return None
