@@ -52,6 +52,8 @@ class AppSettings(BaseSettings):
     symbol: str = 'SOLUSDT'
     binance_api_key: str = ''
     binance_api_secret: str = ''
+    bybit_api_key: str = ''
+    bybit_api_secret: str = ''
     dry_run: bool = Field(default=True)
     exchange_test_mode: bool = Field(default=False)
 

@@ -15,17 +15,6 @@ def test_init_buy(exchange_client_pass_mock):
     assert not strategy._closed_positions
 
 
-def test_skip_first_tick(exchange_client_pass_mock):
-    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
-
-    strategy.tick(Tick(number=0, price=Decimal(10)))
-    response = strategy.tick(Tick(number=1, price=Decimal(9)))
-
-    assert response is True
-    assert len(strategy._open_positions) == 3
-    assert not strategy._closed_positions
-
-
 def test_break_by_tick_limit(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
@@ -49,8 +38,7 @@ def test_buy_something(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     strategy.tick(Tick(number=0, price=Decimal(10)))
-    strategy.tick(Tick(number=1, price=Decimal(9)))
-    response = strategy.tick(Tick(number=2, price=Decimal(8)))
+    response = strategy.tick(Tick(number=1, price=Decimal(9)))
 
     assert response is True
     assert len(strategy._open_positions) == 4
