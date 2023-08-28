@@ -1,8 +1,17 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Generator
 
 from app.models import Tick
+
+
+@dataclass
+class OrderResult:
+    is_filled: bool
+    qty: Decimal
+    price: Decimal
+    raw_response: dict | None = None
 
 
 class BaseClient(ABC):
@@ -19,9 +28,9 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def buy(self, quantity: Decimal, price: Decimal) -> dict | None:
+    def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         pass
 
     @abstractmethod
-    def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
+    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         pass

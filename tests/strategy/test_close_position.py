@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import Mock
 
+from app.exchange_client.base import OrderResult
 from app.models import Position
 from app.strategy import BasicStrategy
 
@@ -25,11 +26,11 @@ def test_close_position_exception():
 
 def test_close_position_expired():
     mock = Mock()
-    mock.sell = Mock(return_value={
-        'executedQty': '0',
-        'cummulativeQuoteQty': '0',
-        'status': 'EXPIRED',
-    })
+    mock.sell = Mock(return_value=OrderResult(
+        is_filled=False,
+        qty=Decimal(0),
+        price=Decimal(0),
+    ))
     position = Position(
         amount=Decimal(1.1),
         open_tick_number=0,
@@ -45,7 +46,7 @@ def test_close_position_expired():
     assert len(strategy._closed_positions) == 0
 
 
-def test_open_position_filled(exchange_client_pass_mock):
+def test_close_position_filled(exchange_client_pass_mock):
     position = Position(
         amount=Decimal('1.1'),
         open_tick_number=0,
@@ -60,5 +61,5 @@ def test_open_position_filled(exchange_client_pass_mock):
     assert len(strategy._open_positions) == 0
     assert len(strategy._closed_positions) == 1
     assert strategy._closed_positions[0].amount == Decimal('1.1')
-    assert strategy._closed_positions[0].close_rate == Decimal('123.456') / Decimal('12.888')
+    assert strategy._closed_positions[0].close_rate == Decimal('9.5791433891')
     assert strategy._closed_positions[0].close_tick_number == 999

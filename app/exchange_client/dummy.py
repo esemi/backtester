@@ -1,15 +1,15 @@
 from _decimal import Decimal
 from typing import Generator
 
-from app.exchange_client.base import BaseClient
+from app.exchange_client.base import BaseClient, OrderResult
 from app.models import Tick
 
 
 class Dummy(BaseClient):
-    def buy(self, quantity: Decimal, price: Decimal) -> dict | None:
+    def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         raise NotImplementedError
 
-    def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
+    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         raise NotImplementedError
 
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[tuple[int, str]]:

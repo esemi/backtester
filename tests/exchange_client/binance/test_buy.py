@@ -24,9 +24,9 @@ def test_buy_happy_path():
         price=actual_price,
     )
 
-    assert response['status'] == 'FILLED'
-    assert Decimal(response['cummulativeQuoteQty']) <= actual_price
-    assert Decimal(response['executedQty']) == quantity
+    assert response.is_filled
+    assert response.price <= actual_price
+    assert response.qty == quantity
 
 
 def test_buy_canceled():
@@ -48,6 +48,6 @@ def test_buy_canceled():
         price=actual_price.price - Decimal(10),
     )
 
-    assert response['status'] == 'EXPIRED'
-    assert Decimal(response['executedQty']) == Decimal(0)
-    assert Decimal(response['cummulativeQuoteQty']) == Decimal(0)
+    assert not response.is_filled
+    assert response.qty == Decimal(0)
+    assert response.price == Decimal(0)

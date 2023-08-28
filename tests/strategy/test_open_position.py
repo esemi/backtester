@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import Mock
 
+from app.exchange_client.base import OrderResult
 from app.strategy import BasicStrategy
 
 
@@ -18,11 +19,11 @@ def test_open_position_exception():
 
 def test_open_position_expired():
     mock = Mock()
-    mock.buy = Mock(return_value={
-        'executedQty': '0',
-        'cummulativeQuoteQty': '0',
-        'status': 'EXPIRED',
-    })
+    mock.buy = Mock(return_value=OrderResult(
+        is_filled=False,
+        qty=Decimal(0),
+        price=Decimal(0),
+    ))
 
     strategy = BasicStrategy(exchange_client=mock)
 
@@ -40,5 +41,5 @@ def test_open_position_filled(exchange_client_pass_mock):
     assert response is True
     assert len(strategy._open_positions) == 1
     assert strategy._open_positions[0].amount == Decimal('12.888')
-    assert strategy._open_positions[0].open_rate == Decimal('456.3') / Decimal('12.888')
+    assert strategy._open_positions[0].open_rate == Decimal('35.4050279')
     assert strategy._open_positions[0].open_tick_number == 0

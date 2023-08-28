@@ -2,7 +2,7 @@ import copy
 import logging
 from decimal import Decimal
 
-from app.exchange_client.base import BaseClient
+from app.exchange_client.base import BaseClient, OrderResult
 from app.floating_steps import FloatingSteps
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
@@ -175,11 +175,12 @@ class BasicStrategy:
 
     def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int) -> bool:
         if self._dry_run:
-            buy_response: dict | None = {
-                'executedQty': str(quantity),
-                'cummulativeQuoteQty': str(quantity * price),
-                'status': 'FILLED',
-            }
+            buy_response: OrderResult | None = OrderResult(
+                is_filled=True,
+                qty=quantity,
+                price=price,
+                raw_response={'dry_run': True},
+            )
         else:
             buy_response = self._exchange_client.buy(
                 quantity=quantity,
@@ -187,30 +188,29 @@ class BasicStrategy:
             )
 
         logger.debug('open new position response {0}'.format(buy_response))
-        if not buy_response or buy_response.get('status') != 'FILLED':
+        if not buy_response or not buy_response.is_filled:
             logger.warning('open new position - unsuccessfully "{0}" {1}'.format(
                 buy_response,
                 {'quantity': quantity, 'price': price},
             ))
             return False
 
-        fact_price = Decimal(buy_response['cummulativeQuoteQty']) / Decimal(buy_response['executedQty'])
-        fact_quantity = Decimal(buy_response['executedQty'])
-        logger.info('open new position {0} {1}'.format(fact_quantity, fact_price))
+        logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
         self._open_positions.append(Position(
-            amount=fact_quantity,
-            open_rate=fact_price,
+            amount=buy_response.qty,
+            open_rate=buy_response.price,
             open_tick_number=tick_number,
         ))
         return True
 
     def _close_position(self, position_for_close: Position, price: Decimal, tick_number: int) -> bool:
         if self._dry_run:
-            sell_response: dict | None = {
-                'executedQty': position_for_close.amount,
-                'cummulativeQuoteQty': position_for_close.amount * price,
-                'status': 'FILLED',
-            }
+            sell_response: OrderResult | None = OrderResult(
+                is_filled=True,
+                qty=position_for_close.amount,
+                price=price,
+                raw_response={'dry_run': True},
+            )
         else:
             sell_response = self._exchange_client.sell(
                 quantity=Decimal(position_for_close.amount),
@@ -218,7 +218,7 @@ class BasicStrategy:
             )
 
         logger.debug('close position response {0}'.format(sell_response))
-        if not sell_response or sell_response.get('status') != 'FILLED':
+        if not sell_response or not sell_response.is_filled:
             logger.info('close position - unsuccessfully "{0}" {1}'.format(
                 sell_response,
                 {'quantity': Decimal(position_for_close.amount), 'price': Decimal(price)},
@@ -227,8 +227,7 @@ class BasicStrategy:
 
         logger.info('close position')
         self._open_positions.remove(position_for_close)
-        price = Decimal(sell_response['cummulativeQuoteQty']) / Decimal(sell_response['executedQty'])
-        position_for_close.close_rate = price
+        position_for_close.close_rate = sell_response.price
         position_for_close.close_tick_number = tick_number
         self._closed_positions.append(position_for_close)
         return True

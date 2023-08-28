@@ -5,7 +5,7 @@ from typing import Generator
 
 from binance.spot import Spot  # type: ignore
 
-from app.exchange_client.base import BaseClient
+from app.exchange_client.base import BaseClient, OrderResult
 from app.models import Tick
 
 logger = logging.getLogger(__name__)
@@ -54,9 +54,9 @@ class Binance(BaseClient):
             for line in response
         ]
 
-    def buy(self, quantity: Decimal, price: Decimal) -> dict | None:
+    def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         try:
-            return self._client_spot.new_order(
+            response = self._client_spot.new_order(
                 symbol=self._symbol,
                 side='BUY',
                 type='LIMIT',
@@ -70,9 +70,16 @@ class Binance(BaseClient):
             logger.exception(exc)
             return None
 
-    def sell(self, quantity: Decimal, price: Decimal) -> dict | None:
+        return OrderResult(
+            is_filled=response.get('status') == 'FILLED',
+            qty=Decimal(response['executedQty']),
+            price=Decimal(response['cummulativeQuoteQty']) / (Decimal(response.get('executedQty')) or 1),
+            raw_response=response,
+        )
+
+    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         try:
-            return self._client_spot.new_order(
+            response = self._client_spot.new_order(
                 symbol=self._symbol,
                 side='SELL',
                 type='LIMIT',
@@ -82,6 +89,14 @@ class Binance(BaseClient):
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
+
         except Exception as exc:
             logger.exception(exc)
             return None
+
+        return OrderResult(
+            is_filled=response.get('status') == 'FILLED',
+            qty=Decimal(response['executedQty']),
+            price=Decimal(response['cummulativeQuoteQty']) / (Decimal(response.get('executedQty')) or 1),
+            raw_response=response,
+        )
