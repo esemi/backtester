@@ -55,10 +55,6 @@ class BasicStrategy:
                 )
             return True
 
-        if tick.number == 1:
-            logger.info('skip')
-            return True
-
         # check global stop loss
         if tick.price <= app_settings.global_stop_loss:
             logger.warning('global stop loss fired! open: {0}. closed: {1}'.format(
