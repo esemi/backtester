@@ -44,6 +44,7 @@ class AppSettings(BaseSettings):
     )
 
     # trader settings
+    exchange: Literal['binance', 'bybit'] = 'binance'
     throttling_failure_time: int = 10
     throttling_time: int = Field(default=5, description='Минимальная частота тика в секундах')
     throttling_time_small_tick: int = 3

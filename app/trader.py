@@ -4,13 +4,15 @@ import pickle
 import signal
 import time
 from datetime import datetime
+from typing import Callable
 
 from app import storage
 from app.exchange_client.binance import Binance
+from app.exchange_client.bybit import ByBit
 from app.floating_steps import FloatingSteps
 from app.settings import app_settings
-from app.strategy import BasicStrategy, FloatingStrategy
 from app.storage import drop_state
+from app.strategy import BasicStrategy, FloatingStrategy
 
 logger = logging.getLogger(__name__)
 _has_stop_request: bool = False
@@ -24,7 +26,7 @@ def force_exit_request(*args, **kwargs) -> None:  # type: ignore
 
 
 def main() -> None:
-    exchange_client = Binance(
+    exchange_client = _get_exchange_client(app_settings.exchange)(
         symbol=app_settings.symbol,
         api_key=app_settings.binance_api_key,
         api_secret=app_settings.binance_api_secret,
@@ -80,6 +82,13 @@ def main() -> None:
         _continue_or_break()
 
     strategy.show_results()
+
+
+def _get_exchange_client(name: str) -> Callable:
+    return {
+        'binance': Binance,
+        'bybit': ByBit,
+    }[name]
 
 
 def _save_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:

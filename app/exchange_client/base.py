@@ -24,10 +24,6 @@ class BaseClient(ABC):
         yield None
 
     @abstractmethod
-    def get_klines(self, interval: str, start_ms: int, limit: int) -> list[tuple[int, str]]:
-        pass
-
-    @abstractmethod
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         pass
 
