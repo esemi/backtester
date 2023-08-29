@@ -46,11 +46,64 @@ class ByBit(BaseClient):
                 yield None
 
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
-        # todo impl
-        # todo test
-        pass
+        try:
+            response = self._exchange_session.place_order(
+                category='spot',
+                symbol=self._symbol,
+                side='Buy',
+                orderType='Limit',
+                qty=str(quantity),
+                price=str(price),
+                timeInForce='FOK',
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        try:
+            order_response = self._exchange_session.get_order_history(
+                category='spot',
+                orderId=response.get('result')['orderId'],
+            ).get('result')['list'][0]
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        return OrderResult(
+            is_filled=order_response.get('orderStatus') == 'Filled',
+            qty=Decimal(order_response['cumExecQty']),
+            price=Decimal(order_response['avgPrice']),
+            raw_response=order_response,
+        )
 
     def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
-        # todo impl
-        # todo test
-        pass
+        try:
+            response = self._exchange_session.place_order(
+                category='spot',
+                symbol=self._symbol,
+                side='Sell',
+                orderType='Limit',
+                qty=str(quantity),
+                price=str(price),
+                timeInForce='FOK',
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        try:
+            order_response = self._exchange_session.get_order_history(
+                category='spot',
+                orderId=response.get('result')['orderId'],
+            ).get('result')['list'][0]
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        return OrderResult(
+            is_filled=order_response.get('orderStatus') == 'Filled',
+            qty=Decimal(order_response['cumExecQty']),
+            price=Decimal(order_response['avgPrice']),
+            raw_response=order_response,
+        )
+
