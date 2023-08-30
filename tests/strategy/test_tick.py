@@ -25,13 +25,14 @@ def test_break_by_tick_limit(exchange_client_pass_mock):
 
 def test_break_by_global_stop_loss(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
-
     strategy.tick(Tick(number=0, price=Decimal(10)))
-    response = strategy.tick(Tick(number=2, price=Decimal(app_settings.global_stop_loss)))
+    assert len(strategy._open_positions) == 3
+
+    response = strategy.tick(Tick(number=1, price=Decimal(app_settings.global_stop_loss)))
 
     assert response is False
     assert len(strategy._open_positions) == 0
-    assert len(strategy._closed_positions) == 3
+    assert len(strategy._closed_positions) == 4
 
 
 def test_buy_something(exchange_client_pass_mock):

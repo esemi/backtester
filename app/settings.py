@@ -33,6 +33,7 @@ class AppSettings(BaseSettings):
         description='До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule',
     )
     global_stop_loss: Decimal = Field(default='0.0', description='цена, при которой продаём всё и заканчиваем работу')
+    stop_loss_price_factor: Decimal = Field(default='0.8', description='За сколько процентов от текущей цены продаём по маркету при стоплосе')
     ticks_amount_limit: int = Field(default=100500, description='максимальное количество тиков для торговой сессии')
     symbol_to_usdt_rate: Decimal = Field(default='1', description='Курс текущего тикера в USDT.')
     hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
