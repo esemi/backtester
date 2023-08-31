@@ -86,23 +86,21 @@ class ByBit(BaseClient):
                 price=str(price),
                 timeInForce='FOK',
             )
-        except Exception as exc:
-            logger.exception(exc)
-            return None
-
-        try:
             order_response = self._exchange_session.get_order_history(
                 category='spot',
                 orderId=response.get('result')['orderId'],
-            ).get('result')['list'][0]
+            ).get('result')['list']
+            logger.info('exchange order result {0}'.format(order_response))
+            order_response = order_response[0]
+
         except Exception as exc:
             logger.exception(exc)
             return None
 
         return OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=Decimal(order_response['cumExecQty']),
-            price=Decimal(order_response['avgPrice']),
+            qty=Decimal(order_response['cumExecQty'] or 0),
+            price=Decimal(order_response['avgPrice'] or 0),
             raw_response=order_response,
         )
 
