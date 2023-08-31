@@ -15,5 +15,5 @@ class Dummy(BaseClient):
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[tuple[int, str]]:
         raise NotImplementedError
 
-    def next_price(self) -> Generator[Tick | None, None, None]:
+    def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         raise NotImplementedError

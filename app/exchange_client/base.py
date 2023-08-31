@@ -20,7 +20,7 @@ class BaseClient(ABC):
         self._symbol = symbol
 
     @abstractmethod
-    def next_price(self) -> Generator[Tick | None, None, None]:
+    def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         yield None
 
     @abstractmethod

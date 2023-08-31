@@ -4,9 +4,9 @@ import pickle
 import signal
 import time
 from datetime import datetime
-from typing import Callable
 
 from app import storage
+from app.exchange_client.base import BaseClient
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
 from app.floating_steps import FloatingSteps
@@ -26,12 +26,7 @@ def force_exit_request(*args, **kwargs) -> None:  # type: ignore
 
 
 def main() -> None:
-    exchange_client = _get_exchange_client(app_settings.exchange)(
-        symbol=app_settings.symbol,
-        api_key=app_settings.binance_api_key,
-        api_secret=app_settings.binance_api_secret,
-        test_mode=app_settings.exchange_test_mode,
-    )
+    exchange_client = _get_exchange_client(app_settings.exchange)
     failure_counter: int = 0
 
     if app_settings.strategy_type == 'basic':
@@ -84,10 +79,20 @@ def main() -> None:
     strategy.show_results()
 
 
-def _get_exchange_client(name: str) -> Callable:
+def _get_exchange_client(name: str) -> BaseClient:
     return {
-        'binance': Binance,
-        'bybit': ByBit,
+        'binance': Binance(
+            symbol=app_settings.symbol,
+            api_key=app_settings.binance_api_key,
+            api_secret=app_settings.binance_api_secret,
+            test_mode=app_settings.exchange_test_mode,
+        ),
+        'bybit': ByBit(
+            symbol=app_settings.symbol,
+            api_key=app_settings.bybit_api_key,
+            api_secret=app_settings.bybit_api_secret,
+            test_mode=app_settings.exchange_test_mode,
+        ),
     }[name]
 
 
