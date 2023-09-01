@@ -215,15 +215,15 @@ class BasicStrategy:
             )
         else:
             sell_response = self._exchange_client.sell(
-                quantity=Decimal(position_for_close.amount),
-                price=Decimal(price),
+                quantity=position_for_close.amount,
+                price=price,
             )
 
         logger.debug('close position response {0}'.format(sell_response))
         if not sell_response or not sell_response.is_filled:
             logger.info('close position - unsuccessfully "{0}" {1}'.format(
                 sell_response,
-                {'quantity': Decimal(position_for_close.amount), 'price': Decimal(price)},
+                {'quantity': position_for_close.amount, 'price': price},
             ))
             return False
 
@@ -257,7 +257,7 @@ class BasicStrategy:
         else:
             sell_response = self._exchange_client.sell(
                 quantity=Decimal(fake_position.amount),
-                price=price,
+                price=price.quantize(app_settings.ticker_price_digits),
             )
 
         logger.debug('close fake position response {0}'.format(sell_response))
