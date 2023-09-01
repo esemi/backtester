@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from app.exchange_client.binance import Binance
+from app.exchange_client.bybit import ByBit
 
 
 def test_get_klines_happy_path():
-    client = Binance(symbol='BTCUSDT', test_mode=True)
+    client = ByBit(symbol='BTCUSDT', test_mode=True)
     start_ms = round((datetime.utcnow() - timedelta(days=1)).timestamp() * 1000)
 
     response = client.get_klines(

@@ -4,7 +4,7 @@ from typing import Generator
 
 from pybit.unified_trading import HTTP  # type: ignore
 
-from app.exchange_client.base import BaseClient, OrderResult
+from app.exchange_client.base import BaseClient, OrderResult, HistoryPrice
 from app.models import Tick
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,31 @@ class ByBit(BaseClient):
             except Exception as e:
                 logger.exception(e)
                 yield None
+
+    def get_klines(self, interval: str, start_ms: int, limit: int) -> list[HistoryPrice]:
+        interval_adopted = {
+            '1m': 1,
+            '3m': 3,
+            '5m': 5,
+            '15m': 15,
+            '30m': 30,
+            '1h': 60,
+        }[interval]
+
+        response = self._exchange_session.get_kline(
+            category='spot',
+            symbol=self._symbol,
+            interval=interval_adopted,
+            start=start_ms,
+            limit=limit,
+        )
+        return [
+            HistoryPrice(
+                price=Decimal(line[1]),  # open rate
+                timestamp=int(line[0]),  # Kline open time
+            )
+            for line in reversed(response.get('result')['list'])
+        ]
 
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         try:

@@ -5,7 +5,7 @@ from typing import Generator
 
 from binance.spot import Spot  # type: ignore
 
-from app.exchange_client.base import BaseClient, OrderResult
+from app.exchange_client.base import BaseClient, OrderResult, HistoryPrice
 from app.models import Tick
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class Binance(BaseClient):
                 logger.exception(e)
                 yield None
 
-    def get_klines(self, interval: str, start_ms: int, limit: int) -> list[tuple[int, str]]:
+    def get_klines(self, interval: str, start_ms: int, limit: int) -> list[HistoryPrice]:
         response = self._client_spot.klines(
             symbol=self._symbol,
             interval=interval,
@@ -47,9 +47,9 @@ class Binance(BaseClient):
             limit=limit,
         )
         return [
-            (
-                line[0],  # Kline open time
-                line[1],  # open rate
+            HistoryPrice(
+                price=Decimal(line[1]),  # open rate
+                timestamp=line[0],       # Kline open time
             )
             for line in response
         ]

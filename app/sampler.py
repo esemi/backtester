@@ -4,24 +4,41 @@ import os
 from datetime import datetime
 
 from app.exchange_client.binance import Binance
+from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
 
 
 logger = logging.getLogger(__name__)
 
 
-def main(symbol: str, start_date: datetime, end_date: datetime | None = None, interval: str = '5m') -> int:
+def main(
+    symbol: str,
+    start_date: datetime,
+    end_date: datetime | None = None,
+    interval: str = '5m',
+    exchange: str = 'binance',
+) -> int:
     logger.info('load sample for {0}-{1} from {2} to {3}'.format(symbol, interval, start_date, end_date))
     if end_date is None:
         end_date = datetime.utcnow()
 
-    binance_client = Binance(symbol=symbol, test_mode=False)
+    exchange_client = {
+        'binance': Binance(
+            symbol=symbol,
+            test_mode=False,
+        ),
+        'bybit': ByBit(
+            symbol=symbol,
+            test_mode=False,
+        ),
+    }[exchange]
+
     limit: int = 1000
     counter: int = 0
 
     filepath = os.path.join(
         app_settings.rates_path,
-        f'BINANCE_{symbol}_{interval}_{start_date.date().isoformat()}_{end_date.date().isoformat()}.csv',
+        f'{exchange}_{symbol}_{interval}_{start_date.date().isoformat()}_{end_date.date().isoformat()}.csv',
     )
 
     with open(filepath, 'w') as output_fd:
@@ -29,17 +46,17 @@ def main(symbol: str, start_date: datetime, end_date: datetime | None = None, in
         start_ms: int = int(start_date.timestamp() * 1000)
 
         while True:
-            rates = binance_client.get_klines(interval, start_ms, limit)
+            rates = exchange_client.get_klines(interval, start_ms, limit)
             counter += len(rates)
-            for tick_time, tick_rate in rates:
-                tick_date = datetime.utcfromtimestamp(tick_time / 1000)
+            for rate in rates:
+                tick_date = datetime.utcfromtimestamp(rate.timestamp / 1000)
                 if tick_date <= end_date:
-                    output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), tick_rate))
+                    output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), rate.price))
 
             if len(rates) < limit:
                 break
 
-            start_ms = rates[-1][0]+1
+            start_ms = rates[-1].timestamp + 1
             if start_ms >= int(end_date.timestamp() * 1000):
                 break
 
@@ -70,6 +87,12 @@ if __name__ == '__main__':
         help='Candle interval',
         default='5m',
     )
+    parser.add_argument(
+        '--exchange',
+        choices=['binance', 'bybit'],
+        help='Exchange name',
+        default='binance',
+    )
     args = parser.parse_args()
 
-    main(args.symbol, args.from_date, args.end_date, args.interval)
+    main(args.symbol, args.from_date, args.end_date, args.interval, args.exchange)

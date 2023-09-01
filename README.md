@@ -23,6 +23,7 @@ cp .env.example .env
 ```bash
 python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01
 python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01 --end-date=2023-01-15
+python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01 --end-date=2023-01-15 --exchange=bybit
 ```
 
 ### Run backtesting tool
