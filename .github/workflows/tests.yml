@@ -28,11 +28,10 @@ jobs:
       uses: shogo82148/actions-setup-redis@v1.26.1
     - run: redis-cli ping
 
-
     - name: Run unittests
       run: |        
         echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET_TEST }}' > .env
         echo 'binance_api_key=${{ secrets.BINANCE_API_KEY_TEST }}' >> .env
         echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_TEST }}' >> .env
         echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_TEST }}' >> .env
-        pytest
+        pytest --cov=app

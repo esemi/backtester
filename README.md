@@ -1,4 +1,6 @@
-# WIP
+Crypto Trader
+---
+Trading strategy backtesting utility and trading robot implementation for Binance and ByBit cryptocurrency exchanges
 
 
 ### Setup on windows
