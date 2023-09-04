@@ -43,3 +43,27 @@ def test_close_all_positions_not_found_positions(exchange_client_pass_mock):
     assert response is True
     assert len(strategy._open_positions) == 0
     assert len(strategy._closed_positions) == 0
+
+
+def test_close_all_positions_round_regress(exchange_client_pass_mock):
+    open_positions = [
+        '0.047',
+        '0.048',
+        '0.098',
+        '0.1',
+        '0.078',
+    ]
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
+    strategy._open_positions = [
+        Position(
+            amount=Decimal(qty),
+            open_tick_number=0,
+            open_rate=Decimal('123.1')
+        )
+        for qty in open_positions
+    ]
+
+    response = strategy._close_all_positions(price=Decimal('123.1'), tick_number=999)
+
+    assert response is True
+    assert strategy._closed_positions.pop().amount == Decimal('0.371')

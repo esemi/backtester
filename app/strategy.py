@@ -239,7 +239,10 @@ class BasicStrategy:
             return True
 
         # make fake summary-position
-        sum_amount = sum([pos.amount for pos in self._open_positions])
+        amounts = [pos.amount for pos in self._open_positions]
+        logger.info('amounts {0}'.format(amounts))
+
+        sum_amount = sum(amounts)
         sum_cost = sum([pos.open_rate * pos.amount for pos in self._open_positions])
         fake_position = Position(
             amount=Decimal(sum_amount),
