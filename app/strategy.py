@@ -169,7 +169,7 @@ class BasicStrategy:
             tick_number=tick.number,
             tick_rate=tick.price,
         )
-        if not self._max_onhold_positions or self._max_onhold_positions.buy_amount < on_hold_current.buy_amount:
+        if not self._max_onhold_positions or self._max_onhold_positions.buy_amount <= on_hold_current.buy_amount:
             self._max_onhold_positions = on_hold_current
 
     def _get_open_positions_for_sell(self) -> list[Position]:
@@ -371,7 +371,7 @@ class FloatingStrategy(BasicStrategy):
 
     def _update_stats(self, tick: Tick):
         super()._update_stats(tick)
-        if self._steps.current_step > self._max_sell_percent:
+        if self._steps.current_step >= self._max_sell_percent:
             self._max_sell_percent = self._steps.current_step
             self._max_sell_percent_tick = tick.number
 
