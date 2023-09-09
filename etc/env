@@ -3,16 +3,16 @@ strategy_type=floating
 step=0.0001
 avg_rate_sell_limit=1.00
 init_buy_amount=1
-continue_buy_amount=1.05
-ticker_amount_digits=0.0001
+continue_buy_amount=1.01
+ticker_amount_digits=0.01
 global_stop_loss=0.0
-ticks_amount_limit=0
-hold_position_limit=850
+ticks_amount_limit=999999999
+hold_position_limit=750
 fee_percent=0.1
 symbol_to_usdt_rate=1.0
 
 # trader settings
-throttling_time=20
-symbol=XRP3LUSDT
+throttling_time=5
+symbol=XRPUSDT
 dry_run=false
 exchange=bybit
