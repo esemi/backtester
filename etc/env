@@ -7,7 +7,7 @@ continue_buy_amount=2
 ticker_amount_digits=0.01
 global_stop_loss=0.0
 ticks_amount_limit=999999999
-hold_position_limit=750
+hold_position_limit=375
 fee_percent=0.1
 symbol_to_usdt_rate=1.0
 
