@@ -11,31 +11,18 @@ python3.10 -m pip install --upgrade setuptools
 python3.11 -m pip install --upgrade setuptools
 
 groupadd supervisor
+usermod -a -G supervisor root
 vi /etc/supervisor/supervisor.conf  # change chown and chmod params
+
+mkdir -p /var/log/trader
 
 adduser trader1
 usermod -a -G supervisor trader1
-usermod -a -G supervisor root
 service supervisor restart
 
 cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
 
 # run deploy from github actions
 
-service supervisor restart
-
-vi /etc/nginx/sites-enabled/trader.conf
-mkdir /var/www/trader
-chown root:supervisor /var/www/trader 
-chmod 0771 /var/www/trader
-usermod -a -G supervisor www-data
-```
-
-
-New user adding
-```shell
-adduser traderN
-usermod -a -G supervisor traderN
-cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
 service supervisor restart
 ```
