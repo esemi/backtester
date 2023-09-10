@@ -2,7 +2,7 @@
 apt-get update
 apt-get install software-properties-common
 add-apt-repository ppa:deadsnakes/ppa
-apt install supervisor python3.11 python3.11-venv nginx
+apt install supervisor python3.11 python3.11-venv redis
 
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
