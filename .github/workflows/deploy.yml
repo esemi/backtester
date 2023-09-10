@@ -33,13 +33,13 @@ jobs:
           scp: |-
             './app/*' => $TARGET_DIR/app/
             './etc/*' => $TARGET_DIR/etc/
-            ./etc/env => $TARGET_DIR/.env
             ./requirements.txt => $TARGET_DIR
 
           last_ssh: |-
             $VENV_BIN/pip install pip setuptools --upgrade
             $VENV_BIN/pip install -r requirements.txt
             $VENV_BIN/pip cache purge
+            mv etc/env .env
             echo '' >> .env
             echo 'binance_api_key=${{ secrets.BINANCE_API_KEY }}' >> .env
             echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET }}' >> .env
