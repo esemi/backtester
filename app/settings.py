@@ -28,6 +28,10 @@ class AppSettings(BaseSettings):
         default='15.0',
         description='Количество денег, на которое открываем новые позиции. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',
     )
+    continue_buy_every_n_ticks: int = Field(
+        default=1,
+        description='Раз в какое количество тиков пробуем покупать. Считаем только тики, потенциально пригодные для покупки.',
+    )
     ticker_amount_digits: Decimal = Field(
         default='0.01',
         description='До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule',
