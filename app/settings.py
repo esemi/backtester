@@ -8,15 +8,24 @@ from pydantic_settings import BaseSettings
 
 getcontext().prec = 20
 
+APP_PATH = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        '..',
+    ),
+)
+
 
 class AppSettings(BaseSettings):
     """Application settings class."""
 
     # common settings
     debug: bool = Field(default=False)
-    rates_path: str = os.path.join(os.path.dirname(__file__), '..', 'rates')
+
+    rates_path: str = os.path.join(APP_PATH, 'rates')
+    telemetry_path: str = os.path.join(APP_PATH, 'telemetry')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
-    float_steps_path: str = os.path.join(os.path.dirname(__file__), '..', 'etc', 'float_strategy.csv')
+    float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
@@ -69,5 +78,5 @@ class AppSettings(BaseSettings):
 
 
 app_settings = AppSettings(
-    _env_file=os.path.join(os.path.dirname(__file__), '..', '.env'),  # type:ignore
+    _env_file=os.path.join(APP_PATH, '.env'),  # type:ignore
 )
