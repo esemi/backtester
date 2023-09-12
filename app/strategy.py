@@ -20,6 +20,7 @@ class BasicStrategy:
         self._max_sell_percent: Decimal = Decimal(0)
         self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
+        self._last_success_buy_tick_number: int = 0
 
         self._exchange_client: BaseClient = exchange_client
         self._dry_run: bool = dry_run
@@ -198,6 +199,7 @@ class BasicStrategy:
             return False
 
         logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
+        self._last_success_buy_tick_number = tick_number
         self._open_positions.append(Position(
             amount=buy_response.qty,
             open_rate=buy_response.price,
@@ -308,11 +310,16 @@ class BasicStrategy:
 
     def _buy_something(self, price: Decimal, tick_number: int) -> None:
         rate_go_down = self.get_previous_tick().price - price
-        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f' % (
+        is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
+        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d' % (
             float(self.get_previous_tick().price),
             float(rate_go_down),
+            is_buy_available_by_frequency,
+            self._last_success_buy_tick_number,
         ))
-        if rate_go_down >= app_settings.step:
+
+        if rate_go_down >= app_settings.step and is_buy_available_by_frequency:
+            self._ticks_after_last_buy = 0
             self._open_position(
                 quantity=calculate_ticker_quantity(
                     app_settings.continue_buy_amount,
