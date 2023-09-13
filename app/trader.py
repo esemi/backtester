@@ -12,7 +12,7 @@ from app.exchange_client.bybit import ByBit
 from app.floating_steps import FloatingSteps
 from app.settings import app_settings
 from app.storage import drop_state
-from app.strategy import BasicStrategy, FloatingStrategy
+from app.strategy import BasicStrategy, FloatingStrategy, get_strategy_instance
 
 logger = logging.getLogger(__name__)
 _has_stop_request: bool = False
@@ -29,18 +29,11 @@ def main() -> None:
     exchange_client = _get_exchange_client(app_settings.exchange)
     failure_counter: int = 0
 
-    if app_settings.strategy_type == 'basic':
-        strategy = BasicStrategy(exchange_client=exchange_client, dry_run=app_settings.dry_run)
-
-    elif app_settings.strategy_type == 'floating':
-        strategy = FloatingStrategy(
-            exchange_client=exchange_client,
-            steps_instance=FloatingSteps(app_settings.float_steps_path),
-            dry_run=app_settings.dry_run,
-        )
-
-    else:
-        raise RuntimeError('Unknown strategy type!')
+    strategy = get_strategy_instance(
+        strategy_type=app_settings.strategy_type,
+        exchange_client=exchange_client,
+        dry_run=app_settings.dry_run,
+    )
 
     _restore_strategy_state(app_settings.symbol, strategy)
     start_tick_numeration = strategy.get_last_tick().number if strategy.has_tick_history() else -1

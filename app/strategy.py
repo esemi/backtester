@@ -1,4 +1,5 @@
 import copy
+import datetime
 import logging
 from decimal import Decimal
 
@@ -6,6 +7,7 @@ from app.exchange_client.base import BaseClient, OrderResult
 from app.floating_steps import FloatingSteps
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
+from app.telemetry.client import TelemetryClient
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,9 @@ class BasicStrategy:
         self._last_success_buy_tick_number: int = 0
 
         self._exchange_client: BaseClient = exchange_client
+        self._telemetry: TelemetryClient = TelemetryClient(filename='telemetry_{0}.csv'.format(
+            datetime.datetime.utcnow().timestamp(),
+        ))
         self._dry_run: bool = dry_run
 
     def has_tick_history(self) -> bool:
@@ -37,6 +42,7 @@ class BasicStrategy:
     def tick(self, tick: Tick) -> bool:
         self._push_ticks_history(tick)
         self._update_stats(tick)
+        buy_completed: bool = False
 
         if tick.number >= app_settings.ticks_amount_limit:
             logger.warning('end trading session by tick limit')
@@ -45,7 +51,7 @@ class BasicStrategy:
         if not tick.number:
             logger.info('init buy')
             for _ in range(app_settings.init_buy_amount):
-                self._open_position(
+                is_completed = self._open_position(
                     quantity=calculate_ticker_quantity(
                         app_settings.continue_buy_amount,
                         tick.price,
@@ -54,6 +60,16 @@ class BasicStrategy:
                     price=tick.price,
                     tick_number=tick.number,
                 )
+                buy_completed = is_completed or buy_completed
+
+            buy_price = None if not buy_completed else self._open_positions[-1].open_rate
+            self._telemetry.push(
+                tick.number,
+                tick.price,
+                buy_price=buy_price,
+            )
+
+            self._update_stats(tick)
             return True
 
         # check global stop loss
@@ -62,24 +78,41 @@ class BasicStrategy:
                 len(self._open_positions),
                 len(self._closed_positions),
             ))
-            self._close_all_positions(
+            sell_completed = self._close_all_positions(
                 price=tick.price * app_settings.stop_loss_price_factor,
                 tick_number=tick.number,
+            )
+
+            sell_price = None if not sell_completed else self._closed_positions[-1].close_rate
+            self._telemetry.push(
+                tick.number,
+                tick.price,
+                sell_price=sell_price,
             )
             self._update_stats(tick)
             return False
 
         # search position for sale
         sale_completed = self._sell_something(price=tick.price, tick_number=tick.number)
+        if sale_completed:
+            self._telemetry.push(
+                tick.number,
+                tick.price,
+                sell_price=self._closed_positions[-1].close_rate,
+            )
 
-        if app_settings.hold_position_limit and len(self._open_positions) >= app_settings.hold_position_limit:
-            logger.debug('skip by hold_position_limit')
-            return True
+        if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
+            # вот смотри там где разница была больше или равно 0.02 мы закупали
+            if not sale_completed:
+                logger.debug('try to buy something')
+                buy_completed = self._buy_something(price=tick.price, tick_number=tick.number)
 
-        # вот смотри там где разница была больше или равно 0.02 мы закупали
-        if not sale_completed:
-            logger.debug('try to buy something')
-            self._buy_something(price=tick.price, tick_number=tick.number)
+        buy_price = None if not buy_completed else self._open_positions[-1].open_rate
+        self._telemetry.push(
+            tick.number,
+            tick.price,
+            buy_price=buy_price,
+        )
 
         self._update_stats(tick)
         return True
@@ -238,7 +271,7 @@ class BasicStrategy:
 
     def _close_all_positions(self, price: Decimal, tick_number: int) -> bool:
         if not self._open_positions:
-            return True
+            return False
 
         # make fake summary-position
         amounts = [pos.amount for pos in self._open_positions]
@@ -308,7 +341,7 @@ class BasicStrategy:
 
         return sale_completed
 
-    def _buy_something(self, price: Decimal, tick_number: int) -> None:
+    def _buy_something(self, price: Decimal, tick_number: int) -> bool:
         rate_go_down = self.get_previous_tick().price - price
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
         logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d' % (
@@ -320,7 +353,7 @@ class BasicStrategy:
 
         if rate_go_down >= app_settings.step and is_buy_available_by_frequency:
             self._ticks_after_last_buy = 0
-            self._open_position(
+            return self._open_position(
                 quantity=calculate_ticker_quantity(
                     app_settings.continue_buy_amount,
                     price,
@@ -329,6 +362,7 @@ class BasicStrategy:
                 price=price,
                 tick_number=tick_number,
             )
+        return False
 
     def _push_ticks_history(self, tick: Tick) -> None:
         if len(self._ticks_history) >= self.tick_history_limit:
@@ -394,3 +428,17 @@ class FloatingStrategy(BasicStrategy):
 def calculate_ticker_quantity(needed_amount: Decimal, current_price: Decimal, round_digits: Decimal) -> Decimal:
     """Return ticker quantity by current price and needed amount in ticker currency (USDT for common cases)."""
     return (needed_amount / current_price).quantize(round_digits)
+
+
+def get_strategy_instance(strategy_type: str, exchange_client: BaseClient, dry_run: bool) -> BasicStrategy:
+    return {
+        'basic': BasicStrategy(
+            exchange_client=exchange_client,
+            dry_run=dry_run,
+        ),
+        'floating': FloatingStrategy(
+            exchange_client=exchange_client,
+            steps_instance=FloatingSteps(app_settings.float_steps_path),
+            dry_run=dry_run,
+        ),
+    }[strategy_type]
