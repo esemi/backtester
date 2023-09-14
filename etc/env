@@ -7,12 +7,12 @@ continue_buy_amount=1.05  # Количество денег, на которое
 ticker_amount_digits=0.1  # До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.bybitglobal.com/en-US/announcement-info/spot-trading-rules/
 global_stop_loss=0.0  # цена, при которой продаём всё и заканчиваем работу
 ticks_amount_limit=999999999  # максимальное количество тиков для торговой сессии
-hold_position_limit=700  # Максимальное количество открытых позиций. 0 для безлимита.
+hold_position_limit=87  # Максимальное количество открытых позиций. 0 для безлимита.
 fee_percent=0.1  # Процент комиссий от суммы сделки
 symbol_to_usdt_rate=1.0  # Курс текущего тикера в USDT
 
 # trader settings
-throttling_time=60  # Минимальная частота тика в секундах
+throttling_time=5  # Минимальная частота тика в секундах
 symbol=STRMUSDT  # какой тикер торгуем
 dry_run=false  # true - торговля без отправки сделок на биржу
 exchange=bybit  # Выбор биржи для торгов, bybit или binance
