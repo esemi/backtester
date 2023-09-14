@@ -12,7 +12,7 @@ fee_percent=0.1  # Процент комиссий от суммы сделки
 symbol_to_usdt_rate=1.0  # Курс текущего тикера в USDT
 
 # trader settings
-throttling_time=15  # Минимальная частота тика в секундах
+throttling_time=60  # Минимальная частота тика в секундах
 symbol=STRMUSDT  # какой тикер торгуем
 dry_run=false  # true - торговля без отправки сделок на биржу
 exchange=bybit  # Выбор биржи для торгов, bybit или binance
