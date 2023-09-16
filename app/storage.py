@@ -16,7 +16,6 @@ def save_state(name: str, state: bytes) -> None:
 
 def get_saved_state(name: str) -> bytes | None:
     response = connection.get(STORAGE_PREFIX.format(name))
-    drop_state(name)
     return response
 
 
