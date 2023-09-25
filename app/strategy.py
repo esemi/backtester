@@ -346,15 +346,17 @@ class BasicStrategy:
         rate_diff = self.get_previous_tick().price - price
         rate_go_down_percent = rate_diff / one_percent
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
-        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f%%, frequency buy lock %s, last buy tick %d' % (
+        is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(price)
+
+        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s' % (
             float(self.get_previous_tick().price),
             float(rate_go_down_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
+            is_buy_available_by_duplicate_rate,
         ))
 
-        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency:
-            self._ticks_after_last_buy = 0
+        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate:
             return self._open_position(
                 quantity=calculate_ticker_quantity(
                     app_settings.continue_buy_amount,
@@ -373,6 +375,14 @@ class BasicStrategy:
 
     def _get_ticks_history(self) -> list[Tick]:
         return self._ticks_history
+
+    def _has_not_open_position_by_price(self, price: Decimal) -> bool:
+        test_rate = price.quantize(app_settings.ticker_price_digits)
+        for position in self._open_positions:
+            position_rate = position.open_rate.quantize(app_settings.ticker_price_digits)
+            if position_rate == test_rate:
+                return False
+        return True
 
 
 class FloatingStrategy(BasicStrategy):
