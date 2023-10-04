@@ -20,9 +20,9 @@ jobs:
           TARGET_DIR: /home/USER_NAME
           VENV_BIN: venv/bin
         with:
-          host: ${{ secrets.PROD_HOST }}
+          host: ${{ secrets.PROD_HOST_BIG }}
           user: USER_NAME
-          pass: ${{ secrets.PROD_PASSWORD }}
+          pass: ${{ secrets.PROD_PASSWORD_BIG }}
           port: 22
           connect_timeout: 10s
           first_ssh: |-
