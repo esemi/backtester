@@ -49,4 +49,6 @@ jobs:
             echo '' >> .env
             echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY }}' >> .env
             echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET }}' >> .env
-            supervisorctl restart trader11
+            echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_SECOND }}' >> .env
+            echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_SECOND }}' >> .env
+            supervisorctl restart USER_NAME
