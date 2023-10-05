@@ -29,7 +29,7 @@ class AppSettings(BaseSettings):
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
-    step: Decimal = Field(default='0.02', description='шаг в абсолютных значениях для условия на открытие новой позиции')
+    step: Decimal = Field(default='0.5', description='шаг в процентах для условия на открытие новой позиции. 0.5 = 0.5%')
     fee_percent: Decimal = Field(default='0.1', description='Процент комиссий от суммы сделки')
     avg_rate_sell_limit: Decimal = Field(default='1.05', description='шаг в процентах для условия сделок. 5% = 1.05')
     init_buy_amount: int = Field(default=3, description='сколько позиций открываем в самом начале теста')

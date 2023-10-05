@@ -342,16 +342,18 @@ class BasicStrategy:
         return sale_completed
 
     def _buy_something(self, price: Decimal, tick_number: int) -> bool:
-        rate_go_down = self.get_previous_tick().price - price
+        one_percent = self.get_previous_tick().price / Decimal(100)
+        rate_diff = self.get_previous_tick().price - price
+        rate_go_down_percent = rate_diff / one_percent
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
-        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d' % (
+        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f%%, frequency buy lock %s, last buy tick %d' % (
             float(self.get_previous_tick().price),
-            float(rate_go_down),
+            float(rate_go_down_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
         ))
 
-        if rate_go_down >= app_settings.step and is_buy_available_by_frequency:
+        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency:
             self._ticks_after_last_buy = 0
             return self._open_position(
                 quantity=calculate_ticker_quantity(

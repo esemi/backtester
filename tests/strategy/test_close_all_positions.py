@@ -40,7 +40,7 @@ def test_close_all_positions_not_found_positions(exchange_client_pass_mock):
 
     response = strategy._close_all_positions(price=Decimal('123.1'), tick_number=999)
 
-    assert response is True
+    assert response is False
     assert len(strategy._open_positions) == 0
     assert len(strategy._closed_positions) == 0
 
