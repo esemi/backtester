@@ -119,3 +119,16 @@ python -m app.trader
 ### Как добавить новую пару апи ключей
 - добавляем новые доступы в [секреты github](https://github.com/esemi/backtester/settings/secrets/actions) с новыми именами
 - прописываем использование созданных переменных в деплой соответствующего бота ([например](https://github.com/esemi/backtester/blob/trader40/.github/workflows/deploy.yml#L45))
+
+
+### Как обновить код бота до актуального состояния
+- переключаемся на работу с git репозиторием
+- скачиваем актуальный мастер
+- `git checkout master`
+- `git pull`
+- обновляем нужного бота
+- `git checkout trader1`
+- `git pull`
+- `git rebase master`
+- если ошибок на прошлом шаге нет - заливаем новую версию на сервер
+- `git push -f`
