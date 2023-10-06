@@ -196,6 +196,12 @@ class BasicStrategy:
             self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
         ))
 
+        print('')
+        print('Количество покупок - %d' % (len(self._closed_positions) + len(self._open_positions)))
+        print('Количество продаж - %d' % len(self._closed_positions))
+        print('Количество не успешных сделок - %d' % len(self._open_positions))
+        print('Количество успешных сделок - %d' % len(self._closed_positions))
+
     def _update_stats(self, tick: Tick):
         on_hold_current = OnHoldPositions(
             quantity=Decimal(sum([pos.amount for pos in self._open_positions])),

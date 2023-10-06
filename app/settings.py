@@ -47,7 +47,7 @@ class AppSettings(BaseSettings):
     )
     ticker_price_digits: Decimal = Field(
         default='0.01',
-        description='До скольки знаков после запятой округлять цену в заявке.',
+        description='До скольки знаков после запятой округлять цену в заявке. Этот параметр также используется для округления цены при проверке на наличие открытой позиции в этом ценовом диапазоне.',
     )
     global_stop_loss: Decimal = Field(default='0.0', description='цена, при которой продаём всё и заканчиваем работу')
     stop_loss_price_factor: Decimal = Field(default='0.98', description='За сколько процентов от текущей цены продаём по маркету при стоплосе')
