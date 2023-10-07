@@ -1,0 +1,16 @@
+# strategy settings
+strategy_type=floating
+step=0.001
+avg_rate_sell_limit=1.00
+init_buy_amount=1
+continue_buy_amount=10.2
+ticker_amount_digits=0.1
+global_stop_loss=0.0
+hold_position_limit=12
+fee_percent=0.1
+symbol_to_usdt_rate=1.0
+
+# trader settings
+throttling_time=10
+symbol=TOMOUSDT
+dry_run=false
