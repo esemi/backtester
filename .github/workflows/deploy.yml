@@ -21,7 +21,7 @@ jobs:
           VENV_BIN: venv/bin
         with:
           host: ${{ secrets.PROD_HOST_BIG }}
-          user: USER_NAME
+          user: trader42
           pass: ${{ secrets.PROD_PASSWORD_BIG }}
           port: 22
           connect_timeout: 10s
