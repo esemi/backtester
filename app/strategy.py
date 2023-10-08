@@ -338,7 +338,9 @@ class BasicStrategy:
             if price >= position.open_rate * app_settings.avg_rate_sell_limit:
                 sell_response = self._close_position(position, price=price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
-                continue
+
+            if sale_completed and not app_settings.multiple_sell_on_tick:
+                break
 
         return sale_completed
 
@@ -413,7 +415,9 @@ class FloatingStrategy(BasicStrategy):
             if price >= position.open_rate * step_percent:
                 sell_response = self._close_position(position, price=price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
-                continue
+
+            if sale_completed and not app_settings.multiple_sell_on_tick:
+                break
 
         if has_positions:
             if sale_completed:
