@@ -92,13 +92,13 @@ class BasicStrategy:
             self._update_stats(tick)
             return False
 
-        # search position for sale
+        # sale position[s]
         sale_completed = self._sell_something(price=tick.price, tick_number=tick.number)
 
-        if not sale_completed:
-            if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
-                logger.debug('try to buy something')
-                buy_completed = self._buy_something(price=tick.price, tick_number=tick.number)
+        # buy also
+        if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
+            logger.debug('try to buy something')
+            buy_completed = self._buy_something(price=tick.price, tick_number=tick.number)
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
