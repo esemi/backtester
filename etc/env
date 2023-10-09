@@ -1,16 +1,21 @@
 # strategy settings
-strategy_type=floating
-step=0.001
-avg_rate_sell_limit=1.00
-init_buy_amount=1
-continue_buy_amount=10.2
-ticker_amount_digits=0.1
-global_stop_loss=0.0
-hold_position_limit=12
-fee_percent=0.1
-symbol_to_usdt_rate=1.0
+strategy_type=floating  # тип стратегии, floating для плавающей ставки, basic - стратегия с постоянным процентом
+step=0.1  # шаг в процентах для условия на открытие новой позиции. 0.5 = 0.5%
+avg_rate_sell_limit=1.005  # шаг в процентах для условия сделок. 5% = 1.05
+init_buy_amount=1  # сколько позиций открываем в самом начале теста
+continue_buy_amount=1.0  # Количество денег, на которое открываем новые позиции. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.
+continue_buy_every_n_ticks=1  # Раз в какое количество тиков пробуем покупать. Считаем только тики, потенциально пригодные для покупки.
+ticker_amount_digits=0.01  # До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule
+ticker_price_digits=0.001  # До скольки знаков после запятой округлять цену в заявке. Этот параметр также используется для округления цены при проверке на наличие открытой позиции в этом ценовом диапазоне.
+global_stop_loss=0.0  # цена, при которой продаём всё и заканчиваем работу
+enabled=false  # максимальное количество тиков для торговой сессии
+hold_position_limit=0  # Максимальное количество открытых позиций. 0 для безлимита.
+fee_percent=0.1  # Процент комиссий от суммы сделки
+symbol_to_usdt_rate=1.0  # Курс текущего тикера в USDT.
+multiple_sell_on_tick=false # Разрешаем множественные продажи на одном тике или нет.
 
 # trader settings
-throttling_time=10
-symbol=TOMOUSDT
-dry_run=false
+throttling_time=5  # Минимальная частота тика в секундах
+symbol=STRMUSDT  # какой тикер торгуем
+dry_run=false  # true - торговля без отправки сделок на биржу
+exchange=binance  # Выбор биржи для торгов, bybit или binance
