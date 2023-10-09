@@ -153,45 +153,45 @@ class BasicStrategy:
         print('')
         print('Результаты тестирования:')
         print('')
-        print('Общая оборотная сумма денег с начала запуска $%.2f / %.8fBTC (%.2f монет)' % (
+        print('Общая оборотная сумма денег с начала запуска $%.2f / %.8f BTC (%.2f монет)' % (
             (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
             buy_amount_total + buy_amount_total_fee,
             buy_total,
         ))
 
         print('')
-        print('Оборотная сумма денег на покупки реализованных монет $%.2f / %.8fBTC (%.2f монет)' % (
+        print('Оборотная сумма денег на покупки реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
             (buy_amount_without_current_opened + buy_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
             buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
             buy_without_current_opened,
         ))
 
         print('')
-        print('Оборотная сумма денег за продажу реализованных монет $%.2f / %.8fBTC (%.2f монет)' % (
+        print('Оборотная сумма денег за продажу реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
             (sell_amount_without_current_opened - sell_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
             sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
             sell_without_current_opened,
         ))
-        print('Доходность без учёта зависших монет: $%.2f / %.8fBTC (%.2f%%)' % (
+        print('Доходность без учёта зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
             profit_amount_without_current_opened * app_settings.symbol_to_usdt_rate,
             profit_amount_without_current_opened,
             float(profit_percent_without_current_opened),
         ))
 
         print('')
-        print('Сумма денег за ликвидацию зависших монет $%.2f / %.8fBTC (%.2f монет)' % (
+        print('Сумма денег за ликвидацию зависших монет $%.2f / %.8f BTC (%.2f монет)' % (
             (liquidation_amount - liquidation_amount_fee) * app_settings.symbol_to_usdt_rate,
             (liquidation_amount - liquidation_amount_fee),
             liquidation,
         ))
-        print('Доходность с учётом зависших монет: $%.2f / %.8fBTC (%.2f%%)' % (
+        print('Доходность с учётом зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
             profit_amount_total * app_settings.symbol_to_usdt_rate,
             profit_amount_total,
             float(profit_percent_total),
         ))
 
         print('')
-        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f / %.8fBTC (%.1f монет, на тике %d)' % (
+        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f / %.8f BTC (%.1f монет, на тике %d)' % (
             self._max_onhold_positions.buy_amount * app_settings.symbol_to_usdt_rate if self._max_onhold_positions else 0,
             self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
