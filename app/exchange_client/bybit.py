@@ -1,4 +1,5 @@
 import logging
+import time
 from decimal import Decimal
 from typing import Generator
 
@@ -82,6 +83,7 @@ class ByBit(BaseClient):
                 price=str(price),
                 timeInForce='FOK',
             )
+            time.sleep(2)
             order_response = self._exchange_session.get_order_history(
                 category='spot',
                 orderId=response.get('result')['orderId'],
@@ -111,6 +113,7 @@ class ByBit(BaseClient):
                 price=str(price),
                 timeInForce='FOK',
             )
+            time.sleep(2)
             order_response = self._exchange_session.get_order_history(
                 category='spot',
                 orderId=response.get('result')['orderId'],
