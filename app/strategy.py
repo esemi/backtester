@@ -342,8 +342,10 @@ class BasicStrategy:
                 position.open_rate * app_settings.avg_rate_sell_limit,
                 price >= position.open_rate * app_settings.avg_rate_sell_limit,
             ))
+
+            sell_price = price * app_settings.sell_price_discount
             if price >= position.open_rate * app_settings.avg_rate_sell_limit:
-                sell_response = self._close_position(position, price=price, tick_number=tick_number)
+                sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
 
             if sale_completed and not app_settings.multiple_sell_on_tick:
@@ -367,13 +369,14 @@ class BasicStrategy:
         ))
 
         if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate:
+            buy_price = price * app_settings.buy_price_discount
             return self._open_position(
                 quantity=calculate_ticker_quantity(
                     app_settings.continue_buy_amount,
-                    price,
+                    buy_price,
                     app_settings.ticker_amount_digits,
                 ),
-                price=price,
+                price=buy_price,
                 tick_number=tick_number,
             )
         return False
@@ -419,8 +422,10 @@ class FloatingStrategy(BasicStrategy):
                 price >= position.open_rate * step_percent,
                 step_percent,
             ))
+
+            sell_price = price * app_settings.sell_price_discount
             if price >= position.open_rate * step_percent:
-                sell_response = self._close_position(position, price=price, tick_number=tick_number)
+                sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
 
             if sale_completed and not app_settings.multiple_sell_on_tick:

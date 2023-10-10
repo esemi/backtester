@@ -58,6 +58,14 @@ class AppSettings(BaseSettings):
         default=True,
         description='Разрешаем множественные продажи на одном тике или нет.',
     )
+    buy_price_discount: Decimal = Field(
+        default='1.02',
+        description='Скидка к цене покупки.',
+    )
+    sell_price_discount: Decimal = Field(
+        default='0.99',
+        description='Скидка к цене продажи.',
+    )
 
     # backtester settings
     rates_filename: str = Field(
