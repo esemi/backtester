@@ -85,9 +85,9 @@ class ByBit(BaseClient):
             order_response = self._exchange_session.get_order_history(
                 category='spot',
                 orderId=response.get('result')['orderId'],
-            ).get('result')['list']
-            logger.info('exchange order result {0}'.format(order_response))
-            order_response = order_response[0]
+            )
+            logger.info('exchange order result {0} {1}'.format(response, order_response))
+            order_response = order_response.get('result')['list'][0]
 
         except Exception as exc:
             logger.exception(exc)
@@ -114,9 +114,9 @@ class ByBit(BaseClient):
             order_response = self._exchange_session.get_order_history(
                 category='spot',
                 orderId=response.get('result')['orderId'],
-            ).get('result')['list']
-            logger.info('exchange order result {0}'.format(order_response))
-            order_response = order_response[0]
+            )
+            logger.info('exchange order result {0} {1}'.format(response, order_response))
+            order_response = order_response.get('result')['list'][0]
 
         except Exception as exc:
             logger.exception(exc)
