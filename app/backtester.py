@@ -41,9 +41,11 @@ def get_rates(filename: str) -> list[Tick]:
             if not num or not line:
                 continue
 
+            price = Decimal(line.split(',')[1])
             output.append(Tick(
                 number=tick_number,
-                price=Decimal(line.split(',')[1]),
+                bid=price,
+                ask=price,
             ))
             tick_number += 1
     return output

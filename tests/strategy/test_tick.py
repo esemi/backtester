@@ -8,7 +8,7 @@ from app.strategy import BasicStrategy
 def test_init_buy(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
-    response = strategy.tick(Tick(number=0, price=Decimal(10)))
+    response = strategy.tick(Tick(number=0, bid=Decimal(9), ask=Decimal(11)))
 
     assert response is True
     assert len(strategy._open_positions) == 3
@@ -18,17 +18,17 @@ def test_init_buy(exchange_client_pass_mock):
 def test_break_by_tick_limit(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
-    response = strategy.tick(Tick(number=app_settings.ticks_amount_limit, price=Decimal(9)))
+    response = strategy.tick(Tick(number=app_settings.ticks_amount_limit, bid=Decimal(8), ask=Decimal(10)))
 
     assert response is False
 
 
 def test_break_by_global_stop_loss(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
-    strategy.tick(Tick(number=0, price=Decimal(10)))
+    strategy.tick(Tick(number=0, bid=Decimal(9), ask=Decimal(11)))
     assert len(strategy._open_positions) == 3
 
-    response = strategy.tick(Tick(number=1, price=Decimal(app_settings.global_stop_loss)))
+    response = strategy.tick(Tick(number=1, bid=Decimal(app_settings.global_stop_loss), ask=Decimal(100500)))
 
     assert response is False
     assert len(strategy._open_positions) == 0
@@ -38,8 +38,8 @@ def test_break_by_global_stop_loss(exchange_client_pass_mock):
 def test_buy_something(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
-    strategy.tick(Tick(number=0, price=Decimal(10)))
-    response = strategy.tick(Tick(number=1, price=Decimal(9)))
+    strategy.tick(Tick(number=0, bid=Decimal(10), ask=Decimal(11)))
+    response = strategy.tick(Tick(number=1, bid=Decimal(10), ask=Decimal(10)))
 
     assert response is True
     assert len(strategy._open_positions) == 4
@@ -54,8 +54,10 @@ def test_sell_something(exchange_client_pass_mock):
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=2, open_rate=hold_price))
+    strategy._push_ticks_history(Tick(1, bid=Decimal(1), ask=buy_price))
+    strategy._push_ticks_history(Tick(2, bid=Decimal(1), ask=hold_price))
 
-    response = strategy.tick(Tick(number=3, price=Decimal(minimal_sell_price)))
+    response = strategy.tick(Tick(number=3, bid=Decimal(minimal_sell_price), ask=Decimal(100500)))
 
     assert response is True
     assert len(strategy._open_positions) == 1

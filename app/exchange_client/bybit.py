@@ -31,17 +31,16 @@ class ByBit(BaseClient):
         tick_number: int = start_tick_numeration
         while True:
             try:
-                response = self._exchange_session.get_kline(
+                response = self._exchange_session.get_tickers(
                     category='spot',
                     symbol=self._symbol,
-                    interval='1',
-                    limit=1,
                 )
                 tick_number += 1
                 logger.info('next price response {0}'.format(response.get('result')))
                 yield Tick(
                     number=tick_number,
-                    price=Decimal(response.get('result')['list'][0][4]),
+                    bid=Decimal(response.get('result')['list'][0]['bid1Price']),
+                    ask=Decimal(response.get('result')['list'][0]['ask1Price']),
                 )
             except Exception as e:
                 logger.exception(e)

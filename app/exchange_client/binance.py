@@ -30,11 +30,15 @@ class Binance(BaseClient):
         tick_number: int = start_tick_numeration
         while True:
             try:
-                response = self._client_spot.ticker_price(
+                response = self._client_spot.book_ticker(
                     symbol=self._symbol,
                 )
                 tick_number += 1
-                yield Tick(number=tick_number, price=Decimal(response.get('price')))
+                yield Tick(
+                    number=tick_number,
+                    bid=Decimal(response.get('bidPrice')),
+                    ask=Decimal(response.get('askPrice')),
+                )
             except Exception as e:
                 logger.exception(e)
                 yield None

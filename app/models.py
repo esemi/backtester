@@ -22,4 +22,9 @@ class OnHoldPositions:
 @dataclass
 class Tick:
     number: int
-    price: Decimal
+    bid: Decimal
+    ask: Decimal
+
+    @property
+    def avg_price(self) -> Decimal:
+        return (self.ask + self.bid) / Decimal(2)

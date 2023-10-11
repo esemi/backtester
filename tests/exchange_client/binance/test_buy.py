@@ -12,7 +12,7 @@ def test_buy_happy_path():
         api_key=app_settings.binance_api_key,
         api_secret=app_settings.binance_api_secret,
     )
-    actual_price = next(client.next_price()).price + Decimal(1)
+    actual_price = next(client.next_price()).ask + Decimal(5)
     quantity = calculate_ticker_quantity(
         app_settings.continue_buy_amount,
         actual_price,
@@ -39,13 +39,13 @@ def test_buy_canceled():
     actual_price = next(client.next_price())
     quantity = calculate_ticker_quantity(
         app_settings.continue_buy_amount,
-        actual_price.price,
+        actual_price.ask,
         Decimal('0.00001'),
     )
 
     response = client.buy(
         quantity=quantity,
-        price=actual_price.price - Decimal(10),
+        price=actual_price.ask - Decimal(10),
     )
 
     assert not response.is_filled

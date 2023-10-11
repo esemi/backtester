@@ -54,10 +54,10 @@ class BasicStrategy:
                 is_completed = self._open_position(
                     quantity=calculate_ticker_quantity(
                         app_settings.continue_buy_amount,
-                        tick.price,
+                        tick.ask,
                         app_settings.ticker_amount_digits,
                     ),
-                    price=tick.price,
+                    price=tick.ask,
                     tick_number=tick.number,
                 )
                 buy_completed = is_completed or buy_completed
@@ -65,7 +65,7 @@ class BasicStrategy:
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
             self._telemetry.push(
                 tick.number,
-                tick.price,
+                tick.avg_price,
                 buy_price=buy_price,
             )
 
@@ -73,38 +73,38 @@ class BasicStrategy:
             return True
 
         # check global stop loss
-        if tick.price <= app_settings.global_stop_loss:
+        if tick.bid <= app_settings.global_stop_loss:
             logger.warning('global stop loss fired! open: {0}. closed: {1}'.format(
                 len(self._open_positions),
                 len(self._closed_positions),
             ))
             sell_completed = self._close_all_positions(
-                price=tick.price * app_settings.stop_loss_price_factor,
+                price=tick.bid * app_settings.stop_loss_price_factor,
                 tick_number=tick.number,
             )
 
             sell_price = None if not sell_completed else self._closed_positions[-1].close_rate
             self._telemetry.push(
                 tick.number,
-                tick.price,
+                tick.avg_price,
                 sell_price=sell_price,
             )
             self._update_stats(tick)
             return False
 
         # sale position[s]
-        sale_completed = self._sell_something(price=tick.price, tick_number=tick.number)
+        sale_completed = self._sell_something(bid_price=tick.bid, tick_number=tick.number)
 
         # buy also
         if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
             logger.debug('try to buy something')
-            buy_completed = self._buy_something(price=tick.price, tick_number=tick.number)
+            buy_completed = self._buy_something(ask_price=tick.ask, tick_number=tick.number)
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
         self._telemetry.push(
             tick.number,
-            tick.price,
+            tick.avg_price,
             buy_price=buy_price,
             sell_price=sell_price,
         )
@@ -135,7 +135,7 @@ class BasicStrategy:
             [pos.amount for pos in self._closed_positions]
         )
         liquidation_amount = sum(
-            [self.get_last_tick().price * pos.amount for pos in self._open_positions]
+            [self.get_last_tick().bid * pos.amount for pos in self._open_positions]
         )
         liquidation_amount_fee = liquidation_amount * app_settings.fee_percent / 100
         liquidation = sum(
@@ -209,7 +209,7 @@ class BasicStrategy:
             quantity=Decimal(sum([pos.amount for pos in self._open_positions])),
             buy_amount=Decimal(sum([pos.amount * pos.open_rate for pos in self._open_positions])),
             tick_number=tick.number,
-            tick_rate=tick.price,
+            tick_rate=tick.avg_price,
         )
         if not self._max_onhold_positions or self._max_onhold_positions.buy_amount <= on_hold_current.buy_amount:
             self._max_onhold_positions = on_hold_current
@@ -326,8 +326,8 @@ class BasicStrategy:
         self._closed_positions.append(fake_position)
         return True
 
-    def _sell_something(self, price: Decimal, tick_number: int) -> bool:
-        logger.debug('search position for sell. Tick price: {0}'.format(price))
+    def _sell_something(self, bid_price: Decimal, tick_number: int) -> bool:
+        logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
 
         sale_completed: bool = False
         for position in self._get_open_positions_for_sell():
@@ -338,13 +338,13 @@ class BasicStrategy:
             logger.debug('check sale by tick rate and open rate.')
             logger.debug('Position: {0}. Current price {1}. Open rate + 5%: {2}. Check {3}'.format(
                 position,
-                price,
+                bid_price,
                 position.open_rate * app_settings.avg_rate_sell_limit,
-                price >= position.open_rate * app_settings.avg_rate_sell_limit,
+                bid_price >= position.open_rate * app_settings.avg_rate_sell_limit,
             ))
 
-            sell_price = (price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
-            if price >= position.open_rate * app_settings.avg_rate_sell_limit:
+            sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
+            if bid_price >= position.open_rate * app_settings.avg_rate_sell_limit:
                 sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
 
@@ -353,15 +353,15 @@ class BasicStrategy:
 
         return sale_completed
 
-    def _buy_something(self, price: Decimal, tick_number: int) -> bool:
-        one_percent = self.get_previous_tick().price / Decimal(100)
-        rate_diff = self.get_previous_tick().price - price
+    def _buy_something(self, ask_price: Decimal, tick_number: int) -> bool:
+        one_percent = self.get_previous_tick().ask / Decimal(100)
+        rate_diff = self.get_previous_tick().ask - ask_price
         rate_go_down_percent = rate_diff / one_percent
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
-        is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(price)
+        is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
 
-        logger.debug('check rates for buy. Prev rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s' % (
-            float(self.get_previous_tick().price),
+        logger.debug('check rates for buy. Prev ask rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s' % (
+            float(self.get_previous_tick().ask),
             float(rate_go_down_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
@@ -369,7 +369,7 @@ class BasicStrategy:
         ))
 
         if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate:
-            buy_price = (price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
+            buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
             return self._open_position(
                 quantity=calculate_ticker_quantity(
                     app_settings.continue_buy_amount,
@@ -403,8 +403,8 @@ class FloatingStrategy(BasicStrategy):
         super().__init__(exchange_client, dry_run)
         self._steps: FloatingSteps = steps_instance
 
-    def _sell_something(self, price: Decimal, tick_number: int) -> bool:
-        logger.debug('search position for sell. Tick price: {0}'.format(price))
+    def _sell_something(self, bid_price: Decimal, tick_number: int) -> bool:
+        logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
         sale_completed: bool = False
         has_positions = len(self._open_positions) > 0
 
@@ -417,14 +417,14 @@ class FloatingStrategy(BasicStrategy):
             logger.debug('check sale by tick rate and open rate.')
             logger.debug('Position: {0}. Current price {1}. Open rate +N% {2}. Check {3}. Percent {4}'.format(
                 position,
-                price,
+                bid_price,
                 position.open_rate * step_percent,
-                price >= position.open_rate * step_percent,
+                bid_price >= position.open_rate * step_percent,
                 step_percent,
             ))
 
-            sell_price = (price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
-            if price >= position.open_rate * step_percent:
+            sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
+            if bid_price >= position.open_rate * step_percent:
                 sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
 

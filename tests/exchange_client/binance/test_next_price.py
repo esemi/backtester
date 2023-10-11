@@ -6,4 +6,6 @@ def test_next_price_happy_path():
     response = next(client.next_price())
 
     assert response.number == 0
-    assert response.price > 0.0
+    assert response.ask > 0.0
+    assert response.bid > 0.0
+    assert response.bid <= response.ask

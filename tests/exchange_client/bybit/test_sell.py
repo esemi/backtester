@@ -12,7 +12,7 @@ def test_sell_happy_path():
         api_secret=app_settings.bybit_api_secret,
         test_mode=True,
     )
-    actual_price = next(client.next_price()).price - Decimal(200)
+    actual_price = next(client.next_price()).bid - Decimal(200)
     quantity = calculate_ticker_quantity(
         app_settings.continue_buy_amount,
         actual_price,
@@ -39,13 +39,13 @@ def test_sell_canceled():
     actual_price = next(client.next_price())
     quantity = calculate_ticker_quantity(
         app_settings.continue_buy_amount,
-        actual_price.price,
+        actual_price.bid,
         Decimal('0.00001'),
     )
 
     response = client.sell(
         quantity=quantity,
-        price=actual_price.price + Decimal(20),
+        price=actual_price.bid + Decimal(20),
     )
 
     assert not response.is_filled

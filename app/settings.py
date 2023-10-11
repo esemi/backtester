@@ -59,11 +59,11 @@ class AppSettings(BaseSettings):
         description='Разрешаем множественные продажи на одном тике или нет.',
     )
     buy_price_discount: Decimal = Field(
-        default='1.02',
+        default='1.0',
         description='Скидка к цене покупки.',
     )
     sell_price_discount: Decimal = Field(
-        default='0.99',
+        default='1.0',
         description='Скидка к цене продажи.',
     )
 
