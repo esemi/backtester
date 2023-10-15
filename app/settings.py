@@ -1,4 +1,5 @@
 """Application settings."""
+import getpass
 import os
 from decimal import getcontext, Decimal
 from typing import Literal
@@ -22,6 +23,7 @@ class AppSettings(BaseSettings):
     # common settings
     debug: bool = Field(default=False)
 
+    instance_name: str = Field(default=getpass.getuser(), description='Unique instance name. Username by default.')
     rates_path: str = os.path.join(APP_PATH, 'rates')
     telemetry_path: str = os.path.join(APP_PATH, 'telemetry')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')

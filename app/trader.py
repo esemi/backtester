@@ -9,10 +9,9 @@ from app import storage
 from app.exchange_client.base import BaseClient
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
-from app.floating_steps import FloatingSteps
 from app.settings import app_settings
 from app.storage import drop_state
-from app.strategy import BasicStrategy, FloatingStrategy, get_strategy_instance
+from app.strategy import BasicStrategy, get_strategy_instance
 
 logger = logging.getLogger(__name__)
 _has_stop_request: bool = False
@@ -35,7 +34,7 @@ def main() -> None:
         dry_run=app_settings.dry_run,
     )
 
-    _restore_strategy_state(app_settings.symbol, strategy)
+    _restore_strategy_state(app_settings.instance_name, strategy)
     start_tick_numeration = strategy.get_last_tick().number if strategy.has_tick_history() else -1
 
     for tick in exchange_client.next_price(start_tick_numeration):
@@ -59,10 +58,10 @@ def main() -> None:
         go_to_next_step = strategy.tick(tick=tick)
         if not go_to_next_step:
             logger.info('end trading by strategy reason')
-            drop_state(app_settings.symbol)
+            drop_state(app_settings.instance_name)
             break
 
-        _save_strategy_state(app_settings.symbol, strategy)
+        _save_strategy_state(app_settings.instance_name, strategy)
 
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
             strategy.show_results()
@@ -89,7 +88,7 @@ def _get_exchange_client(name: str) -> BaseClient:
     }[name]
 
 
-def _save_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:
+def _save_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
     state = {
         '_open_positions': strategy_instance._open_positions,
         '_closed_positions': strategy_instance._closed_positions,
@@ -100,12 +99,12 @@ def _save_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:
     }
 
     serialized_state = pickle.dumps(state)
-    storage.save_state(symbol, serialized_state)
+    storage.save_state(unique_instance_name, serialized_state)
     logger.info('state saved to redis')
 
 
-def _restore_strategy_state(symbol: str, strategy_instance: BasicStrategy) -> None:
-    saved_state = storage.get_saved_state(symbol)
+def _restore_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
+    saved_state = storage.get_saved_state(unique_instance_name)
     if not saved_state:
         return
 
