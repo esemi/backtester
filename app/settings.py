@@ -25,7 +25,7 @@ class AppSettings(BaseSettings):
 
     instance_name: str = Field(default=getpass.getuser(), description='Unique instance name. Username by default.')
     rates_path: str = os.path.join(APP_PATH, 'rates')
-    telemetry_path: str = os.path.join(APP_PATH, 'telemetry')
+    logs_path: str = Field(default='/var/www/kta/storage/trader')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
 

@@ -15,6 +15,10 @@ usermod -a -G supervisor root
 vi /etc/supervisor/supervisor.conf  # change chown and chmod params
 
 mkdir -p /var/log/trader
+mkdir -p /var/www/kta/storage/trader
+chown -R root:supervisor /var/www/kta/storage/trader
+chmod -R 0775 /var/www/kta/storage/trader
+
 
 adduser trader1
 usermod -a -G supervisor trader1

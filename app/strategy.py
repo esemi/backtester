@@ -1,6 +1,6 @@
 import copy
-import datetime
 import logging
+import os
 from decimal import Decimal
 
 from app.exchange_client.base import BaseClient, OrderResult
@@ -25,9 +25,9 @@ class BasicStrategy:
         self._last_success_buy_tick_number: int = 0
 
         self._exchange_client: BaseClient = exchange_client
-        self._telemetry: TelemetryClient = TelemetryClient(filename='telemetry_{0}.csv'.format(
-            datetime.datetime.utcnow().timestamp(),
-        ))
+        self._telemetry: TelemetryClient = TelemetryClient(
+            filepath=os.path.join(app_settings.logs_path, app_settings.instance_name),
+        )
         self._dry_run: bool = dry_run
 
     def has_tick_history(self) -> bool:

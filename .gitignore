@@ -1,5 +1,4 @@
 __pycache__
 .env
 rates/*.csv
-telemetry/*
 .coverage

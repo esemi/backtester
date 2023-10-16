@@ -28,7 +28,6 @@ jobs:
           first_ssh: |-
             mkdir -p app
             mkdir -p logs
-            mkdir -p telemetry
             test -d venv || python3.11 -m venv venv
 
           scp: |-

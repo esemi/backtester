@@ -1,13 +1,12 @@
 import os
 from decimal import Decimal
 
-from app.settings import app_settings
-
 
 class TelemetryClient:
     """Class for save strategy telemetry for display by google spreadsheets."""
-    def __init__(self, filename: str):
-        self._filepath = os.path.join(app_settings.telemetry_path, filename)
+    def __init__(self, filepath: str):
+        os.makedirs(filepath, exist_ok=True)
+        self._filepath = os.path.join(filepath, 'telemetry.tsv')
 
     def push(
         self,
