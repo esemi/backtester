@@ -22,6 +22,10 @@ class TelemetryClient:
             format_decimal(sell_price or ''),
         )
 
+    def cleanup(self) -> None:
+        if os.path.exists(self._filepath):
+            os.remove(self._filepath)
+
     def _write_csv_line(self, *args) -> None:
         with open(self._filepath, 'a+') as fd:
             line = '\t'.join(args)

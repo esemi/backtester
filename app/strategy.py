@@ -50,6 +50,8 @@ class BasicStrategy:
 
         if not tick.number:
             logger.info('init buy')
+            self._telemetry.cleanup()
+
             for _ in range(app_settings.init_buy_amount):
                 is_completed = self._open_position(
                     quantity=calculate_ticker_quantity(
