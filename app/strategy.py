@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 import os
 from decimal import Decimal
@@ -115,6 +116,72 @@ class BasicStrategy:
         return True
 
     def show_results(self) -> None:
+        results = self.get_results()
+
+        print('')
+        print('')
+        print('Результаты тестирования:')
+        print('')
+        print('Общая оборотная сумма денег с начала запуска $%.2f / %.8f BTC (%.2f монет)' % (
+            results['buy_total_amount_usd'],
+            results['buy_total_amount_btc'],
+            results['buy_total_qty'],
+        ))
+
+        print('')
+        print('Оборотная сумма денег на покупки реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
+            results['buy_without_current_opened_amount_usd'],
+            results['buy_without_current_opened_amount_btc'],
+            results['buy_without_current_opened_qty'],
+        ))
+
+        print('')
+        print('Оборотная сумма денег за продажу реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
+            results['sell_without_current_opened_amount_usd'],
+            results['sell_without_current_opened_amount_btc'],
+            results['sell_without_current_opened_qty'],
+        ))
+        print('Доходность без учёта зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
+            results['dirty_pl_amount_usd'],
+            results['dirty_pl_amount_btc'],
+            results['dirty_pl_percent'],
+        ))
+
+        print('')
+        print('Сумма денег за ликвидацию зависших монет $%.2f / %.8f BTC (%.2f монет)' % (
+            results['liquidation_amount_usd'],
+            results['liquidation_amount_btc'],
+            results['liquidation_qty'],
+        ))
+        print('Доходность с учётом зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
+            results['pl_amount_usd'],
+            results['pl_amount_btc'],
+            results['pl_percent'],
+        ))
+
+        print('')
+        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f / %.8f BTC (%.1f монет, на тике %d)' % (
+            results['onhold_amount_usd'],
+            results['onhold_amount_btc'],
+            results['onhold_qty'],
+            results['onhold_tick_number'],
+        ))
+
+        print('')
+        print('Количество покупок - %d' % results['count_buy_transactions'])
+        print('Количество продаж - %d' % results['count_sell_transactions'])
+        print('Количество не успешных сделок - %d' % results['count_unsuccessful_deals'])
+        print('Количество успешных сделок - %d' % results['count_success_deals'])
+
+    def save_results(self) -> None:
+        logs_filepath = os.path.join(app_settings.logs_path, app_settings.instance_name)
+        os.makedirs(logs_filepath, exist_ok=True)
+        filepath = os.path.join(logs_filepath, 'result.json')
+
+        with open(filepath, 'w') as fd:
+            json.dump(self.get_results(), fd, default=str)
+
+    def get_results(self) -> dict:
         buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self._closed_positions]
         )
@@ -148,63 +215,45 @@ class BasicStrategy:
         max_amount_onhold: Decimal = self._max_onhold_positions.buy_amount if self._max_onhold_positions else Decimal(0)
         profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened - sell_amount_without_current_opened_fee - buy_amount_without_current_opened_fee
         profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total - sell_amount_without_current_opened_fee - liquidation_amount_fee - buy_amount_total_fee
-        profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
+        profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * Decimal(
+            100)) if max_amount_onhold else Decimal(0)
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
-        print('')
-        print('')
-        print('Результаты тестирования:')
-        print('')
-        print('Общая оборотная сумма денег с начала запуска $%.2f / %.8f BTC (%.2f монет)' % (
-            (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
-            buy_amount_total + buy_amount_total_fee,
-            buy_total,
-        ))
+        return {
+            'buy_total_amount_usd': (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
+            'buy_total_amount_btc': buy_amount_total + buy_amount_total_fee,
+            'buy_total_qty': buy_total,
 
-        print('')
-        print('Оборотная сумма денег на покупки реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
-            (buy_amount_without_current_opened + buy_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
-            buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
-            buy_without_current_opened,
-        ))
+            'buy_without_current_opened_amount_usd': (buy_amount_without_current_opened + buy_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
+            'buy_without_current_opened_amount_btc': buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
+            'buy_without_current_opened_qty': buy_without_current_opened,
 
-        print('')
-        print('Оборотная сумма денег за продажу реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
-            (sell_amount_without_current_opened - sell_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
-            sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
-            sell_without_current_opened,
-        ))
-        print('Доходность без учёта зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
-            profit_amount_without_current_opened * app_settings.symbol_to_usdt_rate,
-            profit_amount_without_current_opened,
-            float(profit_percent_without_current_opened),
-        ))
+            'sell_without_current_opened_amount_usd': (sell_amount_without_current_opened - sell_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
+            'sell_without_current_opened_amount_btc': sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
+            'sell_without_current_opened_qty': sell_without_current_opened,
 
-        print('')
-        print('Сумма денег за ликвидацию зависших монет $%.2f / %.8f BTC (%.2f монет)' % (
-            (liquidation_amount - liquidation_amount_fee) * app_settings.symbol_to_usdt_rate,
-            (liquidation_amount - liquidation_amount_fee),
-            liquidation,
-        ))
-        print('Доходность с учётом зависших монет: $%.2f / %.8f BTC (%.2f%%)' % (
-            profit_amount_total * app_settings.symbol_to_usdt_rate,
-            profit_amount_total,
-            float(profit_percent_total),
-        ))
+            'dirty_pl_amount_usd': profit_amount_without_current_opened * app_settings.symbol_to_usdt_rate,
+            'dirty_pl_amount_btc': profit_amount_without_current_opened,
+            'dirty_pl_percent': float(profit_percent_without_current_opened),
 
-        print('')
-        print('Требуемая сумма денег для обеспечения текущего тестирования $%.2f / %.8f BTC (%.1f монет, на тике %d)' % (
-            self._max_onhold_positions.buy_amount * app_settings.symbol_to_usdt_rate if self._max_onhold_positions else 0,
-            self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
-            self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
-            self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
-        ))
+            'liquidation_amount_usd': (liquidation_amount - liquidation_amount_fee) * app_settings.symbol_to_usdt_rate,
+            'liquidation_amount_btc': liquidation_amount - liquidation_amount_fee,
+            'liquidation_qty': liquidation,
 
-        print('')
-        print('Количество покупок - %d' % (len(self._closed_positions) + len(self._open_positions)))
-        print('Количество продаж - %d' % len(self._closed_positions))
-        print('Количество не успешных сделок - %d' % len(self._open_positions))
-        print('Количество успешных сделок - %d' % len(self._closed_positions))
+            'pl_amount_usd': profit_amount_total * app_settings.symbol_to_usdt_rate,
+            'pl_amount_btc': profit_amount_total,
+            'pl_percent': float(profit_percent_total),
+
+            'onhold_amount_usd': self._max_onhold_positions.buy_amount * app_settings.symbol_to_usdt_rate if self._max_onhold_positions else 0,
+            'onhold_amount_btc': self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
+            'onhold_qty': self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
+            'onhold_tick_number': self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
+
+            'count_buy_transactions': len(self._closed_positions) + len(self._open_positions),
+            'count_sell_transactions': len(self._closed_positions),
+            'count_unsuccessful_deals': len(self._open_positions),
+            'count_success_deals': len(self._closed_positions),
+        }
 
     def _update_stats(self, tick: Tick):
         on_hold_current = OnHoldPositions(
@@ -447,12 +496,20 @@ class FloatingStrategy(BasicStrategy):
             self._max_sell_percent = self._steps.current_step
             self._max_sell_percent_tick = tick.number
 
+    def get_results(self) -> dict:
+        results = super().get_results()
+        results['max_sell_percent'] = float(self._max_sell_percent)
+        results['max_sell_tick'] = self._max_sell_percent_tick
+        return results
+
     def show_results(self) -> None:
         super().show_results()
+
+        results = self.get_results()
         print('')
         print('Максимальный %% торговли: %.2f%% на тике %d' % (
-            float(self._max_sell_percent),
-            self._max_sell_percent_tick,
+            results['max_sell_percent'],
+            results['max_sell_tick'],
         ))
 
 

@@ -64,11 +64,11 @@ def main() -> None:
         _save_strategy_state(app_settings.instance_name, strategy)
 
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
-            strategy.show_results()
+            strategy.save_results()
 
         _continue_or_break()
 
-    strategy.show_results()
+    strategy.save_results()
 
 
 def _get_exchange_client(name: str) -> BaseClient:
