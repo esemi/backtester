@@ -53,7 +53,7 @@ class AppSettings(BaseSettings):
     )
     global_stop_loss: Decimal = Field(default='0.0', description='цена, при которой продаём всё и заканчиваем работу')
     stop_loss_price_factor: Decimal = Field(default='0.98', description='За сколько процентов от текущей цены продаём по маркету при стоплосе')
-    ticks_amount_limit: int = Field(default=0, description='максимальное количество тиков для торговой сессии')
+    enabled: bool = Field(default=False, description='вкл/выкл стратегии')
     symbol_to_usdt_rate: Decimal = Field(default='1', description='Курс текущего тикера в USDT.')
     hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
     multiple_sell_on_tick: bool = Field(

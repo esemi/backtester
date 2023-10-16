@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import pytest
 
 from app.exchange_client.base import OrderResult
+from app.settings import app_settings
 
 
 @pytest.fixture
@@ -20,3 +21,11 @@ def exchange_client_pass_mock() -> Mock:
         price=Decimal('9.5791433891'),
     ))
     yield mock
+
+
+@pytest.fixture
+def strategy_disabled() -> None:
+    saved_state = app_settings.enabled
+    app_settings.enabled = False
+    yield
+    app_settings.enabled = saved_state

@@ -37,5 +37,5 @@ jobs:
         echo 'binance_api_key=${{ secrets.BINANCE_API_KEY_TEST }}' >> .env
         echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_TEST }}' >> .env
         echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_TEST }}' >> .env
-        echo 'ticks_amount_limit=100500' >> .env
+        echo 'enabled=true' >> .env
         pytest --cov=app

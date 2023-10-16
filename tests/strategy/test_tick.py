@@ -15,10 +15,10 @@ def test_init_buy(exchange_client_pass_mock):
     assert not strategy._closed_positions
 
 
-def test_break_by_tick_limit(exchange_client_pass_mock):
+def test_break_by_enable_flag(exchange_client_pass_mock, strategy_disabled):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
-    response = strategy.tick(Tick(number=app_settings.ticks_amount_limit, bid=Decimal(8), ask=Decimal(10)))
+    response = strategy.tick(Tick(number=0, bid=Decimal(8), ask=Decimal(10)))
 
     assert response is False
 

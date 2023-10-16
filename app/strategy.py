@@ -44,8 +44,8 @@ class BasicStrategy:
         self._update_stats(tick)
         buy_completed: bool = False
 
-        if tick.number >= app_settings.ticks_amount_limit:
-            logger.warning('end trading session by tick limit')
+        if not app_settings.enabled:
+            logger.warning('end trading session by enabled setting')
             return False
 
         if not tick.number:
