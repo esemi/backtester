@@ -51,4 +51,6 @@ jobs:
             echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET }}' >> .env
             echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY }}' >> .env
             echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET }}' >> .env
+            echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_IRINA }}' >> .env
+            echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_IRINA }}' >> .env
             supervisorctl restart trader41
