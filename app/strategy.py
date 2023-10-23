@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 import os
+from datetime import datetime
 from decimal import Decimal
 
 from app.exchange_client.base import BaseClient, OrderResult
@@ -17,6 +18,7 @@ class BasicStrategy:
     tick_history_limit: int = 10
 
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
+        self._start_date: datetime = datetime.utcnow()
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
         self._max_onhold_positions: OnHoldPositions | None = None
@@ -220,6 +222,8 @@ class BasicStrategy:
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
         return {
+            'start_date': self._start_date,
+
             'buy_total_amount_usd': (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
             'buy_total_amount_btc': buy_amount_total + buy_amount_total_fee,
             'buy_total_qty': buy_total,
