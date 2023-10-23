@@ -46,6 +46,8 @@ def get_rates(filename: str) -> list[Tick]:
                 number=tick_number,
                 bid=price,
                 ask=price,
+                bid_qty=Decimal(100500),
+                ask_qty=Decimal(100500),
             ))
             tick_number += 1
     return output

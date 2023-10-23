@@ -98,12 +98,12 @@ class BasicStrategy:
             return False
 
         # sale position[s]
-        sale_completed = self._sell_something(bid_price=tick.bid, tick_number=tick.number)
+        sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
 
         # buy also
         if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
             logger.debug('try to buy something')
-            buy_completed = self._buy_something(ask_price=tick.ask, tick_number=tick.number)
+            buy_completed = self._buy_something(ask_price=tick.ask, ask_qty=tick.ask_qty, tick_number=tick.number)
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
@@ -381,9 +381,10 @@ class BasicStrategy:
         self._closed_positions.append(fake_position)
         return True
 
-    def _sell_something(self, bid_price: Decimal, tick_number: int) -> bool:
+    def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
 
+        qty_left: Decimal = bid_qty
         sale_completed: bool = False
         for position in self._get_open_positions_for_sell():
             logger.debug(position)
@@ -399,38 +400,44 @@ class BasicStrategy:
             ))
 
             sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
-            if bid_price >= position.open_rate * app_settings.avg_rate_sell_limit:
+            if bid_price >= position.open_rate * app_settings.avg_rate_sell_limit and qty_left >= position.amount:
                 sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
                 sale_completed = sell_response or sale_completed
+
+                if sell_response:
+                    qty_left = qty_left - position.amount
 
             if sale_completed and not app_settings.multiple_sell_on_tick:
                 break
 
         return sale_completed
 
-    def _buy_something(self, ask_price: Decimal, tick_number: int) -> bool:
+    def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
         one_percent = self.get_previous_tick().ask / Decimal(100)
         rate_diff = self.get_previous_tick().ask - ask_price
         rate_go_down_percent = rate_diff / one_percent
+        buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
+        buy_qty = calculate_ticker_quantity(
+            app_settings.continue_buy_amount,
+            buy_price,
+            app_settings.ticker_amount_digits,
+        )
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
         is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
+        is_buy_available_by_qty = (buy_qty <= ask_qty) or ask_qty == 0
 
-        logger.debug('check rates for buy. Prev ask rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s' % (
+        logger.debug('check rates for buy. Prev ask rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
             float(self.get_previous_tick().ask),
             float(rate_go_down_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
             is_buy_available_by_duplicate_rate,
+            is_buy_available_by_qty,
         ))
 
-        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate:
-            buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
+        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
             return self._open_position(
-                quantity=calculate_ticker_quantity(
-                    app_settings.continue_buy_amount,
-                    buy_price,
-                    app_settings.ticker_amount_digits,
-                ),
+                quantity=buy_qty,
                 price=buy_price,
                 tick_number=tick_number,
             )
@@ -458,10 +465,12 @@ class FloatingStrategy(BasicStrategy):
         super().__init__(exchange_client, dry_run)
         self._steps: FloatingSteps = steps_instance
 
-    def _sell_something(self, bid_price: Decimal, tick_number: int) -> bool:
+    def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
+
+        qty_left: Decimal = bid_qty
+        has_sale_try: bool = False
         sale_completed: bool = False
-        has_positions = len(self._open_positions) > 0
 
         for position in self._get_open_positions_for_sell():
             logger.debug(position)
@@ -479,14 +488,20 @@ class FloatingStrategy(BasicStrategy):
             ))
 
             sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
-            if bid_price >= position.open_rate * step_percent:
-                sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
-                sale_completed = sell_response or sale_completed
+
+            if qty_left >= position.amount:
+                has_sale_try = True
+
+                if bid_price >= position.open_rate * step_percent:
+                    sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
+                    sale_completed = sell_response or sale_completed
+                    if sell_response:
+                        qty_left = qty_left - position.amount
 
             if sale_completed and not app_settings.multiple_sell_on_tick:
                 break
 
-        if has_positions:
+        if has_sale_try:
             if sale_completed:
                 self._steps.to_next_step()
             else:

@@ -38,6 +38,8 @@ class Binance(BaseClient):
                     number=tick_number,
                     bid=Decimal(response.get('bidPrice')),
                     ask=Decimal(response.get('askPrice')),
+                    bid_qty=Decimal(response.get('bidQty')),
+                    ask_qty=Decimal(response.get('askQty')),
                 )
             except Exception as e:
                 logger.exception(e)

@@ -24,6 +24,8 @@ class Tick:
     number: int
     bid: Decimal
     ask: Decimal
+    bid_qty: Decimal = 0
+    ask_qty: Decimal = 0
 
     @property
     def avg_price(self) -> Decimal:

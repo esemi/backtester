@@ -40,7 +40,9 @@ class ByBit(BaseClient):
                 yield Tick(
                     number=tick_number,
                     bid=Decimal(response.get('result')['list'][0]['bid1Price']),
+                    bid_qty=Decimal(response.get('result')['list'][0]['bid1Size']),
                     ask=Decimal(response.get('result')['list'][0]['ask1Price']),
+                    ask_qty=Decimal(response.get('result')['list'][0]['ask1Size']),
                 )
             except Exception as e:
                 logger.exception(e)

@@ -11,7 +11,6 @@ STORAGE_PREFIX: str = 'backtester:trader-bot:{0}'
 
 def save_state(name: str, state: bytes) -> None:
     connection.set(STORAGE_PREFIX.format(name), state)
-    connection.expire(STORAGE_PREFIX.format(name), time=timedelta(hours=3))
 
 
 def get_saved_state(name: str) -> bytes | None:

@@ -6,7 +6,7 @@ from app.storage import save_state, get_saved_state
 
 test_state = {
     'test': [
-        Tick(number=1, bid=Decimal(100499), ask=Decimal(100501))
+        Tick(number=1, bid=Decimal(100499), ask=Decimal(100501), bid_qty=Decimal(100500), ask_qty=Decimal(100500))
     ]
 }
 
