@@ -34,14 +34,18 @@ jobs:
             './app/*' => $TARGET_DIR/app/
             './etc/*' => $TARGET_DIR/etc/
             ./requirements.txt => $TARGET_DIR
-            chown -R :supervisor ./etc
-            chmod -R 760 ./etc
 
           last_ssh: |-
             $VENV_BIN/pip install pip setuptools --upgrade
             $VENV_BIN/pip install -r requirements.txt
             $VENV_BIN/pip cache purge
             mv etc/env .env
+            chown :www-data .
+            chmod 771 .
+            chown -R :www-data ./etc
+            chmod -R 760 ./etc
+            chown :www-data .env 
+            chmod 760 .env
             echo '' >> .env
             echo 'binance_api_key=${{ secrets.BINANCE_API_KEY }}' >> .env
             echo 'binance_api_secret=${{ secrets.BINANCE_API_SECRET }}' >> .env

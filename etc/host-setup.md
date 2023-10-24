@@ -22,6 +22,7 @@ chmod -R 0775 /var/www/kta/storage/trader
 
 adduser trader1
 usermod -a -G supervisor trader1
+usermod -a -G www-data trader1
 service supervisor restart
 
 cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
