@@ -17,7 +17,7 @@ APP_PATH = os.path.abspath(
 )
 
 
-class AppSettings(BaseSettings):
+class AppSettings(BaseSettings, extra='ignore'):
     """Application settings class."""
 
     # common settings
