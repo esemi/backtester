@@ -34,7 +34,6 @@ jobs:
           scp: |-
             './app/*' => $TARGET_DIR/app/
             ./requirements.txt => $TARGET_DIR
-
           last_ssh: |-
             $VENV_BIN/pip install pip setuptools --upgrade
             $VENV_BIN/pip install -r requirements.txt
