@@ -34,6 +34,8 @@ jobs:
             './app/*' => $TARGET_DIR/app/
             './etc/*' => $TARGET_DIR/etc/
             ./requirements.txt => $TARGET_DIR
+            chown -R :supervisor ./etc
+            chmod -R 760 ./etc
 
           last_ssh: |-
             $VENV_BIN/pip install pip setuptools --upgrade
