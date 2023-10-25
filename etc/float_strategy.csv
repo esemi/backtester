@@ -1,4 +1,5 @@
 percent,tries
+<<<<<<< HEAD
 0.5,1
 0.7,40
 0.9,40
@@ -40,3 +41,6 @@ percent,tries
 28,32
 29,32
 30,32
+=======
+0.4,1
+>>>>>>> Update float_strategy.csv
