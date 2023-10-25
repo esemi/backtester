@@ -1,5 +1,6 @@
 percent,tries
 <<<<<<< HEAD
+<<<<<<< HEAD
 0.5,1
 0.7,40
 0.9,40
@@ -59,3 +60,6 @@ percent,tries
 16,2
 17,2
 >>>>>>> :wip: trader7
+=======
+0.5,1
+>>>>>>> Update float_strategy.csv
