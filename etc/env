@@ -18,5 +18,5 @@ multiple_sell_on_tick=false # Разрешаем множественные пр
 # trader settings
 throttling_time=2  # Минимальная частота тика в секундах
 exchange=bybit  # Выбор биржи для торгов, bybit или binance
-fee_percent=0.1  # Процент комиссий от суммы сделки
+fee_percent=0.05  # Процент комиссий от суммы сделки
 dry_run=false  # true - торговля без отправки сделок на бирже
