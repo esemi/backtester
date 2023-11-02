@@ -74,6 +74,7 @@ class ByBit(BaseClient):
         ]
 
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+        price = '{:f}'.format(price)
         try:
             response = self._exchange_session.place_order(
                 category='spot',
@@ -81,7 +82,7 @@ class ByBit(BaseClient):
                 side='Buy',
                 orderType='Limit',
                 qty=str(quantity),
-                price=str(price),
+                price=price,
                 timeInForce='FOK',
             )
             time.sleep(2)
@@ -104,6 +105,7 @@ class ByBit(BaseClient):
         )
 
     def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+        price = '{:f}'.format(price)
         try:
             response = self._exchange_session.place_order(
                 category='spot',
@@ -111,7 +113,7 @@ class ByBit(BaseClient):
                 side='Sell',
                 orderType='Limit',
                 qty=str(quantity),
-                price=str(price),
+                price=price,
                 timeInForce='FOK',
             )
             time.sleep(2)

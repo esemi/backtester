@@ -29,6 +29,23 @@ def test_buy_happy_path():
     assert response.qty == quantity
 
 
+def test_buy_illegal_characters_in_price():
+    client = Binance(
+        symbol='SNTBTC',
+        test_mode=True,
+        api_key=app_settings.binance_api_key,
+        api_secret=app_settings.binance_api_secret,
+    )
+    test_small_price = Decimal('0.0000008999999999999999').quantize(app_settings.ticker_price_digits)
+
+    response = client.buy(
+        quantity=Decimal(222),
+        price=test_small_price,
+    )
+
+    assert response
+
+
 def test_buy_canceled():
     client = Binance(
         symbol='BTCUSDT',

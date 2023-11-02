@@ -61,6 +61,7 @@ class Binance(BaseClient):
         ]
 
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+        price = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
@@ -84,6 +85,7 @@ class Binance(BaseClient):
         )
 
     def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+        price = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
