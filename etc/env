@@ -1,6 +1,6 @@
 # strategy settings
 
-enabled=false  # вкл/выкл бота
+enabled=true  # вкл/выкл бота
 symbol=XLMBTC  # какой тикер торгуем
 step=0.1  # шаг в процентах для условия на открытие новой позиции. 0.5 = 0.5%
 ticker_amount_digits=1  # До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule
