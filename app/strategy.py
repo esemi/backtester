@@ -26,6 +26,7 @@ class BasicStrategy:
         self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
         self._last_success_buy_tick_number: int = 0
+        self._last_success_buy_price: Decimal = Decimal(0)
 
         self._exchange_client: BaseClient = exchange_client
         self._telemetry: TelemetryClient = TelemetryClient(
@@ -296,6 +297,7 @@ class BasicStrategy:
 
         logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
         self._last_success_buy_tick_number = tick_number
+        self._last_success_buy_price = buy_response.price
         self._open_positions.append(Position(
             amount=buy_response.qty,
             open_rate=buy_response.price,
@@ -413,8 +415,12 @@ class BasicStrategy:
         return sale_completed
 
     def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
-        one_percent = self.get_previous_tick().ask / Decimal(100)
-        rate_diff = self.get_previous_tick().ask - ask_price
+        previous_price = self.get_previous_tick().ask
+        if app_settings.use_last_open_position_rate and self._last_success_buy_price:
+            previous_price = self._last_success_buy_price
+
+        one_percent = previous_price / Decimal(100)
+        rate_diff = previous_price - ask_price
         rate_go_down_percent = rate_diff / one_percent
         buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
         buy_qty = calculate_ticker_quantity(
@@ -426,8 +432,8 @@ class BasicStrategy:
         is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
         is_buy_available_by_qty = (buy_qty <= ask_qty) or ask_qty == 0
 
-        logger.debug('check rates for buy. Prev ask rate: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
-            float(self.get_previous_tick().ask),
+        logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
+            float(previous_price),
             float(rate_go_down_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
