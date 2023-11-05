@@ -1,6 +1,6 @@
 # strategy settings
 
-enabled=true  # вкл/выкл бота
+enabled=false  # вкл/выкл бота
 symbol=PLANETUSDT  # какой тикер торгуем
 step=0.1  # шаг в процентах для условия на открытие новой позиции. 0.5 = 0.5%
 ticker_amount_digits=1  # До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule
@@ -14,9 +14,10 @@ avg_rate_sell_limit=1.005  # шаг в процентах для условия 
 
 init_buy_amount=1  # сколько позиций открываем в самом начале теста
 multiple_sell_on_tick=false # Разрешаем множественные продажи на одном тике или нет.
+use_last_open_position_rate=true  # условие покупки: false от предыдущего тика, true от предыдущей покупки
 
 # trader settings
-throttling_time=5  # Минимальная частота тика в секундах
+throttling_time=2  # Минимальная частота тика в секундах
 exchange=bybit  # Выбор биржи для торгов, bybit или binance
 fee_percent=0.05  # Процент комиссий от суммы сделки
 dry_run=false  # true - торговля без отправки сделок на бирже
