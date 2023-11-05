@@ -36,7 +36,7 @@ def test_buy_illegal_characters_in_price():
         api_key=app_settings.binance_api_key,
         api_secret=app_settings.binance_api_secret,
     )
-    test_small_price = Decimal('0.0000008999999999999999').quantize(app_settings.ticker_price_digits)
+    test_small_price = Decimal('0.0000008999999999999999').quantize(Decimal('0.00000001'))
 
     response = client.buy(
         quantity=Decimal(222),

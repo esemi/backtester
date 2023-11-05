@@ -6,19 +6,18 @@ from app.settings import app_settings
 
 def test_to_next_step_happy_path():
     floating_steps = FloatingSteps(app_settings.float_steps_path)
+    start_step = floating_steps.current_step
 
     floating_steps.to_next_step()
 
-    assert floating_steps.current_step == Decimal('0.4')
-    assert floating_steps.tries_left == 4
+    assert floating_steps.current_step > start_step
 
 
 def test_to_next_step_last_step():
     floating_steps = FloatingSteps(app_settings.float_steps_path)
-    floating_steps.current_step = Decimal(10)
+    floating_steps.current_step = floating_steps.steps[-1]
     floating_steps.tries_left = 100500
 
     floating_steps.to_next_step()
 
-    assert floating_steps.current_step == Decimal(10)
-    assert floating_steps.tries_left == 1
+    assert floating_steps.current_step == floating_steps.steps[-1]

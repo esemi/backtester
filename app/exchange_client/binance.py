@@ -61,7 +61,7 @@ class Binance(BaseClient):
         ]
 
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
-        price = '{:f}'.format(price)
+        price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
@@ -69,7 +69,7 @@ class Binance(BaseClient):
                 type='LIMIT',
                 timeInForce='FOK',
                 quantity=quantity,
-                price=price,
+                price=price_str,
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
@@ -85,7 +85,7 @@ class Binance(BaseClient):
         )
 
     def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
-        price = '{:f}'.format(price)
+        price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
@@ -93,7 +93,7 @@ class Binance(BaseClient):
                 type='LIMIT',
                 timeInForce='FOK',
                 quantity=quantity,
-                price=price,
+                price=price_str,
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )

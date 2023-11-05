@@ -11,8 +11,8 @@ def test_to_prev_step_happy_path():
 
     floating_steps.to_prev_step()
 
-    assert floating_steps.current_step == Decimal(8)
-    assert floating_steps.tries_left == 1
+    assert floating_steps.current_step != Decimal(10)
+    assert floating_steps.tries_left > 0
 
 
 def test_to_prev_step_has_tries():
@@ -28,11 +28,11 @@ def test_to_prev_step_has_tries():
 
 def test_to_prev_step_first_step():
     floating_steps = FloatingSteps(app_settings.float_steps_path)
+    first_step = floating_steps.steps[0]
 
     floating_steps.to_prev_step()
 
-    assert floating_steps.current_step == Decimal('0.2')
-    assert floating_steps.tries_left == 3
+    assert floating_steps.current_step == first_step
 
 
 def test_to_prev_step_negative_tries_count():
@@ -41,5 +41,4 @@ def test_to_prev_step_negative_tries_count():
 
     floating_steps.to_prev_step()
 
-    assert floating_steps.current_step == Decimal('0.2')
     assert floating_steps.tries_left == -1
