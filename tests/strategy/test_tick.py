@@ -47,7 +47,7 @@ def test_sell_something(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
     buy_price = Decimal('10.0')
     hold_price = Decimal('11.0')
-    minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit
+    minimal_sell_price = buy_price + buy_price * app_settings.avg_rate_sell_limit / Decimal(100)
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
@@ -72,7 +72,7 @@ def test_sell_something(exchange_client_pass_mock):
 def test_sell_something_decline_by_ask_qty(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
     buy_price = Decimal('10.0')
-    minimal_sell_price = buy_price * app_settings.avg_rate_sell_limit
+    minimal_sell_price = buy_price + buy_price * app_settings.avg_rate_sell_limit / Decimal(100)
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
     strategy._push_ticks_history(Tick(0, bid=Decimal(1), ask=buy_price, bid_qty=Decimal(100500), ask_qty=Decimal(100500)))

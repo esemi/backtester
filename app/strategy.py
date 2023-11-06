@@ -325,20 +325,25 @@ class BasicStrategy:
         sale_completed: bool = False
         for position in self._get_open_positions_for_sell():
             logger.debug(position)
+            minimal_sell_price = position.open_rate + position.open_rate * app_settings.avg_rate_sell_limit / Decimal(100)
 
             # условия на продажу
-            # - текущая цена выше цены покупки на 5%
+            # - текущая цена выше цены покупки на N%
             logger.debug('check sale by tick rate and open rate.')
-            logger.debug('Position: {0}. Current price {1}. Open rate + 5%: {2}. Check {3}'.format(
+            logger.debug('Position: {0}. Current price {1}. Minimal sell rate: {2}. Check {3}'.format(
                 position,
                 bid_price,
-                position.open_rate * app_settings.avg_rate_sell_limit,
-                bid_price >= position.open_rate * app_settings.avg_rate_sell_limit,
+                minimal_sell_price,
+                bid_price >= minimal_sell_price,
             ))
 
-            sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
-            if bid_price >= position.open_rate * app_settings.avg_rate_sell_limit and qty_left >= position.amount:
-                sell_response = self._close_position(position, price=sell_price, tick_number=tick_number)
+            if bid_price >= minimal_sell_price and qty_left >= position.amount:
+                sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
+                sell_response = self._close_position(
+                    position_for_close=position,
+                    price=sell_price,
+                    tick_number=tick_number,
+                )
                 sale_completed = sell_response or sale_completed
 
                 if sell_response:
@@ -360,7 +365,7 @@ class BasicStrategy:
         if app_settings.use_last_open_position_rate and self._last_success_buy_price:
             rate_diff = abs(rate_diff)
 
-        rate_go_down_percent = rate_diff / one_percent
+        rate_diff_percent = rate_diff / one_percent
         buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
         buy_qty = calculate_ticker_quantity(
             app_settings.continue_buy_amount,
@@ -373,14 +378,14 @@ class BasicStrategy:
 
         logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
             float(previous_price),
-            float(rate_go_down_percent),
+            float(rate_diff_percent),
             is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
             is_buy_available_by_duplicate_rate,
             is_buy_available_by_qty,
         ))
 
-        if rate_go_down_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
+        if rate_diff_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
             return self._open_position(
                 quantity=buy_qty,
                 price=buy_price,
