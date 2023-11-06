@@ -78,26 +78,6 @@ class BasicStrategy:
             self._update_stats(tick)
             return True
 
-        # check global stop loss
-        if tick.bid <= app_settings.global_stop_loss:
-            logger.warning('global stop loss fired! open: {0}. closed: {1}'.format(
-                len(self._open_positions),
-                len(self._closed_positions),
-            ))
-            sell_completed = self._close_all_positions(
-                price=tick.bid * app_settings.stop_loss_price_factor,
-                tick_number=tick.number,
-            )
-
-            sell_price = None if not sell_completed else self._closed_positions[-1].close_rate
-            self._telemetry.push(
-                tick.number,
-                tick.avg_price,
-                sell_price=sell_price,
-            )
-            self._update_stats(tick)
-            return False
-
         # sale position[s]
         sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
 
@@ -332,55 +312,6 @@ class BasicStrategy:
         position_for_close.close_rate = sell_response.price
         position_for_close.close_tick_number = tick_number
         self._closed_positions.append(position_for_close)
-        return True
-
-    def _close_all_positions(self, price: Decimal, tick_number: int) -> bool:
-        if not self._open_positions:
-            return False
-
-        # make fake summary-position
-        amounts = [pos.amount for pos in self._open_positions]
-        logger.info('amounts {0}'.format(amounts))
-
-        sum_amount = sum(amounts)
-        sum_cost = sum([pos.open_rate * pos.amount for pos in self._open_positions])
-        fake_position = Position(
-            amount=Decimal(sum_amount),
-            open_rate=Decimal(sum_cost / sum_amount),
-            open_tick_number=tick_number,
-        )
-
-        if self._dry_run:
-            sell_response: OrderResult | None = OrderResult(
-                is_filled=True,
-                qty=fake_position.amount,
-                price=price,
-                raw_response={'dry_run': True},
-            )
-        else:
-            sell_response = self._exchange_client.sell(
-                quantity=Decimal(fake_position.amount),
-                price=price.quantize(app_settings.ticker_price_digits),
-            )
-
-        logger.debug('close fake position response {0}'.format(sell_response))
-        if not sell_response or not sell_response.is_filled:
-            logger.info('close fake position - unsuccessfully "{0}" {1}'.format(
-                sell_response,
-                {'quantity': Decimal(fake_position.amount), 'price': Decimal(price)},
-            ))
-            return False
-
-        for position_for_close in self._get_open_positions_for_sell():
-            self._open_positions.remove(position_for_close)
-            position_for_close.close_rate = Decimal(0)
-            position_for_close.close_tick_number = tick_number
-            self._closed_positions.append(position_for_close)
-
-        logger.info('close fake position')
-        fake_position.close_rate = sell_response.price
-        fake_position.close_tick_number = tick_number
-        self._closed_positions.append(fake_position)
         return True
 
     def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:

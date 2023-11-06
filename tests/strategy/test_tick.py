@@ -23,18 +23,6 @@ def test_break_by_enable_flag(exchange_client_pass_mock, strategy_disabled):
     assert response is False
 
 
-def test_break_by_global_stop_loss(exchange_client_pass_mock):
-    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
-    strategy.tick(Tick(number=0, bid=Decimal(9), ask=Decimal(11), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
-    assert len(strategy._open_positions) == 3
-
-    response = strategy.tick(Tick(number=1, bid=Decimal(app_settings.global_stop_loss), ask=Decimal(100500), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
-
-    assert response is False
-    assert len(strategy._open_positions) == 0
-    assert len(strategy._closed_positions) == 4
-
-
 def test_buy_something(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
