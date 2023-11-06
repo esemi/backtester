@@ -421,6 +421,10 @@ class BasicStrategy:
 
         one_percent = previous_price / Decimal(100)
         rate_diff = previous_price - ask_price
+
+        if app_settings.use_last_open_position_rate and self._last_success_buy_price:
+            rate_diff = abs(rate_diff)
+
         rate_go_down_percent = rate_diff / one_percent
         buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
         buy_qty = calculate_ticker_quantity(
