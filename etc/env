@@ -11,7 +11,7 @@ global_stop_loss=0.0  # цена, при которой продаём всё и
 
 strategy_type=basic  # тип стратегии, floating для плавающей ставки, basic - стратегия с постоянным процентом
 avg_rate_sell_limit=1.004  # шаг в процентах для условия сделок. 5% = 1.05
-use_last_open_position_rate=true  # условие покупки: false от предыдущего тика, true от предыдущей покупки
+use_last_open_position_rate=false  # условие покупки: false от предыдущего тика, true от предыдущей покупки
 
 init_buy_amount=1  # сколько позиций открываем в самом начале теста
 multiple_sell_on_tick=false # Разрешаем множественные продажи на одном тике или нет.
