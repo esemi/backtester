@@ -59,6 +59,7 @@ class AppSettings(BaseSettings, extra='ignore'):
         description='Разрешаем множественные продажи на одном тике или нет.',
     )
     use_last_open_position_rate: bool = True
+    close_positions_only: bool = False
     buy_price_discount: Decimal = Field(
         default='1.0',
         description='Скидка к цене покупки.',

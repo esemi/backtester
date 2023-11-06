@@ -82,7 +82,11 @@ class BasicStrategy:
         sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
 
         # buy also
-        if not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit:
+        is_buy_allowed = (
+            (not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit)
+            and not app_settings.close_positions_only
+        )
+        if is_buy_allowed:
             logger.debug('try to buy something')
             buy_completed = self._buy_something(ask_price=tick.ask, ask_qty=tick.ask_qty, tick_number=tick.number)
 
