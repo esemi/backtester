@@ -120,3 +120,4 @@ python -m app.trader
 #### Как добавить новую пару апи ключей
 - добавляем новые доступы в [секреты github](https://github.com/esemi/backtester/settings/secrets/actions) с новыми именами
 - прописываем использование созданных переменных в деплой соответствующего бота ([например](https://github.com/esemi/backtester/blob/trader40/.github/workflows/deploy.yml#L45))
+
