@@ -2,7 +2,7 @@ name: rebase-pool-2
 
 on:
   push:
-    branches: [master]
+    branches: [release-pool-2]
 
 jobs:
   rebase:
@@ -13,4 +13,4 @@ jobs:
           base: master
           token: ${{ secrets.PAT }}
           include-labels: |
-            traders-pool-2
+            rebase
