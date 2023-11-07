@@ -4,13 +4,13 @@ import sys
 from github import Github, Auth
 
 
-def main(token: str, from_num: int, to_num: int) -> None:
+def main(base_branch: str, token: str, from_num: int, to_num: int) -> None:
     auth = Auth.Token(token)
     g = Github(auth=auth)
     for number in range(from_num, to_num + 1):
         username = f'trader{number}'
 
-        os.system('git checkout master')
+        os.system(f'git checkout {base_branch}')
         os.system(f'git checkout -b {username}')
         os.system(f"sed -i 's/USER_NAME/{username}/g' .github/workflows/deploy.yml")
         os.system('git add .github/workflows/deploy.yml')
@@ -30,5 +30,6 @@ def main(token: str, from_num: int, to_num: int) -> None:
     g.close()
 
 
+# Usage: ``
 if __name__ == '__main__':
-    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    main(sys.argv[4], sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
