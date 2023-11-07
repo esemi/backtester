@@ -10,11 +10,12 @@ continue_buy_amount=5  # Количество денег, на которое о
 global_stop_loss=0.0  # цена, при которой продаём всё и заканчиваем работу
 
 strategy_type=basic  # тип стратегии, floating для плавающей ставки, basic - стратегия с постоянным процентом
-avg_rate_sell_limit=0.4  # шаг в процентах для условия сделок. 5% = 1.05
+avg_rate_sell_limit=0.4  # шаг в процентах для условия сделок. 5% = 0.5
+use_last_open_position_rate=true  # условие покупки: false от предыдущего тика, true от предыдущей покупки
+close_positions_only=false # запрет на открытие новых позиций
 
 init_buy_amount=1  # сколько позиций открываем в самом начале теста
 multiple_sell_on_tick=false # Разрешаем множественные продажи на одном тике или нет.
-use_last_open_position_rate=false  # условие покупки: false от предыдущего тика, true от предыдущей покупки
 
 # trader settings
 throttling_time=2  # Минимальная частота тика в секундах
