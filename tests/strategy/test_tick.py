@@ -33,11 +33,21 @@ def test_buy_something(exchange_client_pass_mock):
     assert len(strategy._open_positions) == 4
 
 
+def test_buy_something_decline_by_duplicate(exchange_client_pass_mock):
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
+
+    strategy.tick(Tick(number=0, bid=Decimal(10), ask=Decimal('35.4050279'), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
+    response = strategy.tick(Tick(number=1, bid=Decimal(10), ask=Decimal('35.4050279'), bid_qty=Decimal(100501), ask_qty=Decimal(100501)))
+
+    assert response is True
+    assert len(strategy._open_positions) == 3
+
+
 def test_buy_something_decline_by_qty(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
     strategy.tick(Tick(number=0, bid=Decimal(10), ask=Decimal(11), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
-    response = strategy.tick(Tick(number=1, bid=Decimal(10), ask=Decimal(10), bid_qty=Decimal(100500), ask_qty=Decimal('0.9')))
+    response = strategy.tick(Tick(number=1, bid=Decimal(10), ask=Decimal(12), bid_qty=Decimal(100500), ask_qty=Decimal('0.9')))
 
     assert response is True
     assert len(strategy._open_positions) == 3

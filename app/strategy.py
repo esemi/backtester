@@ -311,7 +311,7 @@ class BasicStrategy:
             ))
             return False
 
-        logger.info('close position')
+        logger.info(f'close position {position_for_close=}')
         self._open_positions.remove(position_for_close)
         position_for_close.close_rate = sell_response.price
         position_for_close.close_tick_number = tick_number
@@ -375,6 +375,7 @@ class BasicStrategy:
         is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
         is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
         is_buy_available_by_qty = (buy_qty <= ask_qty) or ask_qty == 0
+        is_buy_available_by_diff = rate_diff_percent >= app_settings.step
 
         logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
             float(previous_price),
@@ -385,7 +386,7 @@ class BasicStrategy:
             is_buy_available_by_qty,
         ))
 
-        if rate_diff_percent >= app_settings.step and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
+        if is_buy_available_by_diff and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
             return self._open_position(
                 quantity=buy_qty,
                 price=buy_price,
@@ -402,12 +403,13 @@ class BasicStrategy:
         return self._ticks_history
 
     def _has_not_open_position_by_price(self, price: Decimal) -> bool:
+        open_rates: set[Decimal] = {
+            position.open_rate.quantize(app_settings.ticker_price_digits)
+            for position in self._open_positions
+        }
         test_rate = price.quantize(app_settings.ticker_price_digits)
-        for position in self._open_positions:
-            position_rate = position.open_rate.quantize(app_settings.ticker_price_digits)
-            if position_rate == test_rate:
-                return False
-        return True
+        logger.debug(f'{open_rates=}, {test_rate=}, {price=}, unlocked {test_rate not in open_rates}')
+        return test_rate not in open_rates
 
 
 class FloatingStrategy(BasicStrategy):
