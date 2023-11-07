@@ -10,7 +10,7 @@ continue_buy_amount=7  # Количество денег, на которое о
 global_stop_loss=0.0  # цена, при которой продаём всё и заканчиваем работу
 
 strategy_type=basic  # тип стратегии, floating для плавающей ставки, basic - стратегия с постоянным процентом
-avg_rate_sell_limit=0.7  # шаг в процентах для условия сделок. 5% = 0.5
+avg_rate_sell_limit=0.5  # шаг в процентах для условия сделок. 5% = 0.5
 use_last_open_position_rate=false  # условие покупки: false от предыдущего тика, true от предыдущей покупки
 close_positions_only=false # запрет на открытие новых позиций
 
