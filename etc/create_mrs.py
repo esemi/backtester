@@ -4,7 +4,7 @@ import sys
 from github import Github, Auth
 
 
-def main(token: str, from_num: int, to_num: int) -> None:
+def main(base_branch: str, token: str, from_num: int, to_num: int) -> None:
     auth = Auth.Token(token)
     g = Github(auth=auth)
     for number in range(from_num, to_num + 1):
@@ -22,7 +22,7 @@ def main(token: str, from_num: int, to_num: int) -> None:
         pull_request = repo.create_pull(
             title=f'WIP: {username}',
             head=username,
-            base='master',
+            base=base_branch,
         )
         pull_request.add_to_labels('rebase')
         print(pull_request)
@@ -30,5 +30,6 @@ def main(token: str, from_num: int, to_num: int) -> None:
     g.close()
 
 
+# Usage: `python etc/create_mrs.py PAT_TOKEN_HERE 101 200 release-pool-2`
 if __name__ == '__main__':
-    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    main(sys.argv[4], sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
