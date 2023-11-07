@@ -3,7 +3,7 @@ name: deploy
 on:
   push:
     branches:
-      - USER_NAME
+      - trader49
 
 jobs:
   on-success:
@@ -13,15 +13,15 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: deploy USER_NAME
+      - name: deploy trader49
         uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
         continue-on-error: true
         env:
-          TARGET_DIR: /home/USER_NAME
+          TARGET_DIR: /home/trader49
           VENV_BIN: venv/bin
         with:
           host: ${{ secrets.PROD_HOST_BIG }}
-          user: USER_NAME
+          user: trader49
           pass: ${{ secrets.PROD_PASSWORD_BIG }}
           port: 22
           connect_timeout: 10s
@@ -53,4 +53,4 @@ jobs:
             echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET }}' >> .env
             echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_SECOND }}' >> .env
             echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_SECOND }}' >> .env
-            supervisorctl restart USER_NAME
+            supervisorctl restart trader49
