@@ -1,4 +1,4 @@
-name: rebase
+name: rebase-pool-1
 
 on:
   push:
@@ -14,9 +14,3 @@ jobs:
           token: ${{ secrets.PAT }}
           include-labels: |
             traders-pool-1
-      - uses: peter-evans/rebase@v2
-        with:
-          base: master
-          token: ${{ secrets.PAT }}
-          include-labels: |
-            traders-pool-2
