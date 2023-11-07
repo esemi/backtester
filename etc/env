@@ -15,7 +15,7 @@ use_last_open_position_rate=true  # условие покупки: false от п
 close_positions_only=false # запрет на открытие новых позиций
 
 init_buy_amount=1  # сколько позиций открываем в самом начале теста
-multiple_sell_on_tick=false # Разрешаем множественные продажи на одном тике или нет.
+multiple_sell_on_tick=true # Разрешаем множественные продажи на одном тике или нет.
 
 # trader settings
 throttling_time=3  # Минимальная частота тика в секундах
