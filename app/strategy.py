@@ -27,6 +27,7 @@ class BasicStrategy:
         self._ticks_history: list[Tick] = []
         self._last_success_buy_tick_number: int = 0
         self._last_success_buy_price: Decimal = Decimal(0)
+        self._first_open_position_rate: Decimal = Decimal(0)
 
         self._exchange_client: BaseClient = exchange_client
         self._telemetry: TelemetryClient = TelemetryClient(
@@ -206,8 +207,18 @@ class BasicStrategy:
             100)) if max_amount_onhold else Decimal(0)
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
+        min_open_rate = min(pos.open_rate for pos in self._open_positions) or Decimal(0)
+        max_open_rate = max(pos.open_rate for pos in self._open_positions) or Decimal(0)
+
         return {
             'start_date': self._start_date,
+
+            'min_open_position_amount_usd': min_open_rate * app_settings.symbol_to_usdt_rate,
+            'min_open_position_amount_btc': min_open_rate,
+            'max_open_position_amount_usd': max_open_rate * app_settings.symbol_to_usdt_rate,
+            'max_open_position_amount_btc': max_open_rate,
+            'first_open_position_amount_usd': self._first_open_position_rate * app_settings.symbol_to_usdt_rate,
+            'first_open_position_amount_btc': self._first_open_position_rate,
 
             'buy_total_amount_usd': (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
             'buy_total_amount_btc': buy_amount_total + buy_amount_total_fee,
@@ -280,8 +291,12 @@ class BasicStrategy:
             return False
 
         logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
+
         self._last_success_buy_tick_number = tick_number
         self._last_success_buy_price = buy_response.price
+        if not self._first_open_position_rate:
+            self._first_open_position_rate = buy_response.price
+
         self._open_positions.append(Position(
             amount=buy_response.qty,
             open_rate=buy_response.price,

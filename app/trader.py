@@ -99,6 +99,7 @@ def _save_strategy_state(unique_instance_name: str, strategy_instance: BasicStra
         '_ticks_history': strategy_instance._ticks_history,
         '_last_success_buy_tick_number': strategy_instance._last_success_buy_tick_number,
         '_last_success_buy_price': strategy_instance._last_success_buy_price,
+        '_first_open_position_rate': strategy_instance._first_open_position_rate,
     }
 
     serialized_state = pickle.dumps(state)
@@ -121,6 +122,7 @@ def _restore_strategy_state(unique_instance_name: str, strategy_instance: BasicS
     strategy_instance._ticks_history = deserialized_state.get('_ticks_history')
     strategy_instance._last_success_buy_tick_number = deserialized_state.get('_last_success_buy_tick_number') or 0
     strategy_instance._last_success_buy_price = deserialized_state.get('_last_success_buy_price') or Decimal(0)
+    strategy_instance._first_open_position_rate = deserialized_state.get('_first_open_position_rate') or Decimal(0)
 
 
 def _continue_or_break() -> None:
