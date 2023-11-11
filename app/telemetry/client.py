@@ -1,5 +1,8 @@
 import os
+from datetime import datetime
 from decimal import Decimal
+
+from app.models import Tick
 
 
 class TelemetryClient:
@@ -10,14 +13,15 @@ class TelemetryClient:
 
     def push(
         self,
-        tick_number: int,
-        tick_price: Decimal,
+        tick: Tick,
         buy_price: Decimal | None = None,
         sell_price: Decimal | None = None,
     ):
         self._write_csv_line(
-            str(tick_number),
-            format_decimal(tick_price),
+            str(tick.number),
+            str(int(datetime.utcnow().timestamp())),
+            format_decimal(tick.bid),
+            format_decimal(tick.ask),
             format_decimal(buy_price or ''),
             format_decimal(sell_price or ''),
         )

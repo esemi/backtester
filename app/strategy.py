@@ -71,8 +71,7 @@ class BasicStrategy:
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
             self._telemetry.push(
-                tick.number,
-                tick.avg_price,
+                tick,
                 buy_price=buy_price,
             )
 
@@ -94,8 +93,7 @@ class BasicStrategy:
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
         self._telemetry.push(
-            tick.number,
-            tick.avg_price,
+            tick,
             buy_price=buy_price,
             sell_price=sell_price,
         )
@@ -260,7 +258,7 @@ class BasicStrategy:
             quantity=Decimal(sum([pos.amount for pos in self._open_positions])),
             buy_amount=Decimal(sum([pos.amount * pos.open_rate for pos in self._open_positions])),
             tick_number=tick.number,
-            tick_rate=tick.avg_price,
+            tick_rate=tick.bid,
         )
         if not self._max_onhold_positions or self._max_onhold_positions.buy_amount <= on_hold_current.buy_amount:
             self._max_onhold_positions = on_hold_current
