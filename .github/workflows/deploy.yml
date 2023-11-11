@@ -45,10 +45,4 @@ jobs:
             chmod -R 760 ./etc
             chown :www-data .env 
             chmod 760 .env
-<<<<<<< HEAD
-=======
-            echo '' >> .env
-            echo 'bybit_api_key=${{ secrets.BYBIT_API_KEY_SECOND }}' >> .env
-            echo 'bybit_api_secret=${{ secrets.BYBIT_API_SECRET_SECOND }}' >> .env
->>>>>>> Update env
             supervisorctl restart trader3
