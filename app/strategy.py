@@ -205,8 +205,11 @@ class BasicStrategy:
             100)) if max_amount_onhold else Decimal(0)
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
 
-        min_open_rate = min(pos.open_rate for pos in self._open_positions) or Decimal(0)
-        max_open_rate = max(pos.open_rate for pos in self._open_positions) or Decimal(0)
+        min_open_rate = Decimal(0)
+        max_open_rate = Decimal(0)
+        if self._open_positions:
+            min_open_rate = min(pos.open_rate for pos in self._open_positions)
+            max_open_rate = max(pos.open_rate for pos in self._open_positions)
 
         return {
             'start_date': self._start_date,
