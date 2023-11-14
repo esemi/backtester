@@ -13,4 +13,4 @@ jobs:
           base: master
           token: ${{ secrets.PAT }}
           include-labels: |
-            traders-pool-1
+            rebase
