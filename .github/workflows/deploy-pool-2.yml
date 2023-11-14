@@ -1,0 +1,100 @@
+name: deploy-pool-2
+
+on:
+  push:
+    branches:
+      - release-pool-2
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bot-name:
+          - 'trader51'
+          - 'trader52'
+          - 'trader53'
+          - 'trader54'
+          - 'trader55'
+          - 'trader56'
+          - 'trader57'
+          - 'trader58'
+          - 'trader59'
+          - 'trader60'
+          - 'trader62'
+          - 'trader63'
+          - 'trader64'
+          - 'trader65'
+          - 'trader66'
+          - 'trader67'
+          - 'trader68'
+          - 'trader69'
+          - 'trader70'
+          - 'trader71'
+          - 'trader72'
+          - 'trader73'
+          - 'trader74'
+          - 'trader75'
+          - 'trader76'
+          - 'trader77'
+          - 'trader78'
+          - 'trader79'
+          - 'trader80'
+          - 'trader81'
+          - 'trader82'
+          - 'trader83'
+          - 'trader84'
+          - 'trader85'
+          - 'trader86'
+          - 'trader87'
+          - 'trader88'
+          - 'trader89'
+          - 'trader90'
+          - 'trader91'
+          - 'trader92'
+          - 'trader93'
+          - 'trader94'
+          - 'trader95'
+          - 'trader96'
+          - 'trader97'
+          - 'trader98'
+          - 'trader99'
+          - 'trader100'
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: deploy ${{ matrix.bot-name }}
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        continue-on-error: true
+        env:
+          TARGET_DIR: /home/${{ matrix.bot-name }}
+          VENV_BIN: venv/bin
+        with:
+          host: ${{ secrets.PROD_HOST_BIG }}
+          user: ${{ matrix.bot-name }}
+          pass: ${{ secrets.PROD_PASSWORD_BIG }}
+          port: 22
+          connect_timeout: 10s
+          first_ssh: |-
+            mkdir -p app
+            mkdir -p logs
+            mkdir -p etc
+            test -d venv || python3.11 -m venv venv
+
+          scp: |-
+            './app/*' => $TARGET_DIR/app/
+            ./requirements.txt => $TARGET_DIR
+
+          last_ssh: |-
+            $VENV_BIN/pip install pip setuptools --upgrade
+            $VENV_BIN/pip install -r requirements.txt
+            $VENV_BIN/pip cache purge
+            chown :www-data .
+            chmod 771 .
+            chown -R :www-data ./etc
+            chmod -R 760 ./etc
+            chown :www-data .env 
+            chmod 760 .env
+            supervisorctl restart ${{ matrix.bot-name }}
