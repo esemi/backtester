@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from decimal import Decimal
 
+from app import storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.floating_steps import FloatingSteps
 from app.models import Position, OnHoldPositions, Tick
@@ -160,6 +161,7 @@ class BasicStrategy:
         print('Количество успешных сделок - %d' % results['count_success_deals'])
 
     def save_results(self) -> None:
+        storage.save_stats(app_settings.instance_name, self.get_results())
         logs_filepath = os.path.join(app_settings.logs_path, app_settings.instance_name)
         os.makedirs(logs_filepath, exist_ok=True)
         filepath = os.path.join(logs_filepath, 'result.json')
