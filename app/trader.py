@@ -91,6 +91,7 @@ def _get_exchange_client(name: str) -> BaseClient:
 
 def _save_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
     state = {
+        '_start_date': strategy_instance._start_date,
         '_open_positions': strategy_instance._open_positions,
         '_closed_positions': strategy_instance._closed_positions,
         '_max_onhold_positions': strategy_instance._max_onhold_positions,
@@ -114,6 +115,7 @@ def _restore_strategy_state(unique_instance_name: str, strategy_instance: BasicS
 
     logger.info('previous state restored by redis')
     deserialized_state = pickle.loads(saved_state)
+    strategy_instance._start_date = deserialized_state.get('_start_date') or datetime.utcnow()
     strategy_instance._open_positions = deserialized_state.get('_open_positions')
     strategy_instance._closed_positions = deserialized_state.get('_closed_positions')
     strategy_instance._max_onhold_positions = deserialized_state.get('_max_onhold_positions')

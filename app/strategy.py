@@ -216,38 +216,38 @@ class BasicStrategy:
         return {
             'start_date': self._start_date,
 
-            'min_open_position_amount_usd': min_open_rate * app_settings.symbol_to_usdt_rate,
+            'min_open_position_amount_usd': min_open_rate,
             'min_open_position_amount_btc': min_open_rate,
-            'max_open_position_amount_usd': max_open_rate * app_settings.symbol_to_usdt_rate,
+            'max_open_position_amount_usd': max_open_rate,
             'max_open_position_amount_btc': max_open_rate,
-            'first_open_position_amount_usd': self._first_open_position_rate * app_settings.symbol_to_usdt_rate,
+            'first_open_position_amount_usd': self._first_open_position_rate,
             'first_open_position_amount_btc': self._first_open_position_rate,
 
-            'buy_total_amount_usd': (buy_amount_total + buy_amount_total_fee) * app_settings.symbol_to_usdt_rate,
+            'buy_total_amount_usd': buy_amount_total + buy_amount_total_fee,
             'buy_total_amount_btc': buy_amount_total + buy_amount_total_fee,
             'buy_total_qty': buy_total,
 
-            'buy_without_current_opened_amount_usd': (buy_amount_without_current_opened + buy_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
+            'buy_without_current_opened_amount_usd': buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
             'buy_without_current_opened_amount_btc': buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
             'buy_without_current_opened_qty': buy_without_current_opened,
 
-            'sell_without_current_opened_amount_usd': (sell_amount_without_current_opened - sell_amount_without_current_opened_fee) * app_settings.symbol_to_usdt_rate,
+            'sell_without_current_opened_amount_usd': sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
             'sell_without_current_opened_amount_btc': sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
             'sell_without_current_opened_qty': sell_without_current_opened,
 
-            'dirty_pl_amount_usd': profit_amount_without_current_opened * app_settings.symbol_to_usdt_rate,
+            'dirty_pl_amount_usd': profit_amount_without_current_opened,
             'dirty_pl_amount_btc': profit_amount_without_current_opened,
             'dirty_pl_percent': float(profit_percent_without_current_opened),
 
-            'liquidation_amount_usd': (liquidation_amount - liquidation_amount_fee) * app_settings.symbol_to_usdt_rate,
+            'liquidation_amount_usd': liquidation_amount - liquidation_amount_fee,
             'liquidation_amount_btc': liquidation_amount - liquidation_amount_fee,
             'liquidation_qty': liquidation,
 
-            'pl_amount_usd': profit_amount_total * app_settings.symbol_to_usdt_rate,
+            'pl_amount_usd': profit_amount_total,
             'pl_amount_btc': profit_amount_total,
             'pl_percent': float(profit_percent_total),
 
-            'onhold_amount_usd': self._max_onhold_positions.buy_amount * app_settings.symbol_to_usdt_rate if self._max_onhold_positions else 0,
+            'onhold_amount_usd': self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             'onhold_amount_btc': self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             'onhold_qty': self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
             'onhold_tick_number': self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
@@ -356,7 +356,7 @@ class BasicStrategy:
             ))
 
             if bid_price >= minimal_sell_price and qty_left >= position.amount:
-                sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
+                sell_price = bid_price.quantize(app_settings.ticker_price_digits)
                 sell_response = self._close_position(
                     position_for_close=position,
                     price=sell_price,
@@ -384,27 +384,25 @@ class BasicStrategy:
             rate_diff = abs(rate_diff)
 
         rate_diff_percent = rate_diff / one_percent
-        buy_price = (ask_price * app_settings.buy_price_discount).quantize(app_settings.ticker_price_digits)
+        buy_price = ask_price.quantize(app_settings.ticker_price_digits)
         buy_qty = calculate_ticker_quantity(
             app_settings.continue_buy_amount,
             buy_price,
             app_settings.ticker_amount_digits,
         )
-        is_buy_available_by_frequency = (tick_number - self._last_success_buy_tick_number) >= app_settings.continue_buy_every_n_ticks
         is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
         is_buy_available_by_qty = (buy_qty <= ask_qty) or ask_qty == 0
         is_buy_available_by_diff = rate_diff_percent >= app_settings.step
 
-        logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, frequency buy lock %s, last buy tick %d, duplicate lock %s, qty check %s' % (
+        logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, last buy tick %d, duplicate lock %s, qty check %s' % (
             float(previous_price),
             float(rate_diff_percent),
-            is_buy_available_by_frequency,
             self._last_success_buy_tick_number,
             is_buy_available_by_duplicate_rate,
             is_buy_available_by_qty,
         ))
 
-        if is_buy_available_by_diff and is_buy_available_by_frequency and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
+        if is_buy_available_by_diff and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
             return self._open_position(
                 quantity=buy_qty,
                 price=buy_price,
@@ -457,7 +455,7 @@ class FloatingStrategy(BasicStrategy):
                 step_percent,
             ))
 
-            sell_price = (bid_price * app_settings.sell_price_discount).quantize(app_settings.ticker_price_digits)
+            sell_price = bid_price.quantize(app_settings.ticker_price_digits)
 
             if qty_left >= position.amount:
                 has_sale_try = True

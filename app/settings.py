@@ -39,10 +39,6 @@ class AppSettings(BaseSettings, extra='ignore'):
         default='15.0',
         description='Количество денег, на которое открываем новые позиции. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',
     )
-    continue_buy_every_n_ticks: int = Field(
-        default=1,
-        description='Раз в какое количество тиков пробуем покупать. Считаем только тики, потенциально пригодные для покупки.',
-    )
     ticker_amount_digits: Decimal = Field(
         default='0.01',
         description='До скольки знаков после запятой округлять количество монет в заявке на покупку. Значение можно узнать тут https://www.binance.com/en/trade-rule',
@@ -52,7 +48,6 @@ class AppSettings(BaseSettings, extra='ignore'):
         description='До скольки знаков после запятой округлять цену в заявке. Этот параметр также используется для округления цены при проверке на наличие открытой позиции в этом ценовом диапазоне.',
     )
     enabled: bool = Field(default=False, description='вкл/выкл стратегии')
-    symbol_to_usdt_rate: Decimal = Field(default='1', description='Курс текущего тикера в USDT.')
     hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
     multiple_sell_on_tick: bool = Field(
         default=True,
@@ -60,14 +55,6 @@ class AppSettings(BaseSettings, extra='ignore'):
     )
     use_last_open_position_rate: bool = True
     close_positions_only: bool = False
-    buy_price_discount: Decimal = Field(
-        default='1.0',
-        description='Скидка к цене покупки.',
-    )
-    sell_price_discount: Decimal = Field(
-        default='1.0',
-        description='Скидка к цене продажи.',
-    )
 
     # backtester settings
     rates_filename: str = Field(
