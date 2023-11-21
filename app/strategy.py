@@ -10,12 +10,13 @@ from app.exchange_client.base import BaseClient, OrderResult
 from app.floating_steps import FloatingSteps
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
+from app.state_utils.state_saver import StateSaverMixin
 from app.telemetry.client import TelemetryClient
 
 logger = logging.getLogger(__name__)
 
 
-class BasicStrategy:
+class BasicStrategy(StateSaverMixin):
     tick_history_limit: int = 10
 
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
@@ -371,6 +372,8 @@ class BasicStrategy:
         return sale_completed
 
     def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
+        # todo grid strategy
+        # todo remove with settings and state
         previous_price = self.get_previous_tick().ask
         if app_settings.use_last_open_position_rate and self._last_success_buy_price:
             previous_price = self._last_success_buy_price

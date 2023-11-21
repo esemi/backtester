@@ -90,20 +90,7 @@ def _get_exchange_client(name: str) -> BaseClient:
 
 
 def _save_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
-    state = {
-        '_start_date': strategy_instance._start_date,
-        '_open_positions': strategy_instance._open_positions,
-        '_closed_positions': strategy_instance._closed_positions,
-        '_max_onhold_positions': strategy_instance._max_onhold_positions,
-        '_max_sell_percent': strategy_instance._max_sell_percent,
-        '_max_sell_percent_tick': strategy_instance._max_sell_percent_tick,
-        '_ticks_history': strategy_instance._ticks_history,
-        '_last_success_buy_tick_number': strategy_instance._last_success_buy_tick_number,
-        '_last_success_buy_price': strategy_instance._last_success_buy_price,
-        '_first_open_position_rate': strategy_instance._first_open_position_rate,
-    }
-
-    serialized_state = pickle.dumps(state)
+    serialized_state = pickle.dumps(strategy_instance.get_state_for_save())
     storage.save_state(unique_instance_name, serialized_state)
     logger.info('state saved to redis')
 
@@ -115,16 +102,7 @@ def _restore_strategy_state(unique_instance_name: str, strategy_instance: BasicS
 
     logger.info('previous state restored by redis')
     deserialized_state = pickle.loads(saved_state)
-    strategy_instance._start_date = deserialized_state.get('_start_date') or datetime.utcnow()
-    strategy_instance._open_positions = deserialized_state.get('_open_positions')
-    strategy_instance._closed_positions = deserialized_state.get('_closed_positions')
-    strategy_instance._max_onhold_positions = deserialized_state.get('_max_onhold_positions')
-    strategy_instance._max_sell_percent = deserialized_state.get('_max_sell_percent')
-    strategy_instance._max_sell_percent_tick = deserialized_state.get('_max_sell_percent_tick')
-    strategy_instance._ticks_history = deserialized_state.get('_ticks_history')
-    strategy_instance._last_success_buy_tick_number = deserialized_state.get('_last_success_buy_tick_number') or 0
-    strategy_instance._last_success_buy_price = deserialized_state.get('_last_success_buy_price') or Decimal(0)
-    strategy_instance._first_open_position_rate = deserialized_state.get('_first_open_position_rate') or Decimal(0)
+    strategy_instance.restore_state_from(deserialized_state)
 
 
 def _continue_or_break() -> None:
