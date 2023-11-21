@@ -34,7 +34,6 @@ class AppSettings(BaseSettings, extra='ignore'):
     step: Decimal = Field(default='0.5', description='шаг в процентах для условия на открытие новой позиции. 0.5 = 0.5%')
     fee_percent: Decimal = Field(default='0.1', description='Процент комиссий от суммы сделки')
     avg_rate_sell_limit: Decimal = Field(default='0.5', description='шаг в процентах для условия сделок. 0.5 = 0.5%')
-    init_buy_amount: int = Field(default=3, description='сколько позиций открываем в самом начале теста')
     continue_buy_amount: Decimal = Field(
         default='15.0',
         description='Количество денег, на которое открываем новые позиции. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',

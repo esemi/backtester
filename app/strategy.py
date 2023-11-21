@@ -58,17 +58,15 @@ class BasicStrategy:
             logger.info('init buy')
             self._telemetry.cleanup()
 
-            for _ in range(app_settings.init_buy_amount):
-                is_completed = self._open_position(
-                    quantity=calculate_ticker_quantity(
-                        app_settings.continue_buy_amount,
-                        tick.ask,
-                        app_settings.ticker_amount_digits,
-                    ),
-                    price=tick.ask,
-                    tick_number=tick.number,
-                )
-                buy_completed = is_completed or buy_completed
+            buy_completed = self._open_position(
+                quantity=calculate_ticker_quantity(
+                    app_settings.continue_buy_amount,
+                    tick.ask,
+                    app_settings.ticker_amount_digits,
+                ),
+                price=tick.ask,
+                tick_number=tick.number,
+            )
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
             self._telemetry.push(
