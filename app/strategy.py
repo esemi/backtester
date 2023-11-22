@@ -8,6 +8,7 @@ from decimal import Decimal
 from app import storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.floating_steps import FloatingSteps
+from app.grid import get_grid_num_by_price
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
@@ -27,8 +28,6 @@ class BasicStrategy(StateSaverMixin):
         self._max_sell_percent: Decimal = Decimal(0)
         self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
-        self._last_success_buy_tick_number: int = 0
-        self._last_success_buy_price: Decimal = Decimal(0)
         self._first_open_position_rate: Decimal = Decimal(0)
 
         self._exchange_client: BaseClient = exchange_client
@@ -42,9 +41,6 @@ class BasicStrategy(StateSaverMixin):
 
     def get_last_tick(self) -> Tick:
         return self._get_ticks_history()[-1]
-
-    def get_previous_tick(self) -> Tick:
-        return self._get_ticks_history()[-2]
 
     def tick(self, tick: Tick) -> bool:
         self._push_ticks_history(tick)
@@ -67,6 +63,7 @@ class BasicStrategy(StateSaverMixin):
                 ),
                 price=tick.ask,
                 tick_number=tick.number,
+                grid_number=get_grid_num_by_price(tick.ask),
             )
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
@@ -270,7 +267,7 @@ class BasicStrategy(StateSaverMixin):
     def _get_open_positions_for_sell(self) -> list[Position]:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
-    def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int) -> bool:
+    def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int, grid_number: int) -> bool:
         if self._dry_run:
             buy_response: OrderResult | None = OrderResult(
                 is_filled=True,
@@ -294,8 +291,6 @@ class BasicStrategy(StateSaverMixin):
 
         logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
 
-        self._last_success_buy_tick_number = tick_number
-        self._last_success_buy_price = buy_response.price
         if not self._first_open_position_rate:
             self._first_open_position_rate = buy_response.price
 
@@ -303,6 +298,7 @@ class BasicStrategy(StateSaverMixin):
             amount=buy_response.qty,
             open_rate=buy_response.price,
             open_tick_number=tick_number,
+            grid_number=grid_number,
         ))
         return True
 
@@ -372,42 +368,39 @@ class BasicStrategy(StateSaverMixin):
         return sale_completed
 
     def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
-        # todo grid strategy
-        # todo remove with settings and state
-        previous_price = self.get_previous_tick().ask
-        if app_settings.use_last_open_position_rate and self._last_success_buy_price:
-            previous_price = self._last_success_buy_price
-
-        one_percent = previous_price / Decimal(100)
-        rate_diff = previous_price - ask_price
-
-        if app_settings.use_last_open_position_rate and self._last_success_buy_price:
-            rate_diff = abs(rate_diff)
-
-        rate_diff_percent = rate_diff / one_percent
         buy_price = ask_price.quantize(app_settings.ticker_price_digits)
         buy_qty = calculate_ticker_quantity(
             app_settings.continue_buy_amount,
             buy_price,
             app_settings.ticker_amount_digits,
         )
-        is_buy_available_by_duplicate_rate = self._has_not_open_position_by_price(ask_price)
+
+        current_price_grid = get_grid_num_by_price(buy_price)
+        filled_grid_numbers: set[int] = {
+            position.grid_number
+            for position in self._open_positions
+        }
+
         is_buy_available_by_qty = (buy_qty <= ask_qty) or ask_qty == 0
-        is_buy_available_by_diff = rate_diff_percent >= app_settings.step
+        is_buy_available_by_grid = current_price_grid not in filled_grid_numbers
 
-        logger.debug('check rates for buy. Prev ask price: %.4f, diff %.4f, last buy tick %d, duplicate lock %s, qty check %s' % (
-            float(previous_price),
-            float(rate_diff_percent),
-            self._last_success_buy_tick_number,
-            is_buy_available_by_duplicate_rate,
-            is_buy_available_by_qty,
-        ))
+        logger.info(
+            'buy conditions: buy price: %.10f, grid step is %.10f, current grid %d, filled grids [%s], grid check %s, qty check %s' % (
+                float(buy_price),
+                float(app_settings.grid_step),
+                current_price_grid,
+                filled_grid_numbers,
+                is_buy_available_by_grid,
+                is_buy_available_by_qty,
+            ),
+        )
 
-        if is_buy_available_by_diff and is_buy_available_by_duplicate_rate and is_buy_available_by_qty:
+        if is_buy_available_by_grid and is_buy_available_by_qty:
             return self._open_position(
                 quantity=buy_qty,
                 price=buy_price,
                 tick_number=tick_number,
+                grid_number=current_price_grid,
             )
         return False
 
@@ -418,15 +411,6 @@ class BasicStrategy(StateSaverMixin):
 
     def _get_ticks_history(self) -> list[Tick]:
         return self._ticks_history
-
-    def _has_not_open_position_by_price(self, price: Decimal) -> bool:
-        open_rates: set[Decimal] = {
-            position.open_rate.quantize(app_settings.ticker_price_digits)
-            for position in self._open_positions
-        }
-        test_rate = price.quantize(app_settings.ticker_price_digits)
-        logger.debug(f'{open_rates=}, {test_rate=}, {price=}, unlocked {test_rate not in open_rates}')
-        return test_rate not in open_rates
 
 
 class FloatingStrategy(BasicStrategy):

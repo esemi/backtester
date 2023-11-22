@@ -9,6 +9,7 @@ class Position:
     open_rate: Decimal
     close_rate: Decimal = Decimal(0)
     close_tick_number: int = -1
+    grid_number: int = -1
 
 
 @dataclass

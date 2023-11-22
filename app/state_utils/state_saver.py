@@ -12,8 +12,6 @@ class StateSaverMixin:
     _max_sell_percent: Decimal
     _max_sell_percent_tick: int
     _ticks_history: list[Tick]
-    _last_success_buy_tick_number: int
-    _last_success_buy_price: Decimal
     _first_open_position_rate: Decimal
 
     def get_state_for_save(self) -> dict:
@@ -25,8 +23,6 @@ class StateSaverMixin:
             '_max_sell_percent': self._max_sell_percent,
             '_max_sell_percent_tick': self._max_sell_percent_tick,
             '_ticks_history': self._ticks_history,
-            '_last_success_buy_tick_number': self._last_success_buy_tick_number,
-            '_last_success_buy_price': self._last_success_buy_price,
             '_first_open_position_rate': self._first_open_position_rate,
         }
 
@@ -38,6 +34,4 @@ class StateSaverMixin:
         self._max_sell_percent = saved_state.get('_max_sell_percent') or Decimal(0)
         self._max_sell_percent_tick = saved_state.get('_max_sell_percent_tick') or 0
         self._ticks_history = saved_state.get('_ticks_history') or []
-        self._last_success_buy_tick_number = saved_state.get('_last_success_buy_tick_number') or 0
-        self._last_success_buy_price = saved_state.get('_last_success_buy_price') or Decimal(0)
         self._first_open_position_rate = saved_state.get('_first_open_position_rate') or Decimal(0)
