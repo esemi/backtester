@@ -77,10 +77,13 @@ class Binance(BaseClient):
             logger.exception(exc)
             return None
 
+        fees = self._get_order_fee(response.get('fills', []))
+        executed_qty = Decimal(response['executedQty']) - fees
+        logger.info(f"buy: {response['executedQty']=}, {fees=}, {executed_qty=}, {response['cummulativeQuoteQty']=}")
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
-            qty=Decimal(response['executedQty']),
-            price=Decimal(response['cummulativeQuoteQty']) / (Decimal(response.get('executedQty')) or 1),
+            qty=executed_qty,
+            price=Decimal(response['cummulativeQuoteQty']) / (executed_qty or 1),
             raw_response=response,
         )
 
@@ -102,9 +105,19 @@ class Binance(BaseClient):
             logger.exception(exc)
             return None
 
+        fees = self._get_order_fee(response.get('fills', []))
+        executed_quote = Decimal(response['cummulativeQuoteQty']) - fees
+        logger.info(f"sell: {response['cummulativeQuoteQty']=}, {fees=}, {executed_quote=}, {response['executedQty']=}")
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
             qty=Decimal(response['executedQty']),
-            price=Decimal(response['cummulativeQuoteQty']) / (Decimal(response.get('executedQty')) or 1),
+            price=executed_quote / (Decimal(response.get('executedQty')) or 1),
             raw_response=response,
         )
+
+    @classmethod
+    def _get_order_fee(cls, fills: list[dict]) -> Decimal:
+        return Decimal(sum([
+            Decimal(fill.get('commission', 0))
+            for fill in fills
+        ]))
