@@ -97,10 +97,15 @@ class ByBit(BaseClient):
             logger.exception(exc)
             return None
 
+        fees = Decimal(order_response.get('cumExecFee') or 0)
+        executed_qty = Decimal(order_response['cumExecQty'] or 0) - fees
+        actual_rate = Decimal(order_response['avgPrice'] or 0) * Decimal(order_response['cumExecQty'] or 0) / executed_qty
+        logger.info(f"buy: {order_response['cumExecQty']=}, {fees=}, {executed_qty=}, {order_response['avgPrice']=}, {actual_rate=}")
+
         return OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=Decimal(order_response['cumExecQty'] or 0),
-            price=Decimal(order_response['avgPrice'] or 0),
+            qty=executed_qty,
+            price=actual_rate,
             raw_response=order_response,
         )
 
@@ -128,10 +133,17 @@ class ByBit(BaseClient):
             logger.exception(exc)
             return None
 
+        fees = Decimal(order_response.get('cumExecFee') or 0)
+        actual_qty = Decimal(order_response['cumExecQty'] or 0)
+        full_price = Decimal(order_response['avgPrice'] or 0) * Decimal(order_response['cumExecQty'] or 0)
+        actual_rate = (full_price - fees) / (actual_qty or 1)
+
+        logger.info(f"sell: {full_price=}, {fees=}, {actual_rate=}, {actual_qty=}")
+
         return OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=Decimal(order_response['cumExecQty'] or 0),
-            price=Decimal(order_response['avgPrice'] or 0),
+            qty=actual_qty,
+            price=actual_rate,
             raw_response=order_response,
         )
 
