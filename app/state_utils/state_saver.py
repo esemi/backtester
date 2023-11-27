@@ -13,9 +13,11 @@ class StateSaverMixin:
     _max_sell_percent_tick: int
     _ticks_history: list[Tick]
     _first_open_position_rate: Decimal
+    _actual_qty_balance: Decimal
 
     def get_state_for_save(self) -> dict:
         return {
+            '_actual_qty_balance': self._actual_qty_balance,
             '_start_date': self._start_date,
             '_open_positions': self._open_positions,
             '_closed_positions': self._closed_positions,
@@ -27,6 +29,7 @@ class StateSaverMixin:
         }
 
     def restore_state_from(self, saved_state: dict) -> None:
+        self._actual_qty_balance = saved_state.get('_actual_qty_balance') or Decimal(0)
         self._start_date = saved_state.get('_start_date') or datetime.utcnow()
         self._open_positions = saved_state.get('_open_positions') or []
         self._closed_positions = saved_state.get('_closed_positions') or []

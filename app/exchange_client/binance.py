@@ -78,12 +78,15 @@ class Binance(BaseClient):
             return None
 
         fees = self._get_order_fee(response.get('fills', []))
-        executed_qty = Decimal(response['executedQty']) - fees
-        logger.info(f"buy: {response['executedQty']=}, {fees=}, {executed_qty=}, {response['cummulativeQuoteQty']=}")
+        actual_qty = Decimal(response['executedQty'])
+        actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
+        logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}")
+
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
-            qty=executed_qty,
-            price=Decimal(response['cummulativeQuoteQty']) / (executed_qty or 1),
+            qty=actual_qty,
+            price=actual_rate,
+            fee=fees,
             raw_response=response,
         )
 
@@ -105,13 +108,16 @@ class Binance(BaseClient):
             logger.exception(exc)
             return None
 
+        actual_qty = Decimal(response['executedQty'])
+        actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
         fees = self._get_order_fee(response.get('fills', []))
-        executed_quote = Decimal(response['cummulativeQuoteQty']) - fees
-        logger.info(f"sell: {response['cummulativeQuoteQty']=}, {fees=}, {executed_quote=}, {response['executedQty']=}")
+        logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}")
+
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
-            qty=Decimal(response['executedQty']),
-            price=executed_quote / (Decimal(response.get('executedQty')) or 1),
+            qty=actual_qty,
+            price=actual_rate,
+            fee=fees,
             raw_response=response,
         )
 

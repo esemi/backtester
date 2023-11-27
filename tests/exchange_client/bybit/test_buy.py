@@ -51,3 +51,4 @@ def test_buy_canceled():
     assert not response.is_filled
     assert response.qty == Decimal(0)
     assert response.price == Decimal(0)
+    assert response.fee == Decimal(0)

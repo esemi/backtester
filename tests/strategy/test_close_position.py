@@ -30,6 +30,7 @@ def test_close_position_expired():
         is_filled=False,
         qty=Decimal(0),
         price=Decimal(0),
+        fee=Decimal(0),
     ))
     position = Position(
         amount=Decimal(1.1),

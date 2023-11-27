@@ -32,7 +32,6 @@ class AppSettings(BaseSettings, extra='ignore'):
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
     grid_step: Decimal = Field(default='1', description='шаг сетки на покупку')
-    fee_percent: Decimal = Field(default='0.1', description='Процент комиссий от суммы сделки')
     avg_rate_sell_limit: Decimal = Field(default='0.5', description='шаг в процентах для условия сделок. 0.5 = 0.5%')
     continue_buy_amount: Decimal = Field(
         default='15.0',

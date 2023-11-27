@@ -23,6 +23,7 @@ def test_open_position_expired():
         is_filled=False,
         qty=Decimal(0),
         price=Decimal(0),
+        fee=Decimal(0),
     ))
 
     strategy = BasicStrategy(exchange_client=mock)
