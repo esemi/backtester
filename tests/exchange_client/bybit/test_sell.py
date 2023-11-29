@@ -27,6 +27,7 @@ def test_sell_happy_path():
     assert response.is_filled
     assert response.price >= actual_price
     assert response.qty == quantity
+    assert response.fee == Decimal(0)
 
 
 def test_sell_canceled():

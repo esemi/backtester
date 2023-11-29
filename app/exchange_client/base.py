@@ -11,6 +11,7 @@ class OrderResult:
     is_filled: bool
     qty: Decimal
     price: Decimal
+    fee: Decimal
     raw_response: dict | None = None
 
 

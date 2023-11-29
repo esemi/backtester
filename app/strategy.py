@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from app import storage
 from app.exchange_client.base import BaseClient, OrderResult
+from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
 from app.models import Position, OnHoldPositions, Tick
@@ -17,10 +18,12 @@ from app.telemetry.client import TelemetryClient
 logger = logging.getLogger(__name__)
 
 
-class BasicStrategy(StateSaverMixin):
+class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
     tick_history_limit: int = 10
 
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
+        super().__init__(exchange_client, dry_run)
+
         self._start_date: datetime = datetime.utcnow()
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
@@ -155,6 +158,7 @@ class BasicStrategy(StateSaverMixin):
         print('Количество продаж - %d' % results['count_sell_transactions'])
         print('Количество не успешных сделок - %d' % results['count_unsuccessful_deals'])
         print('Количество успешных сделок - %d' % results['count_success_deals'])
+        print('Остаток монет на балансе - %.8f' % results['account_balance_qty'])
 
     def save_results(self) -> None:
         storage.save_stats(app_settings.instance_name, self.get_results())
@@ -169,36 +173,32 @@ class BasicStrategy(StateSaverMixin):
         buy_amount_without_current_opened = sum(
             [pos.open_rate * pos.amount for pos in self._closed_positions]
         )
-        buy_amount_without_current_opened_fee = buy_amount_without_current_opened * app_settings.fee_percent / 100
         buy_without_current_opened = sum(
             [pos.amount for pos in self._closed_positions]
         )
         buy_amount_total = buy_amount_without_current_opened + sum(
             [pos.open_rate * pos.amount for pos in self._open_positions]
         )
-        buy_amount_total_fee = buy_amount_total * app_settings.fee_percent / 100
         buy_total = buy_without_current_opened + sum(
             [pos.amount for pos in self._open_positions]
         )
         sell_amount_without_current_opened = sum(
             [pos.close_rate * pos.amount for pos in self._closed_positions]
         )
-        sell_amount_without_current_opened_fee = sell_amount_without_current_opened * app_settings.fee_percent / 100
         sell_without_current_opened = sum(
             [pos.amount for pos in self._closed_positions]
         )
         liquidation_amount = sum(
             [self.get_last_tick().bid * pos.amount for pos in self._open_positions]
         )
-        liquidation_amount_fee = liquidation_amount * app_settings.fee_percent / 100
         liquidation = sum(
             [pos.amount for pos in self._open_positions]
         )
 
         # считаем доходность относительно максимума средств в обороте
         max_amount_onhold: Decimal = self._max_onhold_positions.buy_amount if self._max_onhold_positions else Decimal(0)
-        profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened - sell_amount_without_current_opened_fee - buy_amount_without_current_opened_fee
-        profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total - sell_amount_without_current_opened_fee - liquidation_amount_fee - buy_amount_total_fee
+        profit_amount_without_current_opened = sell_amount_without_current_opened - buy_amount_without_current_opened
+        profit_amount_total = sell_amount_without_current_opened + liquidation_amount - buy_amount_total
         profit_percent_without_current_opened = (profit_amount_without_current_opened / max_amount_onhold * Decimal(
             100)) if max_amount_onhold else Decimal(0)
         profit_percent_total = (profit_amount_total / max_amount_onhold * Decimal(100)) if max_amount_onhold else Decimal(0)
@@ -219,24 +219,26 @@ class BasicStrategy(StateSaverMixin):
             'first_open_position_amount_usd': self._first_open_position_rate,
             'first_open_position_amount_btc': self._first_open_position_rate,
 
-            'buy_total_amount_usd': buy_amount_total + buy_amount_total_fee,
-            'buy_total_amount_btc': buy_amount_total + buy_amount_total_fee,
+            'buy_total_amount_usd': buy_amount_total,
+            'buy_total_amount_btc': buy_amount_total,
             'buy_total_qty': buy_total,
 
-            'buy_without_current_opened_amount_usd': buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
-            'buy_without_current_opened_amount_btc': buy_amount_without_current_opened + buy_amount_without_current_opened_fee,
+            'buy_without_current_opened_amount_usd': buy_amount_without_current_opened,
+            'buy_without_current_opened_amount_btc': buy_amount_without_current_opened,
             'buy_without_current_opened_qty': buy_without_current_opened,
 
-            'sell_without_current_opened_amount_usd': sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
-            'sell_without_current_opened_amount_btc': sell_amount_without_current_opened - sell_amount_without_current_opened_fee,
+            'sell_without_current_opened_amount_usd': sell_amount_without_current_opened,
+            'sell_without_current_opened_amount_btc': sell_amount_without_current_opened,
             'sell_without_current_opened_qty': sell_without_current_opened,
 
             'dirty_pl_amount_usd': profit_amount_without_current_opened,
             'dirty_pl_amount_btc': profit_amount_without_current_opened,
             'dirty_pl_percent': float(profit_percent_without_current_opened),
 
-            'liquidation_amount_usd': liquidation_amount - liquidation_amount_fee,
-            'liquidation_amount_btc': liquidation_amount - liquidation_amount_fee,
+            'account_balance_qty': float(self._actual_qty_balance),
+
+            'liquidation_amount_usd': liquidation_amount,
+            'liquidation_amount_btc': liquidation_amount,
             'liquidation_qty': liquidation,
 
             'pl_amount_usd': profit_amount_total,
@@ -273,6 +275,7 @@ class BasicStrategy(StateSaverMixin):
                 is_filled=True,
                 qty=quantity,
                 price=price,
+                fee=quantity * Decimal('0.001'),
                 raw_response={'dry_run': True},
             )
         else:
@@ -289,14 +292,17 @@ class BasicStrategy(StateSaverMixin):
             ))
             return False
 
-        logger.info('open new position {0} {1}'.format(buy_response.qty, buy_response.price))
+        logger.info('open new position w/o fees {0} {1}'.format(buy_response.qty, buy_response.price))
+
+        order_response = self.apply_buy_fee(buy_response, app_settings.ticker_amount_digits)
+        logger.info('open new position {0} {1}'.format(order_response.qty, order_response.price))
 
         if not self._first_open_position_rate:
-            self._first_open_position_rate = buy_response.price
+            self._first_open_position_rate = order_response.price
 
         self._open_positions.append(Position(
-            amount=buy_response.qty,
-            open_rate=buy_response.price,
+            amount=order_response.qty,
+            open_rate=order_response.price,
             open_tick_number=tick_number,
             grid_number=grid_number,
         ))
@@ -308,6 +314,7 @@ class BasicStrategy(StateSaverMixin):
                 is_filled=True,
                 qty=position_for_close.amount,
                 price=price,
+                fee=price * Decimal('0.001'),
                 raw_response={'dry_run': True},
             )
         else:
@@ -324,9 +331,13 @@ class BasicStrategy(StateSaverMixin):
             ))
             return False
 
-        logger.info(f'close position {position_for_close=}')
+        logger.info('close the position w/o fees {0} {1}'.format(sell_response.qty, sell_response.price))
+
+        order_response = self.apply_sell_fee(sell_response)
+        logger.info('close the position {0} {1} {2}'.format(order_response.qty, order_response.price, position_for_close))
+
         self._open_positions.remove(position_for_close)
-        position_for_close.close_rate = sell_response.price
+        position_for_close.close_rate = order_response.price
         position_for_close.close_tick_number = tick_number
         self._closed_positions.append(position_for_close)
         return True

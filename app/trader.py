@@ -4,7 +4,6 @@ import pickle
 import signal
 import time
 from datetime import datetime
-from decimal import Decimal
 
 from app import storage
 from app.exchange_client.base import BaseClient

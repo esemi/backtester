@@ -97,10 +97,16 @@ class ByBit(BaseClient):
             logger.exception(exc)
             return None
 
+        fees = Decimal(order_response.get('cumExecFee') or 0)
+        actual_qty = Decimal(order_response['cumExecQty'] or 0)
+        actual_rate = Decimal(order_response['avgPrice'] or 0)
+        logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}")
+
         return OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=Decimal(order_response['cumExecQty'] or 0),
-            price=Decimal(order_response['avgPrice'] or 0),
+            qty=actual_qty,
+            price=actual_rate,
+            fee=fees,
             raw_response=order_response,
         )
 
@@ -128,10 +134,16 @@ class ByBit(BaseClient):
             logger.exception(exc)
             return None
 
+        actual_qty = Decimal(order_response['cumExecQty'] or 0)
+        actual_rate = Decimal(order_response['avgPrice'] or 0)
+        fees = Decimal(order_response.get('cumExecFee') or 0)
+        logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}")
+
         return OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=Decimal(order_response['cumExecQty'] or 0),
-            price=Decimal(order_response['avgPrice'] or 0),
+            qty=actual_qty,
+            price=actual_rate,
+            fee=fees,
             raw_response=order_response,
         )
 

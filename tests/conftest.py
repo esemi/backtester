@@ -14,11 +14,13 @@ def exchange_client_pass_mock() -> Mock:
         is_filled=True,
         qty=Decimal('12.888'),
         price=Decimal('35.4050279'),
+        fee=Decimal(0),
     ))
     mock.sell = Mock(return_value=OrderResult(
         is_filled=True,
         qty=Decimal('12.888'),
         price=Decimal('9.5791433891'),
+        fee=Decimal(0),
     ))
     yield mock
 
