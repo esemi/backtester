@@ -218,6 +218,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'max_open_position_amount_btc': max_open_rate,
             'first_open_position_amount_usd': self._first_open_position_rate,
             'first_open_position_amount_btc': self._first_open_position_rate,
+            'last_rate': self.get_last_tick().bid,
 
             'buy_total_amount_usd': buy_amount_total,
             'buy_total_amount_btc': buy_amount_total,
