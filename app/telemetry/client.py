@@ -1,15 +1,31 @@
-import os
 from datetime import datetime
 from decimal import Decimal
 
+import pymysql
+
 from app.models import Tick
+from app.settings import app_settings
+
+_insert_query = """INSERT INTO `telemetry` 
+(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`)
+VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+_cleanup_query = 'DELETE FROM `telemetry` WHERE `bot_name` = %s'
+
+
+connection = pymysql.connect(
+    host=app_settings.mysql_host,
+    user=app_settings.mysql_user,
+    password=app_settings.mysql_password,
+    database=app_settings.mysql_db,
+    charset='utf8mb4',
+    autocommit=True,
+)
 
 
 class TelemetryClient:
     """Class for save strategy telemetry for display by google spreadsheets."""
-    def __init__(self, filepath: str):
-        os.makedirs(filepath, exist_ok=True)
-        self._filepath = os.path.join(filepath, 'telemetry.tsv')
+    def __init__(self, bot_name: str):
+        self._bot_name = bot_name
 
     def push(
         self,
@@ -17,25 +33,19 @@ class TelemetryClient:
         buy_price: Decimal | None = None,
         sell_price: Decimal | None = None,
     ):
-        self._write_csv_line(
-            str(tick.number),
-            str(int(datetime.utcnow().timestamp())),
-            format_decimal(tick.bid),
-            format_decimal(tick.ask),
-            format_decimal(buy_price or ''),
-            format_decimal(sell_price or ''),
-        )
+        with connection.cursor() as cursor:
+            cursor.execute(_insert_query, (
+                self._bot_name,
+                tick.number,
+                int(datetime.utcnow().timestamp()),
+                tick.bid,
+                tick.ask,
+                buy_price,
+                sell_price,
+            ))
 
     def cleanup(self) -> None:
-        if os.path.exists(self._filepath):
-            os.remove(self._filepath)
-
-    def _write_csv_line(self, *args) -> None:
-        with open(self._filepath, 'a+') as fd:
-            line = '\t'.join(args)
-            fd.write(f'{line}\n')
-            fd.flush()
-
-
-def format_decimal(source: Decimal | str) -> str:
-    return str(source).replace('.', ',')
+        with connection.cursor() as cursor:
+            cursor.execute(_cleanup_query, (
+                self._bot_name,
+            ))

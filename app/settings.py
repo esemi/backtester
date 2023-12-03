@@ -27,6 +27,10 @@ class AppSettings(BaseSettings, extra='ignore'):
     rates_path: str = os.path.join(APP_PATH, 'rates')
     logs_path: str = Field(default='/var/www/kta/storage/trader')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
+    mysql_host: str = Field(default='localhost')
+    mysql_user: str = Field(default='root')
+    mysql_password: str = Field()
+    mysql_db: str = Field(default='thesim')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
 
     # strategy settings

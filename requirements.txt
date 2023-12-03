@@ -1,7 +1,8 @@
-pydantic==2.1.1
-pydantic-settings==2.0.2
+pydantic==2.5.2
+pydantic-settings==2.1.0
 python-dotenv==1.0.0
-binance-connector==3.3.0
-pybit==5.5.0
-redis[hiredis]==4.6.0
-types-redis==4.6.0.3
+binance-connector==3.5.1
+pybit==5.6.2
+redis[hiredis]==5.0.1
+types-redis==4.6.0.11
+PyMySQL[rsa]==1.1.0

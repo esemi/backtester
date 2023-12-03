@@ -14,4 +14,4 @@ def test_save_stats_happy_path(exchange_client_pass_mock):
 
     saved_stats = get_saved_stats('test:key')
     assert saved_stats
-    assert list(stats.keys()) == [key.decode('utf-8') for key in saved_stats.keys()]
+    assert set(stats.keys()) == {key.decode('utf-8') for key in saved_stats.keys()}

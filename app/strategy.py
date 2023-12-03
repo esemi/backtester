@@ -35,7 +35,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         self._exchange_client: BaseClient = exchange_client
         self._telemetry: TelemetryClient = TelemetryClient(
-            filepath=os.path.join(app_settings.logs_path, app_settings.instance_name),
+            bot_name=app_settings.instance_name,
         )
         self._dry_run: bool = dry_run
 
