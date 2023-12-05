@@ -55,6 +55,9 @@ def save_stats(bot_name: str, stats: dict) -> None:
         (`bot_name`, {', '.join(columns)})
         VALUES (%s, {', '.join(['%s'] * len(columns))})"""
     with connection_mysql.cursor() as cursor:
+        cursor.execute('DELETE FROM `stats` WHERE `bot_name` = %s', (
+            bot_name,
+        ))
         cursor.execute(query, (
             bot_name,
             *values,
