@@ -13,7 +13,6 @@ CREATE TABLE `telemetry` (
 
 
 CREATE TABLE `stats` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
   `bot_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `start_date` datetime NOT NULL,
   `min_open_position_amount_usd` decimal(40,20) NOT NULL,
@@ -53,7 +52,6 @@ CREATE TABLE `stats` (
   `max_sell_percent` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000',
   `max_sell_tick` int unsigned NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`bot_name`),
   KEY `bot_name_created_at` (`bot_name`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-

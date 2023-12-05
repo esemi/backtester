@@ -92,11 +92,14 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
-        self._telemetry.push(
-            tick,
-            buy_price=buy_price,
-            sell_price=sell_price,
-        )
+
+        previous_tick = self._get_ticks_history()[-2]
+        if buy_price or sell_price or tick.ask != previous_tick.ask or tick.bid != previous_tick.bid:
+            self._telemetry.push(
+                tick,
+                buy_price=buy_price,
+                sell_price=sell_price,
+            )
 
         self._update_stats(tick)
         return True
