@@ -34,6 +34,6 @@ class FeesAccountingMixin:
             return updated_order
 
         updated_order.fee = Decimal(0)
-        updated_order.price = ((order.qty * order.price) + order.fee) / order.qty
+        updated_order.price = ((order.qty * order.price) - order.fee) / order.qty
         return updated_order
 

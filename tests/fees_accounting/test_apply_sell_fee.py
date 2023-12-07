@@ -15,8 +15,8 @@ def test_apply_sell_fee_happy_path():
     updated_order = FeesAccountingMixin().apply_sell_fee(raw_order)
 
     assert updated_order.qty == raw_order.qty
-    assert updated_order.price == Decimal('1.7007633587786259542')  # ((13.1 * 1.7) + 0.01) / 13.1)
-    assert updated_order.price >= raw_order.price
+    assert updated_order.price == Decimal('1.6992366412213740458')  # ((13.1 * 1.7) - 0.01) / 13.1)
+    assert updated_order.price <= raw_order.price
     assert updated_order.fee == Decimal(0)
 
 

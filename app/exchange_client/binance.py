@@ -77,10 +77,10 @@ class Binance(BaseClient):
             logger.exception(exc)
             return None
 
-        fees = self._get_order_fee(response.get('fills', []))
+        fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
         actual_qty = Decimal(response['executedQty'])
         actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
-        logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}")
+        logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
 
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
@@ -110,8 +110,8 @@ class Binance(BaseClient):
 
         actual_qty = Decimal(response['executedQty'])
         actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
-        fees = self._get_order_fee(response.get('fills', []))
-        logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}")
+        fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
+        logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
 
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
@@ -122,8 +122,9 @@ class Binance(BaseClient):
         )
 
     @classmethod
-    def _get_order_fee(cls, fills: list[dict]) -> Decimal:
+    def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:
         return Decimal(sum([
             Decimal(fill.get('commission', 0))
             for fill in fills
+            if not skip_bnb or fill.get('commissionAsset') != 'BNB'
         ]))
