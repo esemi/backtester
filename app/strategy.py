@@ -104,6 +104,17 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._update_stats(tick)
         return True
 
+    def show_debug_info(self) -> None:
+        open_positions_amount = sum(
+            [pos.amount for pos in self._open_positions]
+        )
+        closed_positions_amount = sum(
+            [pos.amount for pos in self._closed_positions]
+        )
+
+        logger.info(f'debug: {self._actual_qty_balance=}, {open_positions_amount=}, {closed_positions_amount=}')
+        logger.info(f'debug: {len(self._open_positions)=} {len(self._closed_positions)=}')
+
     def show_results(self) -> None:
         results = self.get_results()
 
@@ -165,7 +176,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
     def save_results(self) -> None:
         storage.save_stats(app_settings.instance_name, self.get_results())
-        logs_filepath = os.path.join(app_settings.logs_path, app_settings.instance_name)
+        logs_filepath = str(os.path.join(app_settings.logs_path, app_settings.instance_name))
         os.makedirs(logs_filepath, exist_ok=True)
         filepath = os.path.join(logs_filepath, 'result.json')
 
@@ -288,7 +299,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 price=price,
             )
 
-        logger.debug('open new position response {0}'.format(buy_response))
+        logger.info('debug: open new position response {0}'.format(buy_response))
         if not buy_response or not buy_response.is_filled:
             logger.warning('open new position - unsuccessfully "{0}" {1}'.format(
                 buy_response,
@@ -327,7 +338,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 price=price,
             )
 
-        logger.debug('close position response {0}'.format(sell_response))
+        logger.info('debug: close position response {0}'.format(sell_response))
         if not sell_response or not sell_response.is_filled:
             logger.info('close position - unsuccessfully "{0}" {1}'.format(
                 sell_response,
