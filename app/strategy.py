@@ -13,7 +13,7 @@ from app.grid import get_grid_num_by_price
 from app.models import Position, OnHoldPositions, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
-from app.telemetry.client import TelemetryClient
+from app.telemetry.client import TelemetryClient, DummyClient
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._first_open_position_rate: Decimal = Decimal(0)
 
         self._exchange_client: BaseClient = exchange_client
-        self._telemetry: TelemetryClient = TelemetryClient(
+        self._telemetry: TelemetryClient = DummyClient(
             bot_name=app_settings.instance_name,
         )
         self._dry_run: bool = dry_run

@@ -35,3 +35,18 @@ class TelemetryClient:
     def cleanup(self) -> None:
         with connection_mysql.cursor() as cursor:
             cursor.execute(_cleanup_query, (self._bot_name,))
+
+
+class DummyClient(TelemetryClient):
+    """Class for fake-save strategy telemetry."""
+
+    def push(
+        self,
+        tick: Tick,
+        buy_price: Decimal | None = None,
+        sell_price: Decimal | None = None,
+    ):
+        pass
+
+    def cleanup(self) -> None:
+        pass
