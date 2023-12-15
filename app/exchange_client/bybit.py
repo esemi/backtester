@@ -25,7 +25,11 @@ class ByBit(BaseClient):
             testnet=test_mode,
             api_key=api_key or None,
             api_secret=api_secret or None,
+            timeout=30,
+            max_retries=20,
+            retry_delay=5,
         )
+        self._exchange_session.retry_codes.add(10000)
 
     def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         tick_number: int = start_tick_numeration
