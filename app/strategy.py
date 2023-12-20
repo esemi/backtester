@@ -329,7 +329,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 is_filled=True,
                 qty=position_for_close.amount,
                 price=price,
-                fee=price * Decimal('0.001'),
+                fee=price * position_for_close.amount * Decimal('0.001'),
                 raw_response={'dry_run': True},
             )
         else:
