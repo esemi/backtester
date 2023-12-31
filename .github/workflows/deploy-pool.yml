@@ -285,7 +285,7 @@ jobs:
 
           scp: |-
             './app/*' => $TARGET_DIR/app/
-            './etc/float_strategy.csv' => $TARGET_DIR/etc/float_strategy.csv
+            './etc/float_strategy.csv' => $TARGET_DIR/etc/
             ./requirements.txt => $TARGET_DIR
 
           last_ssh: |-
