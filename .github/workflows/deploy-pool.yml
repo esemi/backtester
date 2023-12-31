@@ -283,6 +283,7 @@ jobs:
             mkdir -p etc
             test -d venv || python3.11 -m venv venv
             touch .env
+            rm -rf etc/float_strategy.csv
 
           scp: |-
             './app/*' => $TARGET_DIR/app/
