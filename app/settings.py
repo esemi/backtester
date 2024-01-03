@@ -56,6 +56,7 @@ class AppSettings(BaseSettings, extra='ignore'):
         description='Разрешаем множественные продажи на одном тике или нет.',
     )
     close_positions_only: bool = False
+    sell_and_buy_onetime_enabled: bool = Field(default=True)
 
     # backtester settings
     rates_filename: str = Field(

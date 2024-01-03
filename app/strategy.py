@@ -85,6 +85,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         is_buy_allowed = (
             (not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit)
             and not app_settings.close_positions_only
+            and (app_settings.sell_and_buy_onetime_enabled or not sale_completed)
         )
         if is_buy_allowed:
             logger.debug('try to buy something')
