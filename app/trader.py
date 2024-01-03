@@ -1,5 +1,6 @@
-
+import json
 import logging
+import os
 import pickle
 import signal
 import time
@@ -10,7 +11,7 @@ from app.exchange_client.base import BaseClient
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
-from app.storage import drop_state, connection_mysql
+from app.storage import drop_state, get_mysql_connection
 from app.strategy import BasicStrategy, get_strategy_instance
 
 logger = logging.getLogger(__name__)
@@ -66,11 +67,21 @@ def main() -> None:
         _save_strategy_state(app_settings.instance_name, strategy)
 
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
-            strategy.save_results()
+            save_results(strategy.get_results())
 
         _continue_or_break()
 
-    strategy.save_results()
+    save_results(strategy.get_results())
+
+
+def save_results(results: dict) -> None:
+    storage.save_stats(app_settings.instance_name, results)
+    logs_filepath = str(os.path.join(app_settings.logs_path, app_settings.instance_name))
+    os.makedirs(logs_filepath, exist_ok=True)
+    filepath = os.path.join(logs_filepath, 'result.json')
+
+    with open(filepath, 'w') as fd:
+        json.dump(results, fd, default=str)
 
 
 def _get_exchange_client(name: str) -> BaseClient:
@@ -126,6 +137,6 @@ if __name__ == '__main__':
     main()
 
     try:
-        connection_mysql.close()
+        get_mysql_connection().close()
     except Exception as exc:
         logger.exception(exc)

@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.models import Tick
-from app.storage import connection_mysql
+from app.storage import get_mysql_connection
 
 _insert_query = """INSERT INTO `telemetry` 
 (`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`)
@@ -21,7 +21,7 @@ class TelemetryClient:
         buy_price: Decimal | None = None,
         sell_price: Decimal | None = None,
     ):
-        with connection_mysql.cursor() as cursor:
+        with get_mysql_connection().cursor() as cursor:
             cursor.execute(_insert_query, (
                 self._bot_name,
                 tick.number,
@@ -33,7 +33,7 @@ class TelemetryClient:
             ))
 
     def cleanup(self) -> None:
-        with connection_mysql.cursor() as cursor:
+        with get_mysql_connection().cursor() as cursor:
             cursor.execute(_cleanup_query, (self._bot_name,))
 
 
