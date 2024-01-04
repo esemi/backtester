@@ -57,6 +57,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     )
     close_positions_only: bool = False
     sell_and_buy_onetime_enabled: bool = Field(default=True)
+    buy_only_red_candles: bool = Field(default=False)
 
     # backtester settings
     rates_filename: str = Field(

@@ -84,6 +84,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             and not app_settings.close_positions_only
             and (app_settings.sell_and_buy_onetime_enabled or not sale_completed)
         )
+
+        if is_buy_allowed and app_settings.buy_only_red_candles:
+            is_red_candle = tick.bid < self._get_previous_tick().bid
+            is_buy_allowed = bool(is_buy_allowed and is_red_candle)
+
         if is_buy_allowed:
             logger.debug('try to buy something')
             buy_completed = self._buy_something(ask_price=tick.ask, ask_qty=tick.ask_qty, tick_number=tick.number)
@@ -91,7 +96,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
 
-        previous_tick = self._get_ticks_history()[-2]
+        previous_tick = self._get_previous_tick()
         if buy_price or sell_price or tick.ask != previous_tick.ask or tick.bid != previous_tick.bid:
             self._telemetry.push(
                 tick,
@@ -426,6 +431,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
     def _get_ticks_history(self) -> list[Tick]:
         return self._ticks_history
+
+    def _get_previous_tick(self) -> Tick:
+        return self._get_ticks_history()[-2]
 
 
 class FloatingStrategy(BasicStrategy):
