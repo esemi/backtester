@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from app.exchange_client.dummy import Dummy
 from app.models import Tick
-from app.settings import app_settings
+from app.settings import app_settings, APP_PATH
 from app.strategy import get_strategy_instance
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,7 @@ def get_rates(filename: str) -> list[Tick]:
 
 if __name__ == '__main__':
     logging.basicConfig(
+        filename=os.path.join(APP_PATH, 'backtest.log'),
         level=logging.DEBUG if app_settings.debug else logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
     )

@@ -2,3 +2,4 @@ __pycache__
 .env
 rates/*.csv
 .coverage
+backtest.log
