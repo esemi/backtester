@@ -9,6 +9,7 @@ jobs:
   on-success:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 10
       matrix:
         bot-name:
           - 'trader1'
@@ -283,7 +284,6 @@ jobs:
             mkdir -p etc
             test -d venv || python3.11 -m venv venv
             touch .env
-            rm -rf etc/float_strategy.csv
 
           scp: |-
             './app/*' => $TARGET_DIR/app/
