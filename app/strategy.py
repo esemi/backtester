@@ -1,8 +1,11 @@
 import copy
+import json
 import logging
+import os
 from datetime import datetime
 from decimal import Decimal
 
+from app import storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
@@ -176,6 +179,15 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         print('Количество не успешных сделок - %d' % results['count_unsuccessful_deals'])
         print('Количество успешных сделок - %d' % results['count_success_deals'])
         print('Остаток монет на балансе - %.8f' % results['account_balance_qty'])
+
+    def save_results(self) -> None:
+        storage.save_stats(app_settings.instance_name, self.get_results())
+        logs_filepath = str(os.path.join(app_settings.logs_path, app_settings.instance_name))
+        os.makedirs(logs_filepath, exist_ok=True)
+        filepath = os.path.join(logs_filepath, 'result.json')
+
+        with open(filepath, 'w') as fd:
+            json.dump(self.get_results(), fd, default=str)
 
     def get_results(self) -> dict:
         buy_amount_without_current_opened = sum(
