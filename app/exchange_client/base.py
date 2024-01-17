@@ -49,7 +49,7 @@ class BaseClient(ABC):
     def get_asset_balance_cached(self) -> Decimal:
         if self._last_asset_amount_ttl <= time.time():
             self._last_asset_amount = self._get_asset_balance()
-            self._last_asset_amount_ttl = time.time() + self._cache_time
+            self._last_asset_amount_ttl = int(time.time()) + self._cache_time
 
         return self._last_asset_amount
 

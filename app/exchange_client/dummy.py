@@ -17,3 +17,6 @@ class Dummy(BaseClient):
 
     def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         raise NotImplementedError
+
+    def _get_asset_balance(self) -> Decimal:
+        raise NotImplementedError
