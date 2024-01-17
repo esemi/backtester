@@ -257,6 +257,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'dirty_pl_percent': float(profit_percent_without_current_opened),
 
             'account_balance_qty': float(self._actual_qty_balance),
+            'exchange_balance_qty': self.get_last_tick().actual_ticker_balance,
 
             'liquidation_amount_usd': liquidation_amount,
             'liquidation_amount_btc': liquidation_amount,

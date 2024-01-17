@@ -40,7 +40,9 @@ class Binance(BaseClient):
                     ask=Decimal(response.get('askPrice')),
                     bid_qty=Decimal(response.get('bidQty')),
                     ask_qty=Decimal(response.get('askQty')),
+                    actual_ticker_balance=self.get_asset_balance_cached(),
                 )
+
             except Exception as e:
                 logger.exception(e)
                 yield None
@@ -128,3 +130,12 @@ class Binance(BaseClient):
             for fill in fills
             if not skip_bnb or fill.get('commissionAsset') != 'BNB'
         ]))
+
+    def _get_asset_balance(self) -> Decimal:
+        response_balance = self._client_spot.account()
+        balance = [
+            Decimal(balance.get('free')) + Decimal(balance.get('locked'))
+            for balance in response_balance.get('balances', [])
+            if self._symbol.startswith(balance.get('asset'))
+        ]
+        return Decimal(0) if not balance else balance[0]

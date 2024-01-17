@@ -47,6 +47,7 @@ class ByBit(BaseClient):
                     bid_qty=Decimal(response.get('result')['list'][0]['bid1Size']),
                     ask=Decimal(response.get('result')['list'][0]['ask1Price']),
                     ask_qty=Decimal(response.get('result')['list'][0]['ask1Size']),
+                    actual_ticker_balance=self.get_asset_balance_cached(),
                 )
             except Exception as e:
                 logger.exception(e)
@@ -151,3 +152,13 @@ class ByBit(BaseClient):
             raw_response=order_response,
         )
 
+    def _get_asset_balance(self) -> Decimal:
+        response_balance = self._exchange_session.get_wallet_balance(
+            accountType='SPOT' if self._exchange_session.testnet else 'UNIFIED',
+        )
+        balance = sum(
+            Decimal(coin.get('walletBalance', 0))
+            for coin in response_balance.get('result')['list'][0]['coin']
+            if self._symbol.startswith(coin.get('coin'))
+        )
+        return Decimal(balance)

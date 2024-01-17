@@ -55,3 +55,5 @@ CREATE TABLE `stats` (
   PRIMARY KEY (`bot_name`),
   KEY `bot_name_created_at` (`bot_name`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `stats` ADD `exchange_balance_qty` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000' AFTER `account_balance_qty`;
