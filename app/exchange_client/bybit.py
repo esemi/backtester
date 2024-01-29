@@ -5,7 +5,7 @@ from typing import Generator
 
 from pybit.unified_trading import HTTP  # type: ignore
 
-from app.exchange_client.base import BaseClient, OrderResult, HistoryPrice
+from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
 from app.models import Tick
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,32 @@ class ByBit(BaseClient):
             raw_response=order_response,
         )
 
-    def _get_asset_balance(self) -> Decimal:
+    def sell_market(self, quantity: Decimal) -> dict | None:
+        try:
+            response = self._exchange_session.place_order(
+                category='spot',
+                symbol=self._symbol,
+                side='Sell',
+                orderType='Market',
+                qty=str(quantity),
+                timeInForce='GTC',
+            )
+            time.sleep(5)
+            order_response = self._exchange_session.get_order_history(
+                category='spot',
+                orderId=response.get('result')['orderId'],
+            )
+            logger.info('exchange order result {0} {1}'.format(response, order_response))
+            order_response = order_response.get('result')['list'][0]
+
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        logger.info(f"sell market: {order_response=}")
+        return order_response
+
+    def get_asset_balance(self) -> Decimal:
         response_balance = self._exchange_session.get_wallet_balance(
             accountType='SPOT' if self._exchange_session.testnet else 'UNIFIED',
         )

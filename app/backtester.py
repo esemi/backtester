@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from app.exchange_client.dummy import Dummy
 from app.models import Tick
-from app.settings import app_settings, APP_PATH
+from app.settings import APP_PATH, app_settings
 from app.strategy import get_strategy_instance
 
 logger = logging.getLogger(__name__)

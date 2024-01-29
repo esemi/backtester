@@ -1,7 +1,7 @@
 """Application settings."""
 import getpass
 import os
-from decimal import getcontext, Decimal
+from decimal import Decimal, getcontext
 from typing import Literal
 
 from pydantic import Field, RedisDsn
@@ -58,6 +58,15 @@ class AppSettings(BaseSettings, extra='ignore'):
     close_positions_only: bool = False
     sell_and_buy_onetime_enabled: bool = Field(default=False)
     buy_only_red_candles: bool = Field(default=True)
+    stop_loss_enabled: bool = Field(default=False)
+    stop_loss_pl_threshold: Decimal = Field(
+        default=10,
+        description='Минимальная величина непризнанной прибыли в боте для активации страхующего стоп лоса.',
+    )
+    stop_loss_steps: str = Field(
+        default='100:25;50:50;10:80',
+        description='Шаги для плавающего стоплоса в формате "сумма прибыли в $ : % стоп лоса;" (ex: "100:25;50:50;10:80")'
+    )
 
     # backtester settings
     rates_filename: str = Field(

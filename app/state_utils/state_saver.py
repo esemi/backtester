@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from app.models import Position, OnHoldPositions, Tick
+from app.models import OnHoldPositions, Position, Tick
 
 
 class StateSaverMixin:
