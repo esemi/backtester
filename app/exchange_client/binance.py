@@ -1,11 +1,12 @@
 import logging
+from abc import ABC
 from datetime import datetime
 from decimal import Decimal
 from typing import Generator
 
 from binance.spot import Spot  # type: ignore
 
-from app.exchange_client.base import BaseClient, OrderResult, HistoryPrice
+from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
 from app.models import Tick
 
 logger = logging.getLogger(__name__)
@@ -123,15 +124,25 @@ class Binance(BaseClient):
             raw_response=response,
         )
 
-    @classmethod
-    def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:
-        return Decimal(sum([
-            Decimal(fill.get('commission', 0))
-            for fill in fills
-            if not skip_bnb or fill.get('commissionAsset') != 'BNB'
-        ]))
+    def sell_market(self, quantity: Decimal) -> dict | None:
+        try:
+            response = self._client_spot.new_order(
+                symbol=self._symbol,
+                side='SELL',
+                type='MARKET',
+                quantity=quantity,
+                recvWindow=15000,
+                timestamp=int(datetime.utcnow().timestamp() * 1000),
+            )
 
-    def _get_asset_balance(self) -> Decimal:
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        logger.info(f"sell market: {response=}")
+        return response
+
+    def get_asset_balance(self) -> Decimal:
         response_balance = self._client_spot.account()
         balance = [
             Decimal(balance.get('free')) + Decimal(balance.get('locked'))
@@ -139,3 +150,11 @@ class Binance(BaseClient):
             if self._symbol.startswith(balance.get('asset'))
         ]
         return Decimal(0) if not balance else balance[0]
+
+    @classmethod
+    def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:
+        return Decimal(sum([
+            Decimal(fill.get('commission', 0))
+            for fill in fills
+            if not skip_bnb or fill.get('commissionAsset') != 'BNB'
+        ]))

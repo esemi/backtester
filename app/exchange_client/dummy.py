@@ -1,11 +1,15 @@
-from _decimal import Decimal
 from typing import Generator
 
-from app.exchange_client.base import BaseClient, OrderResult, HistoryPrice
+from _decimal import Decimal
+
+from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
 from app.models import Tick
 
 
 class Dummy(BaseClient):
+    def sell_market(self, quantity: Decimal) -> dict | None:
+        raise NotImplementedError
+
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         raise NotImplementedError
 
@@ -18,5 +22,5 @@ class Dummy(BaseClient):
     def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         raise NotImplementedError
 
-    def _get_asset_balance(self) -> Decimal:
-        raise NotImplementedError
+    def get_asset_balance(self) -> Decimal:
+        return Decimal(0)

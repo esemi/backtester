@@ -7,7 +7,6 @@ from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
 
-
 logger = logging.getLogger(__name__)
 
 

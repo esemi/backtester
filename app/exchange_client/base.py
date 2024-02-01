@@ -48,11 +48,15 @@ class BaseClient(ABC):
 
     def get_asset_balance_cached(self) -> Decimal:
         if self._last_asset_amount_ttl <= time.time():
-            self._last_asset_amount = self._get_asset_balance()
+            self._last_asset_amount = self.get_asset_balance()
             self._last_asset_amount_ttl = int(time.time()) + self._cache_time
 
         return self._last_asset_amount
 
     @abstractmethod
-    def _get_asset_balance(self) -> Decimal:
+    def get_asset_balance(self) -> Decimal:
+        pass
+
+    @abstractmethod
+    def sell_market(self, quantity: Decimal) -> dict | None:
         pass

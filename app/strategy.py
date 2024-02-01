@@ -3,17 +3,18 @@ import json
 import logging
 import os
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from app import storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
-from app.models import Position, OnHoldPositions, Tick
+from app.models import OnHoldPositions, Position, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
-from app.telemetry.client import TelemetryClient, DummyClient
+from app.stoploss import StopLoss
+from app.telemetry.client import DummyClient, TelemetryClient
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
         self._first_open_position_rate: Decimal = Decimal(0)
+
+        self._current_pl: Decimal = Decimal(0)
+        self._stop_loss = StopLoss()
 
         self._exchange_client: BaseClient = exchange_client
         self._telemetry: TelemetryClient = DummyClient(
@@ -77,6 +81,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             self._update_stats(tick)
             return True
+
+        if app_settings.stop_loss_enabled and self._stop_loss.is_stop_loss_shot(self._current_pl):
+            logger.info('stop loss fired!')
+            self._stop_loss_execute()
+            return False
 
         # sale position[s]
         sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
@@ -288,6 +297,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         if not self._max_onhold_positions or self._max_onhold_positions.buy_amount <= on_hold_current.buy_amount:
             self._max_onhold_positions = on_hold_current
 
+        self._current_pl = Decimal(self.get_results()['pl_amount_usd'])
+        self._stop_loss.update_max_pl(self._current_pl)
+
     def _get_open_positions_for_sell(self) -> list[Position]:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
@@ -436,6 +448,26 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 grid_number=current_price_grid,
             )
         return False
+
+    def _stop_loss_execute(self) -> None:
+        quantity = self._exchange_client.get_asset_balance().quantize(
+            app_settings.ticker_amount_digits,
+            rounding=ROUND_DOWN,
+        )
+        logger.info('stop loss execution: qty={0}'.format(quantity))
+
+        if not quantity:
+            return
+
+        if self._dry_run:
+            sell_response: dict | None = {
+                'reason': 'dry run execution',
+            }
+        else:
+            sell_response = self._exchange_client.sell_market(
+                quantity=quantity,
+            )
+        logger.info('stop loss execution result {0}'.format(sell_response))
 
     def _push_ticks_history(self, tick: Tick) -> None:
         if len(self._ticks_history) >= self.tick_history_limit:

@@ -10,7 +10,7 @@ from app.exchange_client.base import BaseClient
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
-from app.storage import drop_state, connection_mysql
+from app.storage import connection_mysql, drop_state
 from app.strategy import BasicStrategy, get_strategy_instance
 
 logger = logging.getLogger(__name__)
