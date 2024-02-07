@@ -2,7 +2,7 @@ import pickle
 from decimal import Decimal
 
 from app.models import Tick
-from app.storage import save_state, get_saved_state
+from app.storage import get_saved_state, save_state
 
 test_state = {
     'test': [

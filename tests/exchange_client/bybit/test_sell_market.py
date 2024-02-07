@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_DOWN
+from decimal import ROUND_DOWN, Decimal
 
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings

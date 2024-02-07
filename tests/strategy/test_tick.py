@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from app.models import Tick, Position
+from app.models import Position, Tick
 from app.settings import app_settings
 from app.strategy import BasicStrategy
 

@@ -220,7 +220,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         liquidation_amount = sum(
             [self.get_last_tick().bid * pos.amount for pos in self._open_positions]
         )
-        liquidation = sum(
+        liquidation_qty = sum(
             [pos.amount for pos in self._open_positions]
         )
 
@@ -234,9 +234,15 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         min_open_rate = Decimal(0)
         max_open_rate = Decimal(0)
+        open_position_average_rate = Decimal(0)
         if self._open_positions:
             min_open_rate = min(pos.open_rate for pos in self._open_positions)
             max_open_rate = max(pos.open_rate for pos in self._open_positions)
+
+            liquidation_open_amount = sum(
+                [pos.open_rate * pos.amount for pos in self._open_positions]
+            )
+            open_position_average_rate = Decimal(liquidation_open_amount / liquidation_qty)
 
         return {
             'start_date': self._start_date,
@@ -267,10 +273,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             'account_balance_qty': float(self._actual_qty_balance),
             'exchange_balance_qty': float(self.get_last_tick().actual_ticker_balance),
+            'open_position_average_rate': open_position_average_rate,
 
             'liquidation_amount_usd': liquidation_amount,
             'liquidation_amount_btc': liquidation_amount,
-            'liquidation_qty': liquidation,
+            'liquidation_qty': liquidation_qty,
 
             'pl_amount_usd': profit_amount_total,
             'pl_amount_btc': profit_amount_total,
