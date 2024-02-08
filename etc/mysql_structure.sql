@@ -58,3 +58,4 @@ CREATE TABLE `stats` (
 
 ALTER TABLE `stats` ADD `exchange_balance_qty` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000' AFTER `account_balance_qty`;
 ALTER TABLE `stats` ADD `open_position_average_rate` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000' AFTER `exchange_balance_qty`;
+ALTER TABLE `stats` ADD `xirr` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000' AFTER `open_position_average_rate`;

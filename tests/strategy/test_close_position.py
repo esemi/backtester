@@ -64,3 +64,4 @@ def test_close_position_filled(exchange_client_pass_mock):
     assert strategy._closed_positions[0].amount == Decimal('1.1')
     assert strategy._closed_positions[0].close_rate == Decimal('9.5791433891')
     assert strategy._closed_positions[0].close_tick_number == 999
+    assert strategy._closed_positions[0].close_tick_datetime is not None

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 
 
@@ -7,9 +8,15 @@ class Position:
     amount: Decimal
     open_tick_number: int
     open_rate: Decimal
+    open_tick_datetime: datetime = datetime.utcnow()
     close_rate: Decimal = Decimal(0)
     close_tick_number: int = -1
+    close_tick_datetime: datetime = datetime.utcnow()
     grid_number: int = -1
+
+    @property
+    def is_closed(self) -> bool:
+        return self.close_tick_number >= 0
 
 
 @dataclass
