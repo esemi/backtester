@@ -88,6 +88,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     bybit_api_secret: str = ''
     dry_run: bool = Field(default=True)
     exchange_test_mode: bool = Field(default=False)
+    telemetry_enabled: bool = Field(default=False, description='вкл/выкл запись телеметрии в мускуль')
 
 
 app_settings = AppSettings(

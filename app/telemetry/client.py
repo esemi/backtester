@@ -21,16 +21,17 @@ class TelemetryClient:
         buy_price: Decimal | None = None,
         sell_price: Decimal | None = None,
     ):
-        with connection_mysql.cursor() as cursor:
-            cursor.execute(_insert_query, (
-                self._bot_name,
-                tick.number,
-                int(datetime.utcnow().timestamp()),
-                tick.bid,
-                tick.ask,
-                buy_price,
-                sell_price,
-            ))
+        if buy_price or sell_price:
+            with connection_mysql.cursor() as cursor:
+                cursor.execute(_insert_query, (
+                    self._bot_name,
+                    tick.number,
+                    int(datetime.utcnow().timestamp()),
+                    tick.bid,
+                    tick.ask,
+                    buy_price,
+                    sell_price,
+                ))
 
     def cleanup(self) -> None:
         with connection_mysql.cursor() as cursor:

@@ -38,10 +38,13 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._stop_loss = StopLoss()
 
         self._exchange_client: BaseClient = exchange_client
-        self._telemetry: TelemetryClient = DummyClient(
-            bot_name=app_settings.instance_name,
-        )
         self._dry_run: bool = dry_run
+
+        if app_settings.telemetry_enabled:
+            telemetry_client = TelemetryClient(bot_name=app_settings.instance_name)
+        else:
+            telemetry_client = DummyClient(bot_name=app_settings.instance_name)
+        self._telemetry: TelemetryClient = telemetry_client
 
     def has_tick_history(self) -> bool:
         return len(self._ticks_history) > 0
