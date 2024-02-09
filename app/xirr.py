@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
-from pyxirr import mirr, xirr
+from pyxirr import xirr
 
 from app.models import Position
+
+logger = logging.getLogger(__file__)
 
 
 def calculate_xirr(positions: list[Position], actual_rate: Decimal) -> Decimal:
@@ -37,7 +40,11 @@ def calculate_xirr(positions: list[Position], actual_rate: Decimal) -> Decimal:
         amounts=[v[1] for v in cash_flow],
     )
     del cash_flow
+    logger.info('XIRR raw value {0}'.format(res))
     if res is None:
         return Decimal(0)
 
-    return (Decimal(res) * Decimal(100)).quantize(Decimal('0.0001'))
+    try:
+        return (Decimal(res) * Decimal(100)).quantize(Decimal('0.0001'))
+    except InvalidOperation:
+        return Decimal(0)
