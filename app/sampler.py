@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone, time
 
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit
@@ -13,13 +13,11 @@ logger = logging.getLogger(__name__)
 def main(
     symbol: str,
     start_date: datetime,
-    end_date: datetime | None = None,
+    end_date: datetime,
     interval: str = '5m',
     exchange: str = 'binance',
 ) -> int:
-    logger.info('load sample for {0}-{1} from {2} to {3}'.format(symbol, interval, start_date, end_date))
-    if end_date is None:
-        end_date = datetime.utcnow()
+    logger.info('Loading data for {0}-{1} from {2} to {3}'.format(symbol, interval, start_date, end_date))
 
     exchange_client = {
         'binance': Binance(
@@ -37,37 +35,45 @@ def main(
 
     filepath = os.path.join(
         app_settings.rates_path,
-        f'{exchange}_{symbol}_{interval}_{start_date.date().isoformat()}_{end_date.date().isoformat()}.csv',
+        f'{exchange}_{symbol}_{interval}_{start_date.strftime("%Y-%m-%d_%H-%M-%S")}_{end_date.strftime("%Y-%m-%d_%H-%M-%S")}.csv',
     )
 
     with open(filepath, 'w') as output_fd:
         output_fd.write('time,open\n')
         start_ms: int = int(start_date.timestamp() * 1000)
+        end_ms: int = int(end_date.timestamp() * 1000)
 
-        while True:
+        while start_ms <= end_ms:
             rates = exchange_client.get_klines(interval, start_ms, limit)
             counter += len(rates)
             for rate in rates:
-                tick_date = datetime.utcfromtimestamp(rate.timestamp / 1000)
-                if tick_date <= end_date:
-                    output_fd.write('{0},{1}\n'.format(tick_date.isoformat(), rate.price))
+                tick_date = datetime.utcfromtimestamp(rate.timestamp / 1000).replace(tzinfo=timezone.utc)
+                if start_date <= tick_date <= end_date:
+                    formatted_time = tick_date.strftime('%Y-%m-%dT%H:%M:%S')
+                    output_fd.write('{0},{1}\n'.format(formatted_time, rate.price))
 
-            if len(rates) < limit:
+            if not rates:
                 break
 
             start_ms = rates[-1].timestamp + 1
-            if start_ms >= int(end_date.timestamp() * 1000):
-                break
 
-    logger.info('saved {0} rows'.format(counter))
+    logger.info('Saved {0} rows'.format(counter))
     return counter
 
 
-def valid_date(s):
+def valid_date(s: str) -> datetime:
     try:
         return datetime.strptime(s, "%Y-%m-%d")
     except ValueError:
-        msg = "not a valid date: {0!r}".format(s)
+        msg = "Not a valid date: {0!r}".format(s)
+        raise argparse.ArgumentTypeError(msg)
+
+
+def valid_time(s: str) -> time:
+    try:
+        return datetime.strptime(s, "%H:%M:%S").time()
+    except ValueError:
+        msg = "Not a valid time: {0!r}".format(s)
         raise argparse.ArgumentTypeError(msg)
 
 
@@ -79,7 +85,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', required=True, help='Symbol code')
     parser.add_argument('--from-date', required=True, help='History from date (eg. 2023-01-01)', type=valid_date)
-    parser.add_argument('--end-date', default=None, required=False, help='History to date (eg. 2023-01-25)', type=valid_date)
+    parser.add_argument('--from-time', required=True, help='History from time (eg. 00:00:00)', type=valid_time)
+    parser.add_argument('--end-date', required=True, help='History to date (eg. 2023-01-25)', type=valid_date)
+    parser.add_argument('--end-time', required=True, help='History to time (eg. 23:59:59)', type=valid_time)
     parser.add_argument(
         '--interval',
         choices=['1s', '1m', '3m', '5m', '15m', '30m', '1h'],
@@ -94,4 +102,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(args.symbol, args.from_date, args.end_date, args.interval, args.exchange)
+    start_date = datetime.combine(args.from_date, args.from_time).replace(tzinfo=timezone.utc)
+    end_date = datetime.combine(args.end_date, args.end_time).replace(tzinfo=timezone.utc)
+
+    main(args.symbol, start_date, end_date, args.interval, args.exchange)
