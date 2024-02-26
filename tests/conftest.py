@@ -31,3 +31,15 @@ def strategy_disabled() -> None:
     app_settings.enabled = False
     yield
     app_settings.enabled = saved_state
+
+
+@pytest.fixture
+def stop_loss_enabled() -> None:
+    stop_loss_enabled_state = app_settings.stop_loss_enabled
+    stop_loss_steps_state = app_settings.stop_loss_steps
+    app_settings.stop_loss_enabled = True
+    app_settings.stop_loss_steps = '0:25;3:2;6:2;9:5;12:8;15:12;18:14;21:16;24:18;27:20;30:21;33:23;36:24;39:25;42:26;45:27;48:28;51:29;57:30;78:31;84:30;87:29;90:28;93:27;96:26;99:25.2'
+    yield
+    app_settings.stop_loss_enabled = stop_loss_enabled_state
+    app_settings.stop_loss_steps = stop_loss_steps_state
+

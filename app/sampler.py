@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-from datetime import datetime, timezone, time
+from datetime import datetime, time, timezone
 
 from app.exchange_client.binance import Binance
 from app.exchange_client.bybit import ByBit

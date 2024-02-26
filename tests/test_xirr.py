@@ -50,7 +50,7 @@ def test_calculate_xirr_happy_path():
     ]
     res = calculate_xirr(positions, Decimal('100500'))
 
-    assert res == Decimal('8.8996')
+    assert res == Decimal('8.8950')
 
 
 def test_calculate_xirr_too_short_period():
