@@ -90,7 +90,12 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             return True
 
         if app_settings.stop_loss_enabled and self._stop_loss.is_stop_loss_shot(self._current_pl):
-            logger.info('stop loss fired!')
+            logger.info('adaptive stop loss fired!')
+            self._stop_loss_execute()
+            return False
+
+        if app_settings.stop_loss_hard_enabled and app_settings.stop_loss_hard_threshold >= tick.bid:
+            logger.info('hard stop loss fired!')
             self._stop_loss_execute()
             return False
 

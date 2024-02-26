@@ -92,3 +92,14 @@ def test_sell_something_decline_by_ask_qty(exchange_client_pass_mock):
 
     assert response is True
     assert len(strategy._closed_positions) == 1
+
+
+def test_hard_stop_loss_fired(exchange_client_pass_mock, hard_stop_loss_enabled: Decimal):
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
+    buy_price = Decimal('10.0')
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
+    strategy._push_ticks_history(Tick(1, bid=Decimal(1), ask=buy_price, bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
+
+    response = strategy.tick(Tick(number=2, bid=hard_stop_loss_enabled, ask=Decimal(100500), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
+
+    assert response is False

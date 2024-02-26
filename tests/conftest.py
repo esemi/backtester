@@ -43,3 +43,16 @@ def stop_loss_enabled() -> None:
     app_settings.stop_loss_enabled = stop_loss_enabled_state
     app_settings.stop_loss_steps = stop_loss_steps_state
 
+
+@pytest.fixture
+def hard_stop_loss_enabled() -> Decimal:
+    threshold = Decimal(10)
+    stop_loss_enabled_state = app_settings.stop_loss_hard_enabled
+    stop_loss_threshold_state = app_settings.stop_loss_hard_threshold
+    app_settings.stop_loss_hard_enabled = True
+    app_settings.stop_loss_hard_threshold = threshold
+    yield threshold
+    app_settings.stop_loss_hard_enabled = stop_loss_enabled_state
+    app_settings.stop_loss_hard_threshold = stop_loss_threshold_state
+
+

@@ -64,6 +64,8 @@ class AppSettings(BaseSettings, extra='ignore'):
         default='0:25;3:2;6:2;9:5;12:8;15:12;18:14;21:16;24:18;27:20;30:21;33:23;36:24;39:25;42:26;45:27;48:28;51:29;57:30;78:31;84:30;87:29;90:28;93:27;96:26;99:25',
         description='Шаги для плавающего стоплоса в формате "макс прибыль в $ : допустимая просадка в $;" (ex: "100:25;50:50;10:80")'
     )
+    stop_loss_hard_enabled: bool = Field(default=False)
+    stop_loss_hard_threshold: Decimal = Field(default=0)
 
     # backtester settings
     rates_filename: str = Field(
