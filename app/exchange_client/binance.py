@@ -1,5 +1,4 @@
 import logging
-from abc import ABC
 from datetime import datetime
 from decimal import Decimal
 from typing import Generator

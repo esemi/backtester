@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
 from app import storage
@@ -15,6 +15,7 @@ from app.models import OnHoldPositions, Position, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
+from app.liquidation import Liquidation
 from app.telemetry.client import DummyClient, TelemetryClient
 from app.xirr import calculate_xirr
 
@@ -40,6 +41,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         self._current_pl: Decimal = Decimal(0)
         self._stop_loss = StopLoss()
+        self._liquidation = Liquidation()
 
         self._exchange_client: BaseClient = exchange_client
         self._dry_run: bool = dry_run
@@ -88,6 +90,10 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             self._update_stats(tick)
             return True
+
+        if self._liquidation.is_active(tick):
+            logger.info('liquidation is active!')
+            return self._liquidation_execute(tick)
 
         if app_settings.stop_loss_enabled and self._stop_loss.is_stop_loss_shot(self._current_pl):
             logger.info('adaptive stop loss fired!')
@@ -300,6 +306,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'liquidation_amount_usd': liquidation_amount,
             'liquidation_amount_btc': liquidation_amount,
             'liquidation_qty': liquidation_qty,
+            'liquidation_qty_left': self._liquidation.qty_left,
 
             'pl_amount_usd': profit_amount_total,
             'pl_amount_btc': profit_amount_total,
@@ -498,6 +505,97 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 quantity=quantity,
             )
         logger.info('stop loss execution result {0}'.format(sell_response))
+
+    def _liquidation_execute(self, tick: Tick) -> bool:
+        # todo test
+        if self._liquidation.order_id:
+            if self._dry_run:
+                order_result: OrderResult | None = OrderResult(
+                    is_filled=True,
+                    qty=Decimal(1),
+                    price=tick.bid,
+                    fee=Decimal(0),
+                    raw_response={'reason': 'dry run execution'},
+                )
+            else:
+                order_result = self._exchange_client.get_order(self._liquidation.order_id)
+            logger.info('liquidation execution: order result {0}'.format(order_result))
+            if not order_result:
+                raise RuntimeError('Getting order failed!')
+
+            self._liquidation.qty_left = order_result.qty_left
+
+            if order_result.is_filled:
+                # if order completed full - end liquidation
+                return False
+
+            # if order too fresh - just wait
+            order_created_threshold = datetime.utcnow() - timedelta(minutes=app_settings.liquidation_order_ttl_minutes)
+            if self._liquidation.order_created_at >= order_created_threshold:
+                return True
+
+            else:
+                # if order too old - decline it and self._tries += 1
+                if self._dry_run:
+                    cancel_order_result: OrderResult | None = OrderResult(
+                        is_filled=False,
+                        qty=Decimal(1),
+                        price=tick.bid,
+                        fee=Decimal(0),
+                        raw_response={'reason': 'dry run execution'},
+                    )
+                else:
+                    cancel_order_result = self._exchange_client.cancel_order(self._liquidation.order_id)
+
+                logger.info('liquidation execution: cancel order result {0}'.format(cancel_order_result))
+                self._liquidation.process_order_cancel()
+                return False
+
+        # get actual qty from exchange
+        actual_quantity = self._exchange_client.get_asset_balance().quantize(
+            app_settings.ticker_amount_digits,
+            rounding=ROUND_DOWN,
+        )
+        logger.info('liquidation execution: actual qty on exchange {0}'.format(actual_quantity))
+        self._liquidation.qty_left = actual_quantity
+
+        if self._liquidation.tries > app_settings.liquidation_max_tries:
+            # if too much tries - end liquidation
+            return False
+
+        if not actual_quantity:
+            # if qty not found - end liquidation
+            return False
+
+        discount_percent = Decimal(self._liquidation.tries * app_settings.liquidation_discount_percent_step)
+        price = (tick.bid / Decimal(100) * discount_percent).quantize(app_settings.ticker_price_digits)
+        logger.info('liquidation execution: new order {0} {1} {2}'.format(
+            actual_quantity,
+            discount_percent,
+            price,
+        ))
+
+        if self._dry_run:
+            sell_result: OrderResult | None = OrderResult(
+                is_filled=True,
+                qty=actual_quantity,
+                price=price,
+                fee=Decimal(0),
+                order_id='id-dry-run',
+                raw_response={'dry_run': True},
+            )
+        else:
+            sell_result = self._exchange_client.sell(
+                quantity=actual_quantity,
+                price=price,
+                is_gtc=True,
+            )
+        logger.info('liquidation execution: new order {0}'.format(sell_result))
+        if not sell_result:
+            raise RuntimeError('Creating new order failed!')
+
+        self._liquidation.process_order_create(sell_result)
+        return False
 
     def _push_ticks_history(self, tick: Tick) -> None:
         if len(self._ticks_history) >= self.tick_history_limit:

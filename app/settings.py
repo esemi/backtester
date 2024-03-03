@@ -66,6 +66,11 @@ class AppSettings(BaseSettings, extra='ignore'):
     )
     stop_loss_hard_enabled: bool = Field(default=False)
     stop_loss_hard_threshold: Decimal = Field(default=0)
+    liquidation_enabled: bool = Field(default=False)
+    liquidation_threshold: Decimal = Field(default=0)
+    liquidation_max_tries: int = Field(default=5)
+    liquidation_order_ttl_minutes: int = Field(default=5)
+    liquidation_discount_percent_step: Decimal = Field(default=5)
 
     # backtester settings
     rates_filename: str = Field(
