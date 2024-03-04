@@ -23,14 +23,13 @@ cp .env.example .env
 
 ### Run rates loader tool
 ```bash
-python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01
-python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01 --end-date=2023-01-15
 python -m app.sampler --symbol SOLUSDT --interval 1h --from-date=2023-01-01 --end-date=2023-01-15 --exchange=bybit
+python -m app.sampler --symbol CHRUSDT --from-date 2024-02-26 --from-time 04:30:00 --end-date 2024-03-04 --end-time 08:30:00 --interval 1s
 ```
 
 ### Run backtesting tool
 ```bash
-python -m app.backtester
+python -m app.backtester --used-ticks=1 --from-date="2023-04-24 00:00:00" --to-date="2023-04-29 11:00:00"
 ```
 
 ### Run trading tool
