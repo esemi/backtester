@@ -13,7 +13,7 @@ class Liquidation:
     def __init__(self) -> None:
         self._is_active: bool = False
         self.tries: int = 0
-        self.order_id: str | None = None
+        self.order_id: str | int | None = None
         self.qty_left: Decimal = Decimal(0)
         self.order_created_at: datetime = datetime.utcnow()
 

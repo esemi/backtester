@@ -13,7 +13,7 @@ class OrderResult:
     qty: Decimal
     price: Decimal
     fee: Decimal
-    order_id: str = ''
+    order_id: str | int = ''
     qty_left: Decimal = Decimal(0)
     raw_response: dict | None = None
 
@@ -64,9 +64,9 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def get_order(self, order_id: str) -> OrderResult | None:
+    def get_order(self, order_id: str | int) -> OrderResult | None:
         pass
 
     @abstractmethod
-    def cancel_order(self, order_id: str) -> OrderResult | None:
+    def cancel_order(self, order_id: str | int) -> dict | None:
         pass

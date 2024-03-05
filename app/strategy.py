@@ -527,23 +527,21 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             if order_result.is_filled:
                 # if order completed full - end liquidation
+                logger.info('liquidation execution: order completed')
                 return False
 
             # if order too fresh - just wait
             order_created_threshold = datetime.utcnow() - timedelta(minutes=app_settings.liquidation_order_ttl_minutes)
             if self._liquidation.order_created_at >= order_created_threshold:
+                logger.info('liquidation execution: order too fresh')
                 return True
 
             else:
                 # if order too old - decline it and self._tries += 1
                 if self._dry_run:
-                    cancel_order_result: OrderResult | None = OrderResult(
-                        is_filled=False,
-                        qty=Decimal(1),
-                        price=tick.bid,
-                        fee=Decimal(0),
-                        raw_response={'reason': 'dry run execution'},
-                    )
+                    cancel_order_result: dict | None = {
+                        'reason': 'dry run execution',
+                    }
                 else:
                     cancel_order_result = self._exchange_client.cancel_order(self._liquidation.order_id)
 
@@ -561,10 +559,12 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         if self._liquidation.tries > app_settings.liquidation_max_tries:
             # if too much tries - end liquidation
+            logger.info('liquidation execution: too much tries')
             return False
 
         if not actual_quantity:
             # if qty not found - end liquidation
+            logger.info('liquidation execution: not enough quantity')
             return False
 
         discount_percent = Decimal(self._liquidation.tries * app_settings.liquidation_discount_percent_step)
@@ -595,6 +595,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             raise RuntimeError('Creating new order failed!')
 
         self._liquidation.process_order_create(sell_result)
+        logger.info('liquidation execution: order created')
         return False
 
     def _push_ticks_history(self, tick: Tick) -> None:
