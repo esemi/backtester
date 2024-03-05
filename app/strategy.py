@@ -11,11 +11,11 @@ from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
+from app.liquidation import Liquidation
 from app.models import OnHoldPositions, Position, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
-from app.liquidation import Liquidation
 from app.telemetry.client import DummyClient, TelemetryClient
 from app.xirr import calculate_xirr
 
@@ -507,7 +507,6 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         logger.info('stop loss execution result {0}'.format(sell_response))
 
     def _liquidation_execute(self, tick: Tick) -> bool:
-        # todo test
         if self._liquidation.order_id:
             if self._dry_run:
                 order_result: OrderResult | None = OrderResult(
@@ -547,7 +546,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
                 logger.info('liquidation execution: cancel order result {0}'.format(cancel_order_result))
                 self._liquidation.process_order_cancel()
-                return False
+                return True
 
         # get actual qty from exchange
         actual_quantity = self._exchange_client.get_asset_balance().quantize(
@@ -596,7 +595,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         self._liquidation.process_order_create(sell_result)
         logger.info('liquidation execution: order created')
-        return False
+        return True
 
     def _push_ticks_history(self, tick: Tick) -> None:
         if len(self._ticks_history) >= self.tick_history_limit:
