@@ -26,4 +26,4 @@ def test_sell_market_happy_path():
     )
 
     assert isinstance(response, dict)
-    assert response.get('orderStatus') == 'Filled'
+    assert response.get('is_filled') is True

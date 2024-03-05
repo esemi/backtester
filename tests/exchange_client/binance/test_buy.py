@@ -28,6 +28,7 @@ def test_buy_happy_path():
     assert response.price <= actual_price
     assert response.qty == quantity
     assert response.fee == Decimal(0)
+    assert response.order_id
 
 
 def test_buy_illegal_characters_in_price():

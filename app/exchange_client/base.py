@@ -13,6 +13,8 @@ class OrderResult:
     qty: Decimal
     price: Decimal
     fee: Decimal
+    order_id: str | int = ''
+    qty_left: Decimal = Decimal(0)
     raw_response: dict | None = None
 
 
@@ -43,7 +45,7 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def sell(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         pass
 
     def get_asset_balance_cached(self) -> Decimal:
@@ -59,4 +61,12 @@ class BaseClient(ABC):
 
     @abstractmethod
     def sell_market(self, quantity: Decimal) -> dict | None:
+        pass
+
+    @abstractmethod
+    def get_order(self, order_id: str | int) -> OrderResult | None:
+        pass
+
+    @abstractmethod
+    def cancel_order(self, order_id: str | int) -> dict | None:
         pass

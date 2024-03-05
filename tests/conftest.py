@@ -45,6 +45,17 @@ def stop_loss_enabled() -> None:
 
 
 @pytest.fixture
+def liquidation_enabled() -> None:
+    enabled_state = app_settings.liquidation_enabled
+    threshold_state = app_settings.liquidation_threshold
+    app_settings.liquidation_enabled = True
+    app_settings.liquidation_threshold = Decimal(10)
+    yield
+    app_settings.liquidation_enabled = enabled_state
+    app_settings.liquidation_threshold = threshold_state
+
+
+@pytest.fixture
 def hard_stop_loss_enabled() -> Decimal:
     threshold = Decimal(10)
     stop_loss_enabled_state = app_settings.stop_loss_hard_enabled

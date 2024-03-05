@@ -1,5 +1,4 @@
 import logging
-from abc import ABC
 from datetime import datetime
 from decimal import Decimal
 from typing import Generator
@@ -63,14 +62,14 @@ class Binance(BaseClient):
             for line in response
         ]
 
-    def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def buy(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
                 side='BUY',
                 type='LIMIT',
-                timeInForce='FOK',
+                timeInForce='GTC' if is_gtc else 'FOK',
                 quantity=quantity,
                 price=price_str,
                 recvWindow=15000,
@@ -88,19 +87,21 @@ class Binance(BaseClient):
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
             qty=actual_qty,
+            qty_left=Decimal(response['origQty']) - actual_qty,
             price=actual_rate,
             fee=fees,
+            order_id=response['orderId'],
             raw_response=response,
         )
 
-    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def sell(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
                 symbol=self._symbol,
                 side='SELL',
                 type='LIMIT',
-                timeInForce='FOK',
+                timeInForce='GTC' if is_gtc else 'FOK',
                 quantity=quantity,
                 price=price_str,
                 recvWindow=15000,
@@ -119,8 +120,10 @@ class Binance(BaseClient):
         return OrderResult(
             is_filled=response.get('status') == 'FILLED',
             qty=actual_qty,
+            qty_left=Decimal(response['origQty']) - actual_qty,
             price=actual_rate,
             fee=fees,
+            order_id=response['orderId'],
             raw_response=response,
         )
 
@@ -150,6 +153,46 @@ class Binance(BaseClient):
             if self._symbol.startswith(balance.get('asset'))
         ]
         return Decimal(0) if not balance else balance[0]
+
+    def get_order(self, order_id: str | int) -> OrderResult | None:
+        try:
+            response = self._client_spot.get_order(
+                symbol=self._symbol,
+                orderId=order_id,
+                timestamp=int(datetime.utcnow().timestamp() * 1000),
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        actual_qty = Decimal(response['executedQty'])
+        actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
+        fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
+        logger.info(f"get order: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
+
+        return OrderResult(
+            is_filled=response.get('status') == 'FILLED',
+            qty=actual_qty,
+            qty_left=Decimal(response['origQty']) - actual_qty,
+            price=actual_rate,
+            fee=fees,
+            order_id=response['orderId'],
+            raw_response=response,
+        )
+
+    def cancel_order(self, order_id: str | int) -> dict | None:
+        try:
+            response = self._client_spot.cancel_order(
+                symbol=self._symbol,
+                orderId=order_id,
+                timestamp=int(datetime.utcnow().timestamp() * 1000),
+            )
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        logger.info(f"cancel order: {response}")
+        return response
 
     @classmethod
     def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:

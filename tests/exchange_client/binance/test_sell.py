@@ -30,6 +30,30 @@ def test_sell_happy_path():
     assert response.fee == Decimal(0)
 
 
+def test_sell_gtc():
+    client = Binance(
+        symbol='BTCUSDT',
+        test_mode=True,
+        api_key=app_settings.binance_api_key,
+        api_secret=app_settings.binance_api_secret,
+    )
+    actual_price = next(client.next_price())
+    quantity = calculate_ticker_quantity(
+        app_settings.continue_buy_amount,
+        actual_price.bid,
+        Decimal('0.00001'),
+    )
+
+    response = client.sell(
+        quantity=quantity,
+        price=actual_price.bid + Decimal(1),
+        is_gtc=True,
+    )
+
+    assert not response.is_filled
+    assert response.qty_left == quantity
+
+
 def test_sell_canceled():
     client = Binance(
         symbol='BTCUSDT',

@@ -1,5 +1,6 @@
 import logging
 import time
+from dataclasses import asdict
 from decimal import Decimal
 from typing import Generator
 
@@ -78,7 +79,7 @@ class ByBit(BaseClient):
             for line in reversed(response.get('result')['list'])
         ]
 
-    def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def buy(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         price_str = '{:f}'.format(price)
         try:
             response = self._exchange_session.place_order(
@@ -88,34 +89,19 @@ class ByBit(BaseClient):
                 orderType='Limit',
                 qty=str(quantity),
                 price=price_str,
-                timeInForce='FOK',
+                timeInForce='GTC' if is_gtc else 'FOK',
             )
             time.sleep(2)
-            order_response = self._exchange_session.get_order_history(
-                category='spot',
-                orderId=response.get('result')['orderId'],
-            )
-            logger.info('exchange order result {0} {1}'.format(response, order_response))
-            order_response = order_response.get('result')['list'][0]
 
         except Exception as exc:
             logger.exception(exc)
             return None
 
-        fees = Decimal(order_response.get('cumExecFee') or 0)
-        actual_qty = Decimal(order_response['cumExecQty'] or 0)
-        actual_rate = Decimal(order_response['avgPrice'] or 0)
-        logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}")
-
-        return OrderResult(
-            is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=actual_qty,
-            price=actual_rate,
-            fee=fees,
-            raw_response=order_response,
+        return self.get_order(
+            order_id=response.get('result')['orderId'],
         )
 
-    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def sell(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         price_str = '{:f}'.format(price)
         try:
             response = self._exchange_session.place_order(
@@ -125,31 +111,16 @@ class ByBit(BaseClient):
                 orderType='Limit',
                 qty=str(quantity),
                 price=price_str,
-                timeInForce='FOK',
+                timeInForce='GTC' if is_gtc else 'FOK',
             )
             time.sleep(2)
-            order_response = self._exchange_session.get_order_history(
-                category='spot',
-                orderId=response.get('result')['orderId'],
-            )
-            logger.info('exchange order result {0} {1}'.format(response, order_response))
-            order_response = order_response.get('result')['list'][0]
 
         except Exception as exc:
             logger.exception(exc)
             return None
 
-        actual_qty = Decimal(order_response['cumExecQty'] or 0)
-        actual_rate = Decimal(order_response['avgPrice'] or 0)
-        fees = Decimal(order_response.get('cumExecFee') or 0)
-        logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}")
-
-        return OrderResult(
-            is_filled=order_response.get('orderStatus') == 'Filled',
-            qty=actual_qty,
-            price=actual_rate,
-            fee=fees,
-            raw_response=order_response,
+        return self.get_order(
+            order_id=response.get('result')['orderId'],
         )
 
     def sell_market(self, quantity: Decimal) -> dict | None:
@@ -163,19 +134,18 @@ class ByBit(BaseClient):
                 timeInForce='GTC',
             )
             time.sleep(5)
-            order_response = self._exchange_session.get_order_history(
-                category='spot',
-                orderId=response.get('result')['orderId'],
-            )
-            logger.info('exchange order result {0} {1}'.format(response, order_response))
-            order_response = order_response.get('result')['list'][0]
-
         except Exception as exc:
             logger.exception(exc)
             return None
 
+        order_response = self.get_order(
+            order_id=response.get('result')['orderId'],
+        )
         logger.info(f"sell market: {order_response=}")
-        return order_response
+
+        if order_response:
+            return asdict(order_response)
+        return None
 
     def get_asset_balance(self) -> Decimal:
         response_balance = self._exchange_session.get_wallet_balance(
@@ -187,3 +157,47 @@ class ByBit(BaseClient):
             if self._symbol.startswith(coin.get('coin'))
         )
         return Decimal(balance)
+
+    def get_order(self, order_id: str | int) -> OrderResult | None:
+        try:
+            order_response = self._exchange_session.get_order_history(
+                category='spot',
+                orderId=order_id,
+            )
+            logger.info('exchange order result {0}'.format(order_response))
+            order_response = order_response.get('result')['list'][0]
+
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        actual_qty = Decimal(order_response['cumExecQty'] or 0)
+        total_qty = Decimal(order_response['qty'] or 0)
+        actual_rate = Decimal(order_response['avgPrice'] or 0)
+        fees = Decimal(order_response.get('cumExecFee') or 0)
+        logger.info(f"get order: {actual_rate=}, {actual_qty=}, {fees=}")
+
+        return OrderResult(
+            is_filled=order_response.get('orderStatus') == 'Filled',
+            qty=actual_qty,
+            price=actual_rate,
+            fee=fees,
+            qty_left=total_qty - actual_qty,
+            order_id=order_response['orderId'] or '',
+            raw_response=order_response,
+        )
+
+    def cancel_order(self, order_id: str | int) -> dict | None:
+        try:
+            cancel_response = self._exchange_session.cancel_order(
+                category='spot',
+                symbol=self._symbol,
+                orderId=order_id,
+            )
+
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        logger.info(f"cancel order: {cancel_response}")
+        return cancel_response

@@ -13,7 +13,7 @@ class Dummy(BaseClient):
     def buy(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
         raise NotImplementedError
 
-    def sell(self, quantity: Decimal, price: Decimal) -> OrderResult | None:
+    def sell(self, quantity: Decimal, price: Decimal, is_gtc: bool = False) -> OrderResult | None:
         raise NotImplementedError
 
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[HistoryPrice]:
@@ -24,3 +24,9 @@ class Dummy(BaseClient):
 
     def get_asset_balance(self) -> Decimal:
         return Decimal(0)
+
+    def get_order(self, order_id: str | int) -> OrderResult | None:
+        raise NotImplementedError
+
+    def cancel_order(self, order_id: str | int) -> dict | None:
+        raise NotImplementedError

@@ -25,6 +25,8 @@ def test_buy_happy_path():
     )
 
     assert response.is_filled
+    assert not response.qty_left
+    assert response.order_id
     assert response.price <= actual_price
     assert response.qty == quantity
 
