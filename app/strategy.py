@@ -567,7 +567,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             return False
 
         discount_percent = Decimal(self._liquidation.tries * app_settings.liquidation_discount_percent_step)
-        price = (tick.bid / Decimal(100) * discount_percent).quantize(app_settings.ticker_price_digits)
+        price = (tick.bid / Decimal(100) * (Decimal(100) - discount_percent)).quantize(app_settings.ticker_price_digits)
         logger.info('liquidation execution: new order {0} {1} {2}'.format(
             actual_quantity,
             discount_percent,
