@@ -260,7 +260,8 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             liquidation_open_amount = sum(
                 [pos.open_rate * pos.amount for pos in self._open_positions]
             )
-            open_position_average_rate = Decimal(liquidation_open_amount / liquidation_qty)
+            logger.debug(f'debug: {liquidation_open_amount=} {liquidation_qty=}')
+            open_position_average_rate = Decimal(liquidation_open_amount / (liquidation_qty or Decimal(1)))
 
         if self._xirr_cached_ttl <= time.time():
             logger.info('calculate XIRR')
