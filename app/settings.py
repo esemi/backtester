@@ -34,6 +34,17 @@ class AppSettings(BaseSettings, extra='ignore'):
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
     xirr_cache_ttl: int = 60 * 10
 
+    # Теория трёх вёдер
+    baskets_enabled: bool = False
+    baskets_thresholds: str = Field(
+        default='10.2;11.3',
+        description='Границы трёх вёдер',
+    )
+    baskets_buy_amount: str = Field(
+        default='10.0;9.5;5.0',
+        description='Количество денег, на которое открываем новые позиции в каждом ведре. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',
+    )
+
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
     grid_step: Decimal = Field(default='1', description='шаг сетки на покупку')

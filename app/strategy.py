@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
-from app import storage
+from app import baskets, storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
@@ -71,9 +71,10 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             logger.info('init buy')
             self._telemetry.cleanup()
 
+            buy_amount = baskets.get_continue_buy_amount(tick.ask)
             buy_completed = self._open_position(
                 quantity=calculate_ticker_quantity(
-                    app_settings.continue_buy_amount,
+                    buy_amount,
                     tick.ask,
                     app_settings.ticker_amount_digits,
                 ),
@@ -452,8 +453,10 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
     def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
         buy_price = ask_price.quantize(app_settings.ticker_price_digits)
+        buy_amount = baskets.get_continue_buy_amount(buy_price)
+
         buy_qty = calculate_ticker_quantity(
-            app_settings.continue_buy_amount,
+            buy_amount,
             buy_price,
             app_settings.ticker_amount_digits,
         )
