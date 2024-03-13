@@ -44,6 +44,10 @@ class AppSettings(BaseSettings, extra='ignore'):
         default='10.0;9.5;5.0',
         description='Количество денег, на которое открываем новые позиции в каждом ведре. Для SOLUSDT измеряется в USDT, для SOLBTC - в BTC.',
     )
+    baskets_hold_position_limit: str = Field(
+        default='0;20;33',
+        description='Максимальное количество открытых позиций.',
+    )
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'

@@ -110,8 +110,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
 
         # buy also
+        positions_limit = baskets.get_hold_position_limit(tick.avg_price)
         is_buy_allowed = (
-            (not app_settings.hold_position_limit or len(self._open_positions) < app_settings.hold_position_limit)
+            (not positions_limit or len(self._open_positions) < positions_limit)
             and not app_settings.close_positions_only
             and (app_settings.sell_and_buy_onetime_enabled or not sale_completed)
         )

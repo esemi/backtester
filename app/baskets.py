@@ -5,6 +5,7 @@ from app.settings import app_settings
 
 _thresholds: list[Decimal] = []
 _buy_amounts: list[Decimal] = []
+_hold_limits: list[int] = []
 
 
 def get_continue_buy_amount(tick_price: Decimal) -> Decimal:
@@ -20,6 +21,21 @@ def get_continue_buy_amount(tick_price: Decimal) -> Decimal:
 
     basket_num = _get_basket_number(tick_price)
     return _buy_amounts[basket_num]
+
+
+def get_hold_position_limit(tick_price: Decimal) -> int:
+    global _hold_limits
+    if not app_settings.baskets_enabled:
+        return app_settings.hold_position_limit
+
+    if not _hold_limits:
+        _hold_limits = [
+            int(value)
+            for value in app_settings.baskets_hold_position_limit.split(';')
+        ]
+
+    basket_num = _get_basket_number(tick_price)
+    return _hold_limits[basket_num]
 
 
 def _get_basket_number(tick_price: Decimal) -> int:
