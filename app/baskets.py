@@ -6,6 +6,7 @@ from app.settings import app_settings
 _thresholds: list[Decimal] = []
 _buy_amounts: list[Decimal] = []
 _hold_limits: list[int] = []
+_grid_steps: list[Decimal] = []
 
 
 def get_continue_buy_amount(tick_price: Decimal) -> Decimal:
@@ -19,8 +20,23 @@ def get_continue_buy_amount(tick_price: Decimal) -> Decimal:
             for value in app_settings.baskets_buy_amount.split(';')
         ]
 
-    basket_num = _get_basket_number(tick_price)
+    basket_num = get_basket_number(tick_price)
     return _buy_amounts[basket_num]
+
+
+def get_grid_step(tick_price: Decimal) -> Decimal:
+    global _grid_steps
+    if not app_settings.baskets_enabled:
+        return app_settings.grid_step
+
+    if not _grid_steps:
+        _grid_steps = [
+            Decimal(value)
+            for value in app_settings.baskets_grid_step.split(';')
+        ]
+
+    basket_num = get_basket_number(tick_price)
+    return _grid_steps[basket_num]
 
 
 def get_hold_position_limit(tick_price: Decimal) -> int:
@@ -34,14 +50,14 @@ def get_hold_position_limit(tick_price: Decimal) -> int:
             for value in app_settings.baskets_hold_position_limit.split(';')
         ]
 
-    basket_num = _get_basket_number(tick_price)
+    basket_num = get_basket_number(tick_price)
     return _hold_limits[basket_num]
 
 
-def _get_basket_number(tick_price: Decimal) -> int:
+def get_basket_number(tick_price: Decimal) -> int:
     global _thresholds
     if not app_settings.baskets_enabled:
-        raise NotImplementedError
+        return 0
 
     if not _thresholds:
         _thresholds = [

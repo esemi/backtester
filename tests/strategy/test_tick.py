@@ -41,7 +41,7 @@ def test_buy_something_decline_by_grid(exchange_client_pass_mock):
     strategy.tick(Tick(number=2, bid=Decimal(10), ask=Decimal('35.00001'), bid_qty=Decimal(100501), ask_qty=Decimal(100501)))
 
     assert len(strategy._open_positions) == 1
-    assert strategy._open_positions[0].grid_number == 35
+    assert strategy._open_positions[0].grid_number == '0_35'
 
 
 def test_buy_something_decline_by_qty(exchange_client_pass_mock):

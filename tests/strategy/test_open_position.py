@@ -11,7 +11,7 @@ def test_open_position_exception():
 
     strategy = BasicStrategy(exchange_client=mock)
 
-    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number=123)
+    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number='123')
 
     assert response is False
     assert len(strategy._open_positions) == 0
@@ -28,7 +28,7 @@ def test_open_position_expired():
 
     strategy = BasicStrategy(exchange_client=mock)
 
-    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number=123)
+    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number='123')
 
     assert response is False
     assert len(strategy._open_positions) == 0
@@ -37,11 +37,11 @@ def test_open_position_expired():
 def test_open_position_filled(exchange_client_pass_mock):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
 
-    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number=123)
+    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('123.1'), tick_number=0, grid_number='123')
 
     assert response is True
     assert len(strategy._open_positions) == 1
     assert strategy._open_positions[0].amount == Decimal('12.888')
     assert strategy._open_positions[0].open_rate == Decimal('35.4050279')
     assert strategy._open_positions[0].open_tick_number == 0
-    assert strategy._open_positions[0].grid_number == 123
+    assert strategy._open_positions[0].grid_number == '123'

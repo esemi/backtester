@@ -48,6 +48,10 @@ class AppSettings(BaseSettings, extra='ignore'):
         default='0;20;33',
         description='Максимальное количество открытых позиций.',
     )
+    baskets_grid_step: str = Field(
+        default='1;2;3',
+        description='Шаг сетки грида на покупку.',
+    )
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'

@@ -2,12 +2,13 @@ from decimal import Decimal
 
 import pytest
 
-from app.baskets import _get_basket_number
+from app.baskets import get_basket_number
 
 
 def test_get_basket_number_not_enabled():
-    with pytest.raises(NotImplementedError):
-        _get_basket_number(Decimal(1))
+    result = get_basket_number(Decimal(1))
+
+    assert result == 0
 
 
 @pytest.mark.parametrize('payload, expected', [
@@ -17,6 +18,6 @@ def test_get_basket_number_not_enabled():
     (Decimal('10.001'), 2),
 ])
 def test_get_basket_number(baskets_enabled, payload: Decimal, expected: int):
-    result = _get_basket_number(payload)
+    result = get_basket_number(payload)
 
     assert result == expected
