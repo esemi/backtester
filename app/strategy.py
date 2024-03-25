@@ -350,7 +350,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
     def _get_open_positions_for_sell(self) -> list[Position]:
         return sorted(copy.deepcopy(self._open_positions), key=lambda x: x.open_rate)
 
-    def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int, grid_number: int) -> bool:
+    def _open_position(self, quantity: Decimal, price: Decimal, tick_number: int, grid_number: str) -> bool:
         if self._dry_run:
             buy_response: OrderResult | None = OrderResult(
                 is_filled=True,
@@ -463,6 +463,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
     def _buy_something(self, ask_price: Decimal, ask_qty: Decimal, tick_number: int) -> bool:
         buy_price = ask_price.quantize(app_settings.ticker_price_digits)
         buy_amount = baskets.get_continue_buy_amount(buy_price)
+        grid_step = baskets.get_grid_step(buy_price)
 
         buy_qty = calculate_ticker_quantity(
             buy_amount,
@@ -470,8 +471,8 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             app_settings.ticker_amount_digits,
         )
 
-        current_price_grid = get_grid_num_by_price(buy_price)
-        filled_grid_numbers: set[int] = {
+        current_price_grid: str = get_grid_num_by_price(buy_price)
+        filled_grid_numbers: set[str] = {
             position.grid_number
             for position in self._open_positions
         }
@@ -480,9 +481,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         is_buy_available_by_grid = current_price_grid not in filled_grid_numbers
 
         logger.info(
-            'buy conditions: buy price: %.10f, grid step is %.10f, current grid %d, filled grids [%s], grid check %s, qty check %s' % (
+            'buy conditions: buy price: %.10f, grid step is %.10f, current grid %s, filled grids [%s], grid check %s, qty check %s' % (
                 float(buy_price),
-                float(app_settings.grid_step),
+                float(grid_step),
                 current_price_grid,
                 filled_grid_numbers,
                 is_buy_available_by_grid,
