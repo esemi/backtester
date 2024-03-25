@@ -207,6 +207,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         print('Количество продаж - %d' % results['count_sell_transactions'])
         print('Количество не успешных сделок - %d' % results['count_unsuccessful_deals'])
         print('Количество успешных сделок - %d' % results['count_success_deals'])
+        print('Количество успешных сделок за 24 часа - %d' % results['last_24h_success_deals'])
         print('Остаток монет на балансе - %.8f' % results['account_balance_qty'])
 
     def save_results(self) -> None:
@@ -273,6 +274,8 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             )
             self._xirr_cached_ttl = time.time() + app_settings.xirr_cache_ttl
 
+        last_day_threshold = datetime.utcnow() - timedelta(hours=24)
+
         return {
             'start_date': self._start_date,
 
@@ -324,6 +327,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'count_sell_transactions': len(self._closed_positions),
             'count_unsuccessful_deals': len(self._open_positions),
             'count_success_deals': len(self._closed_positions),
+            'last_24h_success_deals': len([
+                position
+                for position in self._closed_positions
+                if position.close_tick_datetime >= last_day_threshold
+            ]),
         }
 
     def _update_stats(self, tick: Tick):
