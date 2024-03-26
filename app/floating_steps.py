@@ -1,6 +1,8 @@
 import logging
 from decimal import Decimal
 
+from app.models import FloatingMatrix
+
 logger = logging.getLogger(__name__)
 
 
@@ -10,19 +12,13 @@ class FloatingSteps:
     _steps: list[Decimal]
     _tries_left: int
 
-    def __init__(self, filepath: str) -> None:
+    def __init__(self, matrix: FloatingMatrix) -> None:
         self._step_tries: dict[Decimal, int] = {}
         self._steps: list[Decimal] = []
 
-        with open(filepath, 'r') as fd:
-            for index, line in enumerate(fd.readlines()):
-                if not index or not line:
-                    continue
-
-                step = Decimal(line.split(',')[0])
-                tries_limit = int(line.split(',')[1])
-                self._step_tries[step] = tries_limit
-                self._steps.append(step)
+        for matrix_step in matrix.matrix:
+            self._step_tries[matrix_step.percent] = matrix_step.tries
+            self._steps.append(matrix_step.percent)
 
         if not self._steps:
             raise RuntimeError('Invalid floating steps config!')

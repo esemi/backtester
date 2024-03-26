@@ -1,12 +1,15 @@
 """Three baskets configuratuion."""
+import json
 from decimal import Decimal
 
+from app.models import FloatingMatrix, FloatingStep
 from app.settings import app_settings
 
 _thresholds: list[Decimal] = []
 _buy_amounts: list[Decimal] = []
 _hold_limits: list[int] = []
 _grid_steps: list[Decimal] = []
+_floating_matrix: list[FloatingMatrix] = []
 
 
 def get_continue_buy_amount(tick_price: Decimal) -> Decimal:
@@ -52,6 +55,40 @@ def get_hold_position_limit(tick_price: Decimal) -> int:
 
     basket_num = get_basket_number(tick_price)
     return _hold_limits[basket_num]
+
+
+def get_floating_matrix(tick_price: Decimal) -> FloatingMatrix:
+    global _floating_matrix
+
+    if not app_settings.baskets_enabled:
+        with open(app_settings.float_steps_path, 'r') as fd:
+            return FloatingMatrix(
+                matrix=[
+                    FloatingStep(
+                        percent=Decimal(line.split(',')[0]),
+                        tries=int(line.split(',')[1]),
+                    )
+                    for index, line in enumerate(fd.readlines())
+                    if index and line
+                ],
+            )
+
+    if not _floating_matrix:
+        matrix_baskets = json.loads(app_settings.baskets_floating_matrix)
+        for basket_index, raw_matrix in enumerate(matrix_baskets):
+            parsed_matrix: list[FloatingStep] = [
+                FloatingStep(
+                    percent=Decimal(value[0]),
+                    tries=int(value[1]),
+                )
+                for value in raw_matrix
+            ]
+            _floating_matrix.append(
+                FloatingMatrix(matrix=parsed_matrix),
+            )
+
+    basket_num = get_basket_number(tick_price)
+    return _floating_matrix[basket_num]
 
 
 def get_basket_number(tick_price: Decimal) -> int:

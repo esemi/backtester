@@ -1,11 +1,11 @@
 from decimal import Decimal
 
+from app import baskets
 from app.floating_steps import FloatingSteps
-from app.settings import app_settings
 
 
 def test_init_happy_path():
-    floating_steps = FloatingSteps(app_settings.float_steps_path)
+    floating_steps = FloatingSteps(baskets.get_floating_matrix(Decimal(0)))
 
     assert len(floating_steps._steps) > 0
     assert floating_steps.current_step > Decimal(0)

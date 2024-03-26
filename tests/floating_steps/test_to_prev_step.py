@@ -1,11 +1,11 @@
 from decimal import Decimal
 
+from app import baskets
 from app.floating_steps import FloatingSteps
-from app.settings import app_settings
 
 
 def test_to_prev_step_happy_path():
-    floating_steps = FloatingSteps(app_settings.float_steps_path)
+    floating_steps = FloatingSteps(baskets.get_floating_matrix(Decimal(0)))
     floating_steps.current_step = Decimal(10)
     floating_steps._tries_left = 0
 
@@ -16,7 +16,7 @@ def test_to_prev_step_happy_path():
 
 
 def test_to_prev_step_has_tries():
-    floating_steps = FloatingSteps(app_settings.float_steps_path)
+    floating_steps = FloatingSteps(baskets.get_floating_matrix(Decimal(0)))
     floating_steps.current_step = Decimal(10)
     floating_steps._tries_left = 1
 
@@ -27,7 +27,7 @@ def test_to_prev_step_has_tries():
 
 
 def test_to_prev_step_first_step():
-    floating_steps = FloatingSteps(app_settings.float_steps_path)
+    floating_steps = FloatingSteps(baskets.get_floating_matrix(Decimal(0)))
     first_step = floating_steps._steps[0]
 
     floating_steps.to_prev_step()
@@ -36,7 +36,7 @@ def test_to_prev_step_first_step():
 
 
 def test_to_prev_step_negative_tries_count():
-    floating_steps = FloatingSteps(app_settings.float_steps_path)
+    floating_steps = FloatingSteps(baskets.get_floating_matrix(Decimal(0)))
     floating_steps._tries_left = 0
 
     floating_steps.to_prev_step()

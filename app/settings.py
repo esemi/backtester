@@ -52,6 +52,10 @@ class AppSettings(BaseSettings, extra='ignore'):
         default='1;2;3',
         description='Шаг сетки грида на покупку.',
     )
+    baskets_floating_matrix: str = Field(
+        default='[[["0.5", 1]], [["0.5", 1]], [["0.5", 1]]]',
+        description='Матрица процентов для продаж.',
+    )
 
     # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'

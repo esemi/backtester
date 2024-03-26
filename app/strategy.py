@@ -12,7 +12,7 @@ from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
 from app.liquidation import Liquidation
-from app.models import OnHoldPositions, Position, Tick
+from app.models import FloatingMatrix, OnHoldPositions, Position, Tick
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
@@ -624,18 +624,17 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
 
 class FloatingStrategy(BasicStrategy):
+    _matrix: dict[int, FloatingSteps] = {}
+
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
         super().__init__(exchange_client, dry_run)
-        self._init_matrix()
-
-    def _init_matrix(self) -> None:
-        # todo init matrix by baskets
-        self._current_matrix: FloatingSteps = FloatingSteps(app_settings.float_steps_path)
 
     def _get_matrix(self, bid_price: Decimal) -> FloatingSteps:
         basket_number = baskets.get_basket_number(bid_price)
-        # todo select matrix by basket number
-        return self._current_matrix
+        if basket_number not in self._matrix:
+            matrix: FloatingMatrix = baskets.get_floating_matrix(bid_price)
+            self._matrix[basket_number] = FloatingSteps(matrix)
+        return self._matrix[basket_number]
 
     def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
