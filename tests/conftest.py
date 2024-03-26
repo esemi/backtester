@@ -62,17 +62,20 @@ def baskets_enabled() -> None:
     buy_amount_state = app_settings.baskets_buy_amount
     hold_position_limit_state = app_settings.baskets_hold_position_limit
     baskets_grid_step_state = app_settings.baskets_grid_step
+    baskets_floating_matrix_state = app_settings.baskets_floating_matrix
     app_settings.baskets_enabled = True
     app_settings.baskets_thresholds = '5.0;10.0'
     app_settings.baskets_buy_amount = '10.0;9.5;5.0'
     app_settings.baskets_hold_position_limit = '1;2;3'
     app_settings.baskets_grid_step = '1;2;3'
+    app_settings.baskets_floating_matrix = '[[["0.5", 1]], [["1.5", 3]], [["109.0", 122]]]'
     yield
     app_settings.baskets_enabled = enabled_state
     app_settings.baskets_thresholds = thresholds_state
     app_settings.baskets_buy_amount = buy_amount_state
     app_settings.baskets_hold_position_limit = hold_position_limit_state
     app_settings.baskets_grid_step = baskets_grid_step_state
+    app_settings.baskets_floating_matrix = baskets_floating_matrix_state
 
 
 @pytest.fixture

@@ -35,7 +35,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     xirr_cache_ttl: int = 60 * 10
 
     # Теория трёх вёдер
-    baskets_enabled: bool = False
+    baskets_enabled: bool = True
     baskets_thresholds: str = Field(
         default='10.2;11.3',
         description='Границы трёх вёдер',
@@ -51,6 +51,10 @@ class AppSettings(BaseSettings, extra='ignore'):
     baskets_grid_step: str = Field(
         default='1;2;3',
         description='Шаг сетки грида на покупку.',
+    )
+    baskets_floating_matrix: str = Field(
+        default='[[["0.5", 1]], [["0.5", 1]], [["0.5", 1]]]',
+        description='Матрица процентов для продаж.',
     )
 
     # strategy settings
@@ -72,7 +76,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     enabled: bool = Field(default=False, description='вкл/выкл стратегии')
     hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
     multiple_sell_on_tick: bool = Field(
-        default=True,
+        default=False,
         description='Разрешаем множественные продажи на одном тике или нет.',
     )
     close_positions_only: bool = False
