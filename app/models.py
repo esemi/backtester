@@ -39,3 +39,14 @@ class Tick:
     @property
     def avg_price(self) -> Decimal:
         return (self.ask + self.bid) / Decimal(2)
+
+
+@dataclass
+class FloatingStep:
+    percent: Decimal
+    tries: int
+
+
+@dataclass
+class FloatingMatrix:
+    matrix: list[FloatingStep]

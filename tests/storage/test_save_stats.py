@@ -22,7 +22,6 @@ def test_save_stats_happy_path(exchange_client_pass_mock):
 def test_save_stats_floating_stats(exchange_client_pass_mock):
     strategy = FloatingStrategy(
         exchange_client=exchange_client_pass_mock,
-        steps_instance=FloatingSteps(app_settings.float_steps_path),
     )
     strategy.tick(Tick(number=0, bid=Decimal(9), ask=Decimal(11), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
     stats = strategy.get_results()

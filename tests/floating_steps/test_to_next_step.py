@@ -15,9 +15,9 @@ def test_to_next_step_happy_path():
 
 def test_to_next_step_last_step():
     floating_steps = FloatingSteps(app_settings.float_steps_path)
-    floating_steps.current_step = floating_steps.steps[-1]
-    floating_steps.tries_left = 100500
+    floating_steps.current_step = floating_steps._steps[-1]
+    floating_steps._tries_left = 100500
 
     floating_steps.to_next_step()
 
-    assert floating_steps.current_step == floating_steps.steps[-1]
+    assert floating_steps.current_step == floating_steps._steps[-1]

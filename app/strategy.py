@@ -624,9 +624,18 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
 
 class FloatingStrategy(BasicStrategy):
-    def __init__(self, exchange_client: BaseClient, steps_instance: FloatingSteps, dry_run: bool = False) -> None:
+    def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
         super().__init__(exchange_client, dry_run)
-        self._steps: FloatingSteps = steps_instance
+        self._init_matrix()
+
+    def _init_matrix(self) -> None:
+        # todo init matrix by baskets
+        self._current_matrix: FloatingSteps = FloatingSteps(app_settings.float_steps_path)
+
+    def _get_matrix(self, bid_price: Decimal) -> FloatingSteps:
+        basket_number = baskets.get_basket_number(bid_price)
+        # todo select matrix by basket number
+        return self._current_matrix
 
     def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:
         logger.debug('search position for sell. Tick price: {0}'.format(bid_price))
@@ -640,7 +649,7 @@ class FloatingStrategy(BasicStrategy):
 
             # условия на продажу
             # - текущая цена выше цены покупки на N%
-            step_percent = self._steps.current_step / Decimal(100) + Decimal(1)
+            step_percent = self._get_matrix(bid_price).current_step / Decimal(100) + Decimal(1)
             logger.debug('check sale by tick rate and open rate.')
             logger.debug('Position: {0}. Current price {1}. Open rate +N% {2}. Check {3}. Percent {4}'.format(
                 position,
@@ -666,16 +675,16 @@ class FloatingStrategy(BasicStrategy):
 
         if has_sale_try:
             if sale_completed:
-                self._steps.to_next_step()
+                self._get_matrix(bid_price).to_next_step()
             else:
-                self._steps.to_prev_step()
+                self._get_matrix(bid_price).to_prev_step()
 
         return sale_completed
 
     def _update_stats(self, tick: Tick):
         super()._update_stats(tick)
-        if self._steps.current_step >= self._max_sell_percent:
-            self._max_sell_percent = self._steps.current_step
+        if self._get_matrix(tick.bid).current_step >= self._max_sell_percent:
+            self._max_sell_percent = self._get_matrix(tick.bid).current_step
             self._max_sell_percent_tick = tick.number
 
     def get_results(self) -> dict:
@@ -708,7 +717,6 @@ def get_strategy_instance(strategy_type: str, exchange_client: BaseClient, dry_r
         ),
         'floating': FloatingStrategy(
             exchange_client=exchange_client,
-            steps_instance=FloatingSteps(app_settings.float_steps_path),
             dry_run=dry_run,
         ),
     }[strategy_type]
