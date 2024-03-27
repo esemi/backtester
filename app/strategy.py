@@ -1,7 +1,5 @@
 import copy
-import json
 import logging
-import os
 import time
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
@@ -212,12 +210,6 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
     def save_results(self) -> None:
         storage.save_stats(app_settings.instance_name, self.get_results())
-        logs_filepath = str(os.path.join(app_settings.logs_path, app_settings.instance_name))
-        os.makedirs(logs_filepath, exist_ok=True)
-        filepath = os.path.join(logs_filepath, 'result.json')
-
-        with open(filepath, 'w') as fd:
-            json.dump(self.get_results(), fd, default=str)
 
     def get_results(self) -> dict:
         buy_amount_without_current_opened = sum(

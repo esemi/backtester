@@ -1,9 +1,7 @@
 name: mypy
 
 on:
-  push:
-    branches:
-      - master
+  - push
 
 jobs:
   linters:

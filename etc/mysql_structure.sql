@@ -1,3 +1,6 @@
+CREATE DATABASE thesim;
+USE thesim;
+
 CREATE TABLE `telemetry` (
   `bot_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `tick_number` int unsigned NOT NULL,

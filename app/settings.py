@@ -25,14 +25,16 @@ class AppSettings(BaseSettings, extra='ignore'):
 
     instance_name: str = Field(default=getpass.getuser(), description='Unique instance name. Username by default.')
     rates_path: str = os.path.join(APP_PATH, 'rates')
-    logs_path: str = Field(default='/var/www/kta/storage/trader')
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
     mysql_host: str = Field(default='localhost')
     mysql_user: str = Field(default='root')
-    mysql_password: str = Field()
+    mysql_password: str = Field(default='')
     mysql_db: str = Field(default='thesim')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
     xirr_cache_ttl: int = 60 * 10
+
+
+    # strategy settings
 
     # Теория трёх вёдер
     baskets_enabled: bool = True
@@ -57,7 +59,6 @@ class AppSettings(BaseSettings, extra='ignore'):
         description='Матрица процентов для продаж.',
     )
 
-    # strategy settings
     strategy_type: Literal['basic', 'floating'] = 'basic'
     grid_step: Decimal = Field(default='1', description='шаг сетки на покупку')
     avg_rate_sell_limit: Decimal = Field(default='0.5', description='шаг в процентах для условия сделок. 0.5 = 0.5%')
@@ -107,7 +108,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     throttling_time: int = Field(default=5, description='Минимальная частота тика в секундах')
     throttling_time_small_tick: int = 3
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
-    failure_limit: int = 15
+    failure_limit: int = 100
     symbol: str = 'SOLUSDT'
     binance_api_key: str = ''
     binance_api_secret: str = ''

@@ -1,9 +1,9 @@
-name: deploy-pool
+name: deploy-bots
 
 on:
   push:
     branches:
-      - release-pool
+      - deploy-bots
 
 jobs:
   on-success:
@@ -11,6 +11,8 @@ jobs:
     strategy:
       max-parallel: 10
       matrix:
+        host-name:
+          - '128.199.114.80'
         bot-name:
           - 'trader1'
           - 'trader2'
@@ -52,235 +54,25 @@ jobs:
           - 'trader38'
           - 'trader39'
           - 'trader40'
-          - 'trader41'
-          - 'trader42'
-          - 'trader43'
-          - 'trader44'
-          - 'trader45'
-          - 'trader46'
-          - 'trader47'
-          - 'trader48'
-          - 'trader49'
-          - 'trader50'
-          - 'trader51'
-          - 'trader52'
-          - 'trader53'
-          - 'trader54'
-          - 'trader55'
-          - 'trader56'
-          - 'trader57'
-          - 'trader58'
-          - 'trader59'
-          - 'trader60'
-          - 'trader61'
-          - 'trader62'
-          - 'trader63'
-          - 'trader64'
-          - 'trader65'
-          - 'trader66'
-          - 'trader67'
-          - 'trader68'
-          - 'trader69'
-          - 'trader70'
-          - 'trader71'
-          - 'trader72'
-          - 'trader73'
-          - 'trader74'
-          - 'trader75'
-          - 'trader76'
-          - 'trader77'
-          - 'trader78'
-          - 'trader79'
-          - 'trader80'
-          - 'trader81'
-          - 'trader82'
-          - 'trader83'
-          - 'trader84'
-          - 'trader85'
-          - 'trader86'
-          - 'trader87'
-          - 'trader88'
-          - 'trader89'
-          - 'trader90'
-          - 'trader91'
-          - 'trader92'
-          - 'trader93'
-          - 'trader94'
-          - 'trader95'
-          - 'trader96'
-          - 'trader97'
-          - 'trader98'
-          - 'trader99'
-          - 'trader100'
-          - 'trader101'
-          - 'trader102'
-          - 'trader103'
-          - 'trader104'
-          - 'trader105'
-          - 'trader106'
-          - 'trader107'
-          - 'trader108'
-          - 'trader109'
-          - 'trader110'
-          - 'trader111'
-          - 'trader112'
-          - 'trader113'
-          - 'trader114'
-          - 'trader115'
-          - 'trader116'
-          - 'trader117'
-          - 'trader118'
-          - 'trader119'
-          - 'trader120'
-          - 'trader121'
-          - 'trader122'
-          - 'trader123'
-          - 'trader124'
-          - 'trader125'
-          - 'trader126'
-          - 'trader127'
-          - 'trader128'
-          - 'trader129'
-          - 'trader130'
-          - 'trader131'
-          - 'trader132'
-          - 'trader133'
-          - 'trader134'
-          - 'trader135'
-          - 'trader136'
-          - 'trader137'
-          - 'trader138'
-          - 'trader139'
-          - 'trader140'
-          - 'trader141'
-          - 'trader142'
-          - 'trader143'
-          - 'trader144'
-          - 'trader145'
-          - 'trader146'
-          - 'trader147'
-          - 'trader148'
-          - 'trader149'
-          - 'trader150'
-          - 'trader151'
-          - 'trader152'
-          - 'trader153'
-          - 'trader154'
-          - 'trader155'
-          - 'trader156'
-          - 'trader157'
-          - 'trader158'
-          - 'trader159'
-          - 'trader160'
-          - 'trader161'
-          - 'trader162'
-          - 'trader163'
-          - 'trader164'
-          - 'trader165'
-          - 'trader166'
-          - 'trader167'
-          - 'trader168'
-          - 'trader169'
-          - 'trader170'
-          - 'trader171'
-          - 'trader172'
-          - 'trader173'
-          - 'trader174'
-          - 'trader175'
-          - 'trader176'
-          - 'trader177'
-          - 'trader178'
-          - 'trader179'
-          - 'trader180'
-          - 'trader181'
-          - 'trader182'
-          - 'trader183'
-          - 'trader184'
-          - 'trader185'
-          - 'trader186'
-          - 'trader187'
-          - 'trader188'
-          - 'trader189'
-          - 'trader190'
-          - 'trader191'
-          - 'trader192'
-          - 'trader193'
-          - 'trader194'
-          - 'trader195'
-          - 'trader196'
-          - 'trader197'
-          - 'trader198'
-          - 'trader199'
-          - 'trader200'
-          - 'trader201'
-          - 'trader202'
-          - 'trader203'
-          - 'trader204'
-          - 'trader205'
-          - 'trader206'
-          - 'trader207'
-          - 'trader208'
-          - 'trader209'
-          - 'trader210'
-          - 'trader211'
-          - 'trader212'
-          - 'trader213'
-          - 'trader214'
-          - 'trader215'
-          - 'trader216'
-          - 'trader217'
-          - 'trader218'
-          - 'trader219'
-          - 'trader220'
-          - 'trader221'
-          - 'trader222'
-          - 'trader223'
-          - 'trader224'
-          - 'trader225'
-          - 'trader226'
-          - 'trader227'
-          - 'trader228'
-          - 'trader229'
-          - 'trader230'
-          - 'trader231'
-          - 'trader232'
-          - 'trader233'
-          - 'trader234'
-          - 'trader235'
-          - 'trader236'
-          - 'trader237'
-          - 'trader238'
-          - 'trader239'
-          - 'trader240'
-          - 'trader241'
-          - 'trader242'
-          - 'trader243'
-          - 'trader244'
-          - 'trader245'
-          - 'trader246'
-          - 'trader247'
-          - 'trader248'
-          - 'trader249'
 
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: deploy ${{ matrix.bot-name }}
+      - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
         uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
         continue-on-error: true
         env:
           TARGET_DIR: /home/${{ matrix.bot-name }}
           VENV_BIN: venv/bin
         with:
-          host: ${{ secrets.PROD_HOST_BIG }}
+          host: ${{ matrix.host-name }}
           user: ${{ matrix.bot-name }}
-          pass: ${{ secrets.PROD_PASSWORD_BIG }}
+          pass: ${{ secrets.BOT_DEFAULT_PASSWORD }}
           port: 22
           connect_timeout: 10s
           first_ssh: |-
             mkdir -p app
-            mkdir -p logs
             mkdir -p etc
             test -d venv || python3.11 -m venv venv
             touch .env
@@ -294,10 +86,12 @@ jobs:
             $VENV_BIN/pip install pip setuptools --upgrade
             $VENV_BIN/pip install -r requirements.txt
             $VENV_BIN/pip cache purge
-            chown :www-data .
+            chown :supervisor .
             chmod 771 .
-            chown -R :www-data ./etc
+            chown -R :supervisor ./etc
             chmod -R 760 ./etc
-            chown :www-data .env 
+            chown :supervisor .env 
             chmod 760 .env
+            echo "" >> .env
+            echo "mysql_password='${{ secrets.MYSQL_DEFAULT_PASSWORD }}'" >> .env
             supervisorctl restart ${{ matrix.bot-name }}
