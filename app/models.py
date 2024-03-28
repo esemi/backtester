@@ -13,6 +13,7 @@ class Position:
     close_tick_number: int = -1
     close_tick_datetime: datetime = datetime.utcnow()
     grid_number: str = '0_0'
+    basket_number: int = 0
 
     @property
     def is_closed(self) -> bool:

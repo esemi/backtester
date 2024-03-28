@@ -108,18 +108,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         sale_completed = self._sell_something(bid_price=tick.bid, bid_qty=tick.bid_qty, tick_number=tick.number)
 
         # buy also
-        positions_limit = baskets.get_hold_position_limit(tick.avg_price)
-        is_buy_allowed = (
-            (not positions_limit or len(self._open_positions) < positions_limit)
-            and not app_settings.close_positions_only
-            and (app_settings.sell_and_buy_onetime_enabled or not sale_completed)
-        )
-
-        if is_buy_allowed and app_settings.buy_only_red_candles:
-            is_red_candle = tick.bid < self._get_previous_tick().bid
-            is_buy_allowed = bool(is_buy_allowed and is_red_candle)
-
-        if is_buy_allowed:
+        if self._is_buy_allowed(tick, sale_completed):
             logger.debug('try to buy something')
             buy_completed = self._buy_something(ask_price=tick.ask, ask_qty=tick.ask_qty, tick_number=tick.number)
 
@@ -326,6 +315,35 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             ]),
         }
 
+    def _is_buy_allowed(self, tick: Tick, sale_completed: bool) -> bool:
+        basket_number = baskets.get_basket_number(tick.avg_price)
+        positions_limit = baskets.get_hold_position_limit(tick.avg_price)
+        open_positions_for_current_basket = sum(
+            1
+            for pos in self._open_positions
+            if pos.basket_number == basket_number
+        )
+
+        if positions_limit and open_positions_for_current_basket >= positions_limit:
+            logger.info('skip buy: positions limit')
+            return False
+
+        if app_settings.close_positions_only:
+            logger.info('skip buy: sell only mode')
+            return False
+
+        if sale_completed and not app_settings.sell_and_buy_onetime_enabled:
+            logger.info('skip buy: already sale on tick')
+            return False
+
+        is_red_candle = tick.bid < self._get_previous_tick().bid
+        if app_settings.buy_only_red_candles and not is_red_candle:
+            logger.info('skip buy: red candles mode')
+            return False
+
+        logger.info('buy try')
+        return True
+
     def _update_stats(self, tick: Tick):
         on_hold_current = OnHoldPositions(
             quantity=Decimal(sum([pos.amount for pos in self._open_positions])),
@@ -378,6 +396,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             open_rate=order_response.price,
             open_tick_number=tick_number,
             grid_number=grid_number,
+            basket_number=baskets.get_basket_number(price),
         ))
         return True
 
@@ -642,7 +661,7 @@ class FloatingStrategy(BasicStrategy):
             # - текущая цена выше цены покупки на N%
             step_percent = self._get_matrix(bid_price).current_step / Decimal(100) + Decimal(1)
             logger.debug('check sale by tick rate and open rate.')
-            logger.debug('Position: {0}. Current price {1}. Open rate +N% {2}. Check {3}. Percent {4}'.format(
+            logger.info('Position: {0}. Current price {1}. Open rate +N% {2}. Check {3}. Percent {4}'.format(
                 position,
                 bid_price,
                 position.open_rate * step_percent,

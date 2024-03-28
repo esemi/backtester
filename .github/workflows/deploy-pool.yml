@@ -9,7 +9,7 @@ jobs:
   on-success:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
+      max-parallel: 2
       matrix:
         host-name:
           - '128.199.114.80'
