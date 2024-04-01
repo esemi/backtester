@@ -88,6 +88,7 @@ def valid_datetime(s: str) -> datetime:
 if __name__ == '__main__':
     logging.basicConfig(
         filename=os.path.join(APP_PATH, 'backtest.log'),
+        filemode='w',
         level=logging.DEBUG if app_settings.debug else logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
     )
