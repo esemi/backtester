@@ -149,6 +149,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             results['buy_total_amount_btc'],
             results['buy_total_qty'],
         ))
+        print('Инвестиционное тело $%.2f' % (
+            results['invest_body'],
+        ))
 
         print('')
         print('Оборотная сумма денег на покупки реализованных монет $%.2f / %.8f BTC (%.2f монет)' % (
@@ -298,6 +301,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'pl_amount_usd': profit_amount_total,
             'pl_amount_btc': profit_amount_total,
             'pl_percent': float(profit_percent_total),
+            'invest_body': float(self._get_invest_body()),
 
             'onhold_amount_usd': self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
             'onhold_amount_btc': self._max_onhold_positions.buy_amount if self._max_onhold_positions else 0,
@@ -315,6 +319,21 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             ]),
         }
 
+    def _get_invest_body(self) -> Decimal:
+        total_deposit_amount: Decimal = baskets.get_total_deposit()
+        liquidation_amount = Decimal(0)
+        buy_amount = Decimal(0)
+
+        if self._open_positions:
+            liquidation_amount = Decimal(sum(
+                [self.get_last_tick().bid * pos.amount for pos in self._open_positions]
+            ))
+            buy_amount = Decimal(sum(
+                [pos.open_rate * pos.amount for pos in self._open_positions]
+            ))
+
+        return total_deposit_amount - buy_amount + liquidation_amount
+
     def _is_buy_allowed(self, tick: Tick, sale_completed: bool) -> bool:
         basket_number = baskets.get_basket_number(tick.avg_price)
         positions_limit = baskets.get_hold_position_limit(tick.avg_price)
@@ -324,7 +343,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             if pos.basket_number == basket_number
         )
 
-        if positions_limit and open_positions_for_current_basket >= positions_limit:
+        if open_positions_for_current_basket >= positions_limit:
             logger.info('skip buy: positions limit')
             return False
 

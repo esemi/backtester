@@ -79,6 +79,20 @@ def baskets_enabled() -> None:
 
 
 @pytest.fixture
+def baskets_disabled() -> None:
+    enabled_state = app_settings.baskets_enabled
+    continue_buy_amount_state = app_settings.continue_buy_amount
+    hold_position_limit_state = app_settings.hold_position_limit
+    app_settings.baskets_enabled = False
+    app_settings.continue_buy_amount = Decimal(15)
+    app_settings.hold_position_limit = Decimal(99)
+    yield
+    app_settings.baskets_enabled = enabled_state
+    app_settings.continue_buy_amount = continue_buy_amount_state
+    app_settings.hold_position_limit = hold_position_limit_state
+
+
+@pytest.fixture
 def hard_stop_loss_enabled() -> Decimal:
     threshold = Decimal(10)
     stop_loss_enabled_state = app_settings.stop_loss_hard_enabled

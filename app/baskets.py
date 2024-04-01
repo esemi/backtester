@@ -42,6 +42,19 @@ def get_grid_step(tick_price: Decimal) -> Decimal:
     return _grid_steps[basket_num]
 
 
+def get_total_deposit() -> Decimal:
+    if not app_settings.baskets_enabled:
+        return Decimal(app_settings.hold_position_limit * app_settings.continue_buy_amount)
+
+    get_hold_position_limit(Decimal(0))
+    get_continue_buy_amount(Decimal(0))
+
+    summary = Decimal(0)
+    for i in range(len(_buy_amounts)):
+        summary += Decimal(_buy_amounts[i]) * Decimal(_hold_limits[i])
+    return summary
+
+
 def get_hold_position_limit(tick_price: Decimal) -> int:
     global _hold_limits
     if not app_settings.baskets_enabled:
@@ -108,3 +121,4 @@ def get_basket_number(tick_price: Decimal) -> int:
             break
         basket_num += 1
     return basket_num
+

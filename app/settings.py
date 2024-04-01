@@ -75,7 +75,7 @@ class AppSettings(BaseSettings, extra='ignore'):
         description='До скольки знаков после запятой округлять цену в заявке. Этот параметр также используется для округления цены при проверке на наличие открытой позиции в этом ценовом диапазоне.',
     )
     enabled: bool = Field(default=False, description='вкл/выкл стратегии')
-    hold_position_limit: int = Field(default=0, description='Максимальное количество открытых позиций.')
+    hold_position_limit: int = Field(default=999999, description='Максимальное количество открытых позиций.')
     multiple_sell_on_tick: bool = Field(
         default=False,
         description='Разрешаем множественные продажи на одном тике или нет.',
