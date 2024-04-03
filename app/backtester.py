@@ -12,6 +12,9 @@ from app.strategy import get_strategy_instance
 logger = logging.getLogger(__name__)
 
 
+BACKTESTER_TICK_QTY = Decimal(999999999999)
+
+
 def main(
     use_every_n_tick: int = 1,
     start_date: datetime | None = None,
@@ -70,8 +73,8 @@ def get_rates(
                 number=tick_number,
                 bid=price,
                 ask=price,
-                bid_qty=Decimal(100500),
-                ask_qty=Decimal(100500),
+                bid_qty=BACKTESTER_TICK_QTY,
+                ask_qty=BACKTESTER_TICK_QTY,
             ))
             tick_number += 1
     return output
