@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
+import pyxirr
 from pyxirr import xirr
 
 from app.models import Position
@@ -35,10 +36,18 @@ def calculate_xirr(positions: list[Position], actual_rate: Decimal) -> Decimal:
             )
 
     cash_flow.sort(key=lambda x: x[0])
-    res = xirr(
-        dates=[v[0] for v in cash_flow],
-        amounts=[v[1] for v in cash_flow],
-    )
+    try:
+        res = xirr(
+            dates=[v[0] for v in cash_flow],
+            amounts=[v[1] for v in cash_flow],
+        )
+    except pyxirr.InvalidPaymentsError:
+        logger.warning('XIRR exception {0} {1}'.format(
+            open_position_qty,
+            cash_flow,
+        ))
+        return Decimal(0)
+
     del cash_flow
     logger.info('XIRR raw value {0}'.format(res))
     if res is None:

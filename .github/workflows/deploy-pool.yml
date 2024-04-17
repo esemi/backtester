@@ -92,6 +92,4 @@ jobs:
             chmod -R 760 ./etc
             chown :supervisor .env 
             chmod 760 .env
-            echo "" >> .env
-            echo "mysql_password='${{ secrets.MYSQL_DEFAULT_PASSWORD }}'" >> .env
             supervisorctl restart ${{ matrix.bot-name }}
