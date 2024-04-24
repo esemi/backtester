@@ -331,7 +331,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             buy_amount = Decimal(sum(
                 [pos.open_rate * pos.amount for pos in self._open_positions]
             ))
-
+        logger.info(f'invest body calculations {total_deposit_amount=} {liquidation_amount=} {buy_amount=}')
         return total_deposit_amount - buy_amount + liquidation_amount
 
     def _is_buy_allowed(self, tick: Tick, sale_completed: bool) -> bool:
