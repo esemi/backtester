@@ -5,7 +5,7 @@ command=/home/trader{0}/venv/bin/python -m app.trader
 user=trader{0}
 stopsignal=INT
 autorestart=false
-autostart=true
+autostart=false
 stderr_logfile=/var/log/trader/trader{0}-log.txt
 stderr_logfile_maxbytes=5MB
 stderr_logfile_backups=10
@@ -15,5 +15,5 @@ stdout_logfile_backups=1
 """
 
 if __name__ == '__main__':
-    for i in range(1, 41):
+    for i in range(1, 51):
         print(template.format(i))

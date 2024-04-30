@@ -54,6 +54,16 @@ jobs:
           - 'trader38'
           - 'trader39'
           - 'trader40'
+          - 'trader41'
+          - 'trader42'
+          - 'trader43'
+          - 'trader44'
+          - 'trader45'
+          - 'trader46'
+          - 'trader47'
+          - 'trader48'
+          - 'trader49'
+          - 'trader50'
 
     steps:
       - name: checkout
