@@ -13,6 +13,7 @@ jobs:
       matrix:
         host-name:
           - '128.199.114.80'
+          - '143.198.217.1'
         bot-name:
           - 'trader1'
           - 'trader2'
