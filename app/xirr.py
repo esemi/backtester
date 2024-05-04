@@ -54,6 +54,8 @@ def calculate_xirr(positions: list[Position], actual_rate: Decimal) -> Decimal:
         return Decimal(0)
 
     try:
-        return (Decimal(res) * Decimal(100)).quantize(Decimal('0.0001'))
+        raw_xirr = (Decimal(res) * Decimal(100))
     except InvalidOperation:
         return Decimal(0)
+
+    return min(Decimal(9999), raw_xirr).quantize(Decimal('0.0001'))
