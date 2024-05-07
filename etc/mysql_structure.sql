@@ -1,6 +1,3 @@
-CREATE DATABASE thesim;
-USE thesim;
-
 CREATE TABLE `telemetry` (
   `bot_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `tick_number` int unsigned NOT NULL,
@@ -65,3 +62,4 @@ ALTER TABLE `stats` ADD `xirr` decimal(40,20) NOT NULL DEFAULT '0.00000000000000
 ALTER TABLE `stats` ADD `liquidation_qty_left` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000' AFTER `open_position_average_rate`;
 ALTER TABLE `stats` ADD `last_24h_success_deals` int unsigned NOT NULL DEFAULT 0 AFTER `open_position_average_rate`;
 ALTER TABLE `stats` ADD `invest_body` decimal(40,20) NOT NULL DEFAULT '0.00000000000000000000';
+ALTER TABLE telemetry ADD `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT FIRST, ADD UNIQUE id_unique (`id`);
