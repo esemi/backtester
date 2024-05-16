@@ -10,7 +10,7 @@ from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
 from app.liquidation import Liquidation
-from app.models import FloatingMatrix, OnHoldPositions, Position, Tick
+from app.models import FloatingMatrix, OnHoldPositions, Position, Tick, Fee
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
@@ -82,9 +82,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             )
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
+            buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
             self._telemetry.push(
                 tick,
                 buy_price=buy_price,
+                buy_fee=buy_fee,
             )
 
             self._update_stats(tick)
@@ -113,7 +115,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             buy_completed = self._buy_something(ask_price=tick.ask, ask_qty=tick.ask_qty, tick_number=tick.number)
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
+        buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
         sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
+        sell_fee = None if not sale_completed else self._closed_positions[-1].close_fee
 
         previous_tick = self._get_previous_tick()
         if buy_price or sell_price or tick.ask != previous_tick.ask or tick.bid != previous_tick.bid:
@@ -121,6 +125,8 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 tick,
                 buy_price=buy_price,
                 sell_price=sell_price,
+                buy_fee=buy_fee,
+                sell_fee=sell_fee,
             )
 
         self._update_stats(tick)
@@ -386,6 +392,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 qty=quantity,
                 price=price,
                 fee=quantity * Decimal('0.001'),
+                raw_fees=[
+                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                ],
                 raw_response={'dry_run': True},
             )
         else:
@@ -413,6 +422,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._open_positions.append(Position(
             amount=order_response.qty,
             open_rate=order_response.price,
+            open_fee=order_response.raw_fees[0] if order_response.raw_fees else None,
             open_tick_number=tick_number,
             grid_number=grid_number,
             basket_number=baskets.get_basket_number(price),
@@ -426,6 +436,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 qty=position_for_close.amount,
                 price=price,
                 fee=price * position_for_close.amount * Decimal('0.001'),
+                raw_fees=[
+                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                ],
                 raw_response={'dry_run': True},
             )
         else:
@@ -449,6 +462,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         self._open_positions.remove(position_for_close)
         position_for_close.close_rate = order_response.price
+        position_for_close.close_fee = order_response.raw_fees[0] if order_response.raw_fees else None
         position_for_close.close_tick_number = tick_number
         position_for_close.close_tick_datetime = datetime.utcnow()
         self._closed_positions.append(position_for_close)
@@ -558,6 +572,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                     qty=Decimal(1),
                     price=tick.bid,
                     fee=Decimal(0),
+                    raw_fees=[
+                        Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                    ],
                     raw_response={'reason': 'dry run execution'},
                 )
             else:
@@ -624,6 +641,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 qty=actual_quantity,
                 price=price,
                 fee=Decimal(0),
+                raw_fees=[
+                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                ],
                 order_id='id-dry-run',
                 raw_response={'dry_run': True},
             )

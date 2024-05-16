@@ -1,12 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
 
-from app.models import Tick
+from app.models import Fee, Tick
 from app.storage import connection_mysql
 
 _insert_query = """INSERT INTO `telemetry` 
-(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`)
-VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 _cleanup_query = 'DELETE FROM `telemetry` WHERE `bot_name` = %s'
 
 
@@ -20,6 +20,8 @@ class TelemetryClient:
         tick: Tick,
         buy_price: Decimal | None = None,
         sell_price: Decimal | None = None,
+        buy_fee: Fee | None = None,
+        sell_fee: Fee | None = None,
     ):
         if buy_price or sell_price:
             with connection_mysql.cursor() as cursor:
@@ -31,6 +33,10 @@ class TelemetryClient:
                     tick.ask,
                     buy_price,
                     sell_price,
+                    None if not buy_fee else buy_fee.qty,
+                    None if not buy_fee else buy_fee.ticker,
+                    None if not sell_fee else sell_fee.qty,
+                    None if not sell_fee else sell_fee.ticker,
                 ))
 
     def cleanup(self) -> None:
@@ -41,13 +47,8 @@ class TelemetryClient:
 class DummyClient(TelemetryClient):
     """Class for fake-save strategy telemetry."""
 
-    def push(
-        self,
-        tick: Tick,
-        buy_price: Decimal | None = None,
-        sell_price: Decimal | None = None,
-    ):
+    def push(self, *args, **kwargs):
         pass
 
-    def cleanup(self) -> None:
+    def cleanup(self, *args, **kwargs) -> None:
         pass

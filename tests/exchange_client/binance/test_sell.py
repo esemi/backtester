@@ -28,6 +28,7 @@ def test_sell_happy_path():
     assert response.price >= actual_price
     assert response.qty == quantity
     assert response.fee == Decimal(0)
+    assert response.raw_fees == []
 
 
 def test_sell_gtc():

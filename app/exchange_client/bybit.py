@@ -7,7 +7,7 @@ from typing import Generator
 from pybit.unified_trading import HTTP  # type: ignore
 
 from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
-from app.models import Tick
+from app.models import Fee, Tick
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ByBit(BaseClient):
             try:
                 response = self._exchange_session.get_tickers(
                     category='spot',
-                    symbol=self._symbol,
+                    symbol=self.symbol,
                 )
                 tick_number += 1
                 logger.info('next price response {0}'.format(response.get('result')))
@@ -66,7 +66,7 @@ class ByBit(BaseClient):
 
         response = self._exchange_session.get_kline(
             category='spot',
-            symbol=self._symbol,
+            symbol=self.symbol,
             interval=interval_adopted,
             start=start_ms,
             limit=limit,
@@ -84,7 +84,7 @@ class ByBit(BaseClient):
         try:
             response = self._exchange_session.place_order(
                 category='spot',
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='Buy',
                 orderType='Limit',
                 qty=str(quantity),
@@ -106,7 +106,7 @@ class ByBit(BaseClient):
         try:
             response = self._exchange_session.place_order(
                 category='spot',
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='Sell',
                 orderType='Limit',
                 qty=str(quantity),
@@ -127,7 +127,7 @@ class ByBit(BaseClient):
         try:
             response = self._exchange_session.place_order(
                 category='spot',
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='Sell',
                 orderType='Market',
                 qty=str(quantity),
@@ -154,7 +154,7 @@ class ByBit(BaseClient):
         balance = sum(
             Decimal(coin.get('walletBalance', 0))
             for coin in response_balance.get('result')['list'][0]['coin']
-            if self._symbol.startswith(coin.get('coin'))
+            if self.symbol.startswith(coin.get('coin'))
         )
         return Decimal(balance)
 
@@ -174,24 +174,27 @@ class ByBit(BaseClient):
         actual_qty = Decimal(order_response['cumExecQty'] or 0)
         total_qty = Decimal(order_response['qty'] or 0)
         actual_rate = Decimal(order_response['avgPrice'] or 0)
-        fees = Decimal(order_response.get('cumExecFee') or 0)
-        logger.info(f"get order: {actual_rate=}, {actual_qty=}, {fees=}")
+        fee = Decimal(order_response.get('cumExecFee') or 0)
+        fee_ticker = order_response.get('feeCurrency')
+        logger.info(f"get order: {actual_rate=}, {actual_qty=}, {fee=} {fee_ticker=}")
 
-        return OrderResult(
+        response = OrderResult(
             is_filled=order_response.get('orderStatus') == 'Filled',
             qty=actual_qty,
             price=actual_rate,
-            fee=fees,
+            fee=fee,
+            raw_fees=[Fee(qty=fee, ticker=fee_ticker)] if fee and fee_ticker else [],
             qty_left=total_qty - actual_qty,
             order_id=order_response['orderId'] or '',
             raw_response=order_response,
         )
+        return response
 
     def cancel_order(self, order_id: str | int) -> dict | None:
         try:
             cancel_response = self._exchange_session.cancel_order(
                 category='spot',
-                symbol=self._symbol,
+                symbol=self.symbol,
                 orderId=order_id,
             )
 

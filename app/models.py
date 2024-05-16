@@ -4,14 +4,25 @@ from decimal import Decimal
 
 
 @dataclass
+class Fee:
+    qty: Decimal
+    ticker: str
+
+
+@dataclass
 class Position:
     amount: Decimal
+
     open_tick_number: int
     open_rate: Decimal
+    open_fee: Fee | None = None
     open_tick_datetime: datetime = datetime.utcnow()
+
     close_rate: Decimal = Decimal(0)
+    close_fee: Fee | None = None
     close_tick_number: int = -1
     close_tick_datetime: datetime = datetime.utcnow()
+
     grid_number: str = '0_0'
     basket_number: int = 0
 

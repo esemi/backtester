@@ -1,12 +1,13 @@
 import logging
 from datetime import datetime
 from decimal import Decimal
+from itertools import groupby
 from typing import Generator
 
 from binance.spot import Spot  # type: ignore
 
 from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
-from app.models import Tick
+from app.models import Fee, Tick
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class Binance(BaseClient):
         while True:
             try:
                 response = self._client_spot.book_ticker(
-                    symbol=self._symbol,
+                    symbol=self.symbol,
                 )
                 tick_number += 1
                 yield Tick(
@@ -49,7 +50,7 @@ class Binance(BaseClient):
 
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[HistoryPrice]:
         response = self._client_spot.klines(
-            symbol=self._symbol,
+            symbol=self.symbol,
             interval=interval,
             startTime=start_ms,
             limit=limit,
@@ -66,7 +67,7 @@ class Binance(BaseClient):
         price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='BUY',
                 type='LIMIT',
                 timeInForce='GTC' if is_gtc else 'FOK',
@@ -80,6 +81,7 @@ class Binance(BaseClient):
             return None
 
         fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
+        raw_fees = self._get_raw_fees(response.get('fills', []))
         actual_qty = Decimal(response['executedQty'])
         actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
         logger.info(f"buy: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
@@ -90,6 +92,7 @@ class Binance(BaseClient):
             qty_left=Decimal(response['origQty']) - actual_qty,
             price=actual_rate,
             fee=fees,
+            raw_fees=raw_fees,
             order_id=response['orderId'],
             raw_response=response,
         )
@@ -98,7 +101,7 @@ class Binance(BaseClient):
         price_str = '{:f}'.format(price)
         try:
             response = self._client_spot.new_order(
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='SELL',
                 type='LIMIT',
                 timeInForce='GTC' if is_gtc else 'FOK',
@@ -115,6 +118,7 @@ class Binance(BaseClient):
         actual_qty = Decimal(response['executedQty'])
         actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
         fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
+        raw_fees = self._get_raw_fees(response.get('fills', []))
         logger.info(f"sell: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
 
         return OrderResult(
@@ -123,6 +127,7 @@ class Binance(BaseClient):
             qty_left=Decimal(response['origQty']) - actual_qty,
             price=actual_rate,
             fee=fees,
+            raw_fees=raw_fees,
             order_id=response['orderId'],
             raw_response=response,
         )
@@ -130,7 +135,7 @@ class Binance(BaseClient):
     def sell_market(self, quantity: Decimal) -> dict | None:
         try:
             response = self._client_spot.new_order(
-                symbol=self._symbol,
+                symbol=self.symbol,
                 side='SELL',
                 type='MARKET',
                 quantity=quantity,
@@ -150,14 +155,14 @@ class Binance(BaseClient):
         balance = [
             Decimal(balance.get('free')) + Decimal(balance.get('locked'))
             for balance in response_balance.get('balances', [])
-            if self._symbol.startswith(balance.get('asset'))
+            if self.symbol.startswith(balance.get('asset'))
         ]
         return Decimal(0) if not balance else balance[0]
 
     def get_order(self, order_id: str | int) -> OrderResult | None:
         try:
             response = self._client_spot.get_order(
-                symbol=self._symbol,
+                symbol=self.symbol,
                 orderId=order_id,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
@@ -168,6 +173,7 @@ class Binance(BaseClient):
         actual_qty = Decimal(response['executedQty'])
         actual_rate = Decimal(response['cummulativeQuoteQty']) / (actual_qty or 1)
         fees = self._get_order_fee(response.get('fills', []), skip_bnb=True)
+        raw_fees = self._get_raw_fees(response.get('fills', []))
         logger.info(f"get order: {actual_rate=}, {actual_qty=}, {fees=}, {response.get('fills', [])=}")
 
         return OrderResult(
@@ -176,6 +182,7 @@ class Binance(BaseClient):
             qty_left=Decimal(response['origQty']) - actual_qty,
             price=actual_rate,
             fee=fees,
+            raw_fees=raw_fees,
             order_id=response['orderId'],
             raw_response=response,
         )
@@ -183,7 +190,7 @@ class Binance(BaseClient):
     def cancel_order(self, order_id: str | int) -> dict | None:
         try:
             response = self._client_spot.cancel_order(
-                symbol=self._symbol,
+                symbol=self.symbol,
                 orderId=order_id,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
             )
@@ -201,3 +208,22 @@ class Binance(BaseClient):
             for fill in fills
             if not skip_bnb or fill.get('commissionAsset') != 'BNB'
         ]))
+
+    @classmethod
+    def _get_raw_fees(cls, fills: list[dict]) -> list[Fee]:
+        groups = groupby(
+            iterable=fills,
+            key=lambda x: x.get('commissionAsset'),
+        )
+
+        fees_by_asset: list[Fee] = []
+        for asset_name, fees in groups:
+            qty = Decimal(sum([
+                Decimal(fee.get('commission', 0))
+                for fee in fees
+            ]))
+            if qty > 0:
+                fees_by_asset.append(
+                    Fee(qty=qty, ticker=asset_name),  # type: ignore
+                )
+        return fees_by_asset
