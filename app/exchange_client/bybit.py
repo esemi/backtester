@@ -149,7 +149,7 @@ class ByBit(BaseClient):
 
     def get_asset_balance(self) -> Decimal:
         response_balance = self._exchange_session.get_wallet_balance(
-            accountType='SPOT' if self._exchange_session.testnet else 'UNIFIED',
+            accountType='SPOT',
         )
         balance = sum(
             Decimal(coin.get('walletBalance', 0))

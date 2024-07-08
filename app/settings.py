@@ -28,7 +28,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     redis_dsn: RedisDsn = Field(default='redis://localhost/4')
     mysql_host: str = Field(default='localhost')
     mysql_user: str = Field(default='root')
-    mysql_password: str = Field(default='')
+    mysql_password: str = Field(default='root')
     mysql_db: str = Field(default='thesim')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
     xirr_cache_ttl: int = 60 * 10
