@@ -110,6 +110,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     show_stats_every_ticks: int = Field(default=1, description='Раз в сколько тиков выводить статистику')
     failure_limit: int = 100
     symbol: str = 'SOLUSDT'
+    symbol_pairs: list[str] = ['BTC', 'USDT', 'ETH']
     binance_api_key: str = ''
     binance_api_secret: str = ''
     bybit_api_key: str = ''

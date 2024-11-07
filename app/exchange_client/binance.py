@@ -152,10 +152,12 @@ class Binance(BaseClient):
 
     def get_asset_balance(self) -> Decimal:
         response_balance = self._client_spot.account()
+        logger.info('response_balance={0}'.format(response_balance))
+        raw_symbol = self._get_raw_symbol()
         balance = [
             Decimal(balance.get('free')) + Decimal(balance.get('locked'))
             for balance in response_balance.get('balances', [])
-            if self.symbol.startswith(balance.get('asset'))
+            if raw_symbol == balance.get('asset')
         ]
         return Decimal(0) if not balance else balance[0]
 
