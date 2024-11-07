@@ -1,3 +1,4 @@
+import re
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -5,6 +6,7 @@ from decimal import Decimal
 from typing import Generator
 
 from app.models import Fee, Tick
+from app.settings import app_settings
 
 
 @dataclass
@@ -71,3 +73,10 @@ class BaseClient(ABC):
     @abstractmethod
     def cancel_order(self, order_id: str | int) -> dict | None:
         pass
+
+    def _get_raw_symbol(self) -> str:
+        pattern_str = '|'.join(
+            f'({asset}$)'
+            for asset in app_settings.symbol_pairs
+        )
+        return re.sub(pattern_str, '', self.symbol)
