@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from itertools import groupby
 from typing import Generator
+from uuid import uuid4
 
 from binance.spot import Spot  # type: ignore
 
@@ -19,6 +20,7 @@ class Binance(BaseClient):
         api_key: str = '',
         api_secret: str = '',
         test_mode: bool = False,
+        rebate_code: str = '',
     ):
         super().__init__(symbol)
         self._client_spot = Spot(
@@ -26,6 +28,7 @@ class Binance(BaseClient):
             api_secret=api_secret or None,
             base_url='https://testnet.binance.vision' if test_mode else 'https://api.binance.com',
         )
+        self._rebate_code = rebate_code
 
     def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         tick_number: int = start_tick_numeration
@@ -75,6 +78,7 @@ class Binance(BaseClient):
                 price=price_str,
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
+                newClientOrderId=self._get_client_order_id(),
             )
         except Exception as exc:
             logger.exception(exc)
@@ -109,6 +113,7 @@ class Binance(BaseClient):
                 price=price_str,
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
+                newClientOrderId=self._get_client_order_id(),
             )
 
         except Exception as exc:
@@ -141,6 +146,7 @@ class Binance(BaseClient):
                 quantity=quantity,
                 recvWindow=15000,
                 timestamp=int(datetime.utcnow().timestamp() * 1000),
+                newClientOrderId=self._get_client_order_id(),
             )
 
         except Exception as exc:
@@ -202,6 +208,14 @@ class Binance(BaseClient):
 
         logger.info(f"cancel order: {response}")
         return response
+
+    def _get_client_order_id(self) -> str:
+        uid = uuid4().hex
+        return 'x-{0}-{1}-{2}'.format(
+            self._rebate_code,
+            uid,
+            int(datetime.utcnow().timestamp() * 1000),
+        )
 
     @classmethod
     def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:

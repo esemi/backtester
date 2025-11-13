@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
-        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
         continue-on-error: true
         env:
           TARGET_DIR: /home/${{ matrix.bot-name }}
@@ -177,7 +177,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
-        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
         continue-on-error: true
         env:
           TARGET_DIR: /home/${{ matrix.bot-name }}
@@ -279,7 +279,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
-        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
         continue-on-error: true
         env:
           TARGET_DIR: /home/${{ matrix.bot-name }}

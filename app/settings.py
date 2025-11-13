@@ -113,6 +113,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     symbol_pairs: list[str] = ['BTC', 'USDT', 'ETH']
     binance_api_key: str = ''
     binance_api_secret: str = ''
+    binance_rebate_code: str = 'KG9TQ93V'
     bybit_api_key: str = ''
     bybit_api_secret: str = ''
     dry_run: bool = Field(default=True)

@@ -80,6 +80,7 @@ def _get_exchange_client(name: str) -> BaseClient:
             api_key=app_settings.binance_api_key,
             api_secret=app_settings.binance_api_secret,
             test_mode=app_settings.exchange_test_mode,
+            rebate_code=app_settings.binance_rebate_code,
         ),
         'bybit': ByBit(
             symbol=app_settings.symbol,
