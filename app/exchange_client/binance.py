@@ -215,7 +215,7 @@ class Binance(BaseClient):
             self._rebate_code,
             uid,
             int(datetime.utcnow().timestamp() * 1000),
-        )
+        )[:36]
 
     @classmethod
     def _get_order_fee(cls, fills: list[dict], skip_bnb: bool = False) -> Decimal:

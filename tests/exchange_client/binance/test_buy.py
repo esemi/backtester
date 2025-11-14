@@ -11,6 +11,7 @@ def test_buy_happy_path():
         test_mode=True,
         api_key=app_settings.binance_api_key,
         api_secret=app_settings.binance_api_secret,
+        rebate_code=app_settings.binance_rebate_code,
     )
     actual_price = next(client.next_price()).ask + Decimal(5)
     quantity = calculate_ticker_quantity(

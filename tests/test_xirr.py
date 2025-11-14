@@ -68,4 +68,3 @@ def test_calculate_xirr_too_short_period():
     res = calculate_xirr(positions, Decimal('100500'))
 
     assert res == Decimal('0')
-
