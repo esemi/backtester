@@ -91,9 +91,9 @@ def _get_exchange_client(name: str) -> BaseClient:
     }[name]
 
 
-def _save_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
+def _save_strategy_state(strategy_instance: BasicStrategy) -> None:
     serialized_state = pickle.dumps(strategy_instance.get_state_for_save())
-    storage.save_state(unique_instance_name, serialized_state)
+    storage.save_state(serialized_state)
     logger.info('state saved to redis')
 
 

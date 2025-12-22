@@ -1,4 +1,5 @@
 """Temporary storage place for save open positions between bot restart."""
+import os
 from datetime import datetime
 from decimal import Decimal
 
@@ -23,23 +24,8 @@ STATS_KEY: str = 'backtester:trader-bot:{0}:stats'
 STATE_KEY: str = 'backtester:trader-bot:{0}'
 
 
-def save_stats_fallback(name: str, stats: dict) -> None:
-    prepared_stats = {}
-    for key, value in stats.items():
-        if value is None:
-            value = ''
-        if isinstance(value, datetime):
-            value = value.isoformat()
-        if isinstance(value, Decimal) or isinstance(value, float):
-            value = str(value)
-
-        prepared_stats[key] = value
-
-    connection.hset(STATS_KEY.format(name), mapping=prepared_stats)
-
-
 def save_stats(bot_name: str, stats: dict) -> None:
-    save_stats_fallback(bot_name, stats)
+    _save_stats_fallback(bot_name, stats)
 
     columns = [
         column_name
@@ -71,14 +57,37 @@ def get_saved_stats(bot_name: str) -> dict | None:
         return cursor.fetchone()
 
 
-def save_state(name: str, state: bytes) -> None:
-    connection.set(STATE_KEY.format(name), state)
+def save_state(state: bytes) -> None:
+    with open(app_settings.state_filepath, mode='wb') as f:
+        f.write(state)
 
 
 def get_saved_state(name: str) -> bytes | None:
-    response = connection.get(STATE_KEY.format(name))
-    return response
+    try:
+        with open(app_settings.state_filepath, mode='rb') as f:
+            return f.read()
+    except FileNotFoundError:
+        return connection.get(STATE_KEY.format(name))
 
 
 def drop_state(name: str) -> None:
     connection.delete(STATE_KEY.format(name))
+    try:
+        os.unlink(app_settings.state_filepath)
+    except FileNotFoundError:
+        pass
+
+
+def _save_stats_fallback(name: str, stats: dict) -> None:
+    prepared_stats = {}
+    for key, value in stats.items():
+        if value is None:
+            value = ''
+        if isinstance(value, datetime):
+            value = value.isoformat()
+        if isinstance(value, Decimal) or isinstance(value, float):
+            value = str(value)
+
+        prepared_stats[key] = value
+
+    connection.hset(STATS_KEY.format(name), mapping=prepared_stats)
