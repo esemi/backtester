@@ -63,7 +63,7 @@ def main() -> None:
             drop_state(app_settings.instance_name)
             break
 
-        _save_strategy_state(app_settings.instance_name, strategy)
+        _save_strategy_state(strategy)
 
         if tick.number and tick.number % app_settings.show_stats_every_ticks == 0:
             strategy.save_results()
