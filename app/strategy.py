@@ -1,6 +1,5 @@
 import copy
 import logging
-import time
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
@@ -15,7 +14,6 @@ from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
 from app.telemetry.client import DummyClient, TelemetryClient
-from app.xirr import calculate_xirr
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +24,6 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
     def __init__(self, exchange_client: BaseClient, dry_run: bool = False) -> None:
         super().__init__(exchange_client, dry_run)
 
-        self._xirr_cached_ttl: float = time.time()
-        self._xirr_cached: Decimal = Decimal(0)
         self._start_date: datetime = datetime.utcnow()
         self._open_positions: list[Position] = []
         self._closed_positions: list[Position] = []
@@ -256,20 +252,12 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             logger.debug(f'debug: {liquidation_open_amount=} {liquidation_qty=}')
             open_position_average_rate = Decimal(liquidation_open_amount / (liquidation_qty or Decimal(1)))
 
-        if self._xirr_cached_ttl <= time.time():
-            logger.info('calculate XIRR')
-            self._xirr_cached = calculate_xirr(
-                positions=self._closed_positions + self._open_positions,
-                actual_rate=self.get_last_tick().bid,
-            )
-            self._xirr_cached_ttl = time.time() + app_settings.xirr_cache_ttl
-
         last_day_threshold = datetime.utcnow() - timedelta(hours=24)
 
         return {
             'start_date': self._start_date,
 
-            'xirr': self._xirr_cached,
+            'xirr': Decimal(0),
 
             'min_open_position_amount_usd': min_open_rate,
             'min_open_position_amount_btc': min_open_rate,
