@@ -15,8 +15,8 @@ def test_happy_path():
     state = pickle.dumps(test_state)
 
     save_state(state)
-    response = get_saved_state('test:key')
-    drop_state('test:key')
+    response = get_saved_state()
+    drop_state()
 
     decoded_state = pickle.loads(response)
     assert response == state
@@ -24,12 +24,15 @@ def test_happy_path():
 
 
 def test_get_state_not_found():
-    response = get_saved_state('invalid-key')
+    drop_state()
+
+    response = get_saved_state()
 
     assert response is None
 
 
 def test_drop_state_not_found():
-    assert get_saved_state('invalid-key') is None
+    drop_state()
+    assert get_saved_state() is None
 
-    drop_state('invalid-key')
+    drop_state()

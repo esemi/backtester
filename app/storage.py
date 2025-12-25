@@ -21,7 +21,6 @@ connection_mysql = pymysql.connect(
 )
 
 STATS_KEY: str = 'backtester:trader-bot:{0}:stats'
-STATE_KEY: str = 'backtester:trader-bot:{0}'
 
 
 def save_stats(bot_name: str, stats: dict) -> None:
@@ -62,16 +61,15 @@ def save_state(state: bytes) -> None:
         f.write(state)
 
 
-def get_saved_state(name: str) -> bytes | None:
+def get_saved_state() -> bytes | None:
     try:
         with open(app_settings.state_filepath, mode='rb') as f:
             return f.read()
     except FileNotFoundError:
-        return connection.get(STATE_KEY.format(name))
+        return None
 
 
-def drop_state(name: str) -> None:
-    connection.delete(STATE_KEY.format(name))
+def drop_state() -> None:
     try:
         os.unlink(app_settings.state_filepath)
     except FileNotFoundError:

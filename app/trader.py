@@ -34,7 +34,7 @@ def main() -> None:
         dry_run=app_settings.dry_run,
     )
 
-    _restore_strategy_state(app_settings.instance_name, strategy)
+    _restore_strategy_state(strategy)
     start_tick_numeration = strategy.get_last_tick().number if strategy.has_tick_history() else -1
 
     for tick in exchange_client.next_price(start_tick_numeration):
@@ -60,7 +60,7 @@ def main() -> None:
 
         if not go_to_next_step:
             logger.info('end trading by strategy reason')
-            drop_state(app_settings.instance_name)
+            drop_state()
             break
 
         _save_strategy_state(strategy)
@@ -94,15 +94,15 @@ def _get_exchange_client(name: str) -> BaseClient:
 def _save_strategy_state(strategy_instance: BasicStrategy) -> None:
     serialized_state = pickle.dumps(strategy_instance.get_state_for_save())
     storage.save_state(serialized_state)
-    logger.info('state saved to redis')
+    logger.info('state saved')
 
 
-def _restore_strategy_state(unique_instance_name: str, strategy_instance: BasicStrategy) -> None:
-    saved_state = storage.get_saved_state(unique_instance_name)
+def _restore_strategy_state(strategy_instance: BasicStrategy) -> None:
+    saved_state = storage.get_saved_state()
     if not saved_state:
         return
 
-    logger.info('previous state restored by redis')
+    logger.info('previous state restored')
     deserialized_state = pickle.loads(saved_state)
     strategy_instance.restore_state_from(deserialized_state)
 
