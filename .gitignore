@@ -3,4 +3,4 @@ __pycache__
 rates/*.csv
 .coverage
 backtest.log
-.pickle
+*.pickle

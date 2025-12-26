@@ -6,3 +6,4 @@ pybit==5.8.0
 redis[hiredis]==5.0.1
 types-redis==4.6.0.11
 PyMySQL[rsa]==1.1.0
+pympler

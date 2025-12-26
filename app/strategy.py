@@ -3,6 +3,8 @@ import logging
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
+from pympler import asizeof
+
 from app import baskets, storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
@@ -129,15 +131,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         return True
 
     def show_debug_info(self) -> None:
-        open_positions_amount = sum(
-            [pos.amount for pos in self._open_positions]
-        )
-        closed_positions_amount = sum(
-            [pos.amount for pos in self._closed_positions]
-        )
-
-        logger.info(f'debug: {self._actual_qty_balance=}, {open_positions_amount=}, {closed_positions_amount=}')
-        logger.info(f'debug: {len(self._open_positions)=} {len(self._closed_positions)=}')
+        strategy_size = asizeof.asizeof(self)
+        closed_positions_size = asizeof.asizeof(self._closed_positions)
+        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {len(self._closed_positions)=} {strategy_size=} {closed_positions_size=}')
 
     def show_results(self) -> None:
         results = self.get_results()
