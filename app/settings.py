@@ -32,8 +32,6 @@ class AppSettings(BaseSettings, extra='ignore'):
     mysql_db: str = Field(default='thesim')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
     state_filepath: str = os.path.join(APP_PATH, 'state.pickle')
-    xirr_cache_ttl: int = 60 * 10
-
 
     # strategy settings
 

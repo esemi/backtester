@@ -9,6 +9,14 @@ class Fee:
     ticker: str
 
 
+@dataclass()
+class StrategyStats:
+    buy_amount_without_current_opened: Decimal = Decimal(0)
+    sell_amount_without_current_opened: Decimal = Decimal(0)
+    closed_deals_qty: Decimal = Decimal(0)
+    closed_deals_amount: int = 0
+
+
 @dataclass
 class Position:
     amount: Decimal

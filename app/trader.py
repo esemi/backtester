@@ -105,6 +105,7 @@ def _restore_strategy_state(strategy_instance: BasicStrategy) -> None:
     logger.info('previous state restored')
     deserialized_state = pickle.loads(saved_state)
     strategy_instance.restore_state_from(deserialized_state)
+    strategy_instance.show_debug_info()
 
 
 def _continue_or_break() -> None:

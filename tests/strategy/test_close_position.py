@@ -21,7 +21,8 @@ def test_close_position_exception():
 
     assert response is False
     assert len(strategy._open_positions) == 1
-    assert len(strategy._closed_positions) == 0
+    assert strategy._stats.buy_amount_without_current_opened == 0
+    assert strategy._last_closed_deal is None
 
 
 def test_close_position_expired():
@@ -44,7 +45,8 @@ def test_close_position_expired():
 
     assert response is False
     assert len(strategy._open_positions) == 1
-    assert len(strategy._closed_positions) == 0
+    assert strategy._stats.buy_amount_without_current_opened == 0
+    assert strategy._last_closed_deal is None
 
 
 def test_close_position_filled(exchange_client_pass_mock):
@@ -60,8 +62,8 @@ def test_close_position_filled(exchange_client_pass_mock):
 
     assert response is True
     assert len(strategy._open_positions) == 0
-    assert len(strategy._closed_positions) == 1
-    assert strategy._closed_positions[0].amount == Decimal('1.1')
-    assert strategy._closed_positions[0].close_rate == Decimal('9.5791433891')
-    assert strategy._closed_positions[0].close_tick_number == 999
-    assert strategy._closed_positions[0].close_tick_datetime is not None
+    assert strategy._stats.buy_amount_without_current_opened == position.open_rate * position.amount
+    assert strategy._stats.sell_amount_without_current_opened == Decimal('9.5791433891') * position.amount
+    assert strategy._stats.closed_deals_qty == position.amount
+    assert strategy._stats.closed_deals_amount == 1
+    assert strategy._last_closed_deal.close_rate == Decimal('9.5791433891')

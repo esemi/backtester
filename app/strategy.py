@@ -3,13 +3,15 @@ import logging
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
+from pympler import asizeof
+
 from app import baskets, storage
 from app.exchange_client.base import BaseClient, OrderResult
 from app.fees_utils.fees_accounting import FeesAccountingMixin
 from app.floating_steps import FloatingSteps
 from app.grid import get_grid_num_by_price
 from app.liquidation import Liquidation
-from app.models import FloatingMatrix, OnHoldPositions, Position, Tick, Fee
+from app.models import FloatingMatrix, OnHoldPositions, Position, Tick, Fee, StrategyStats
 from app.settings import app_settings
 from app.state_utils.state_saver import StateSaverMixin
 from app.stoploss import StopLoss
@@ -26,12 +28,13 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         self._start_date: datetime = datetime.utcnow()
         self._open_positions: list[Position] = []
-        self._closed_positions: list[Position] = []
         self._max_onhold_positions: OnHoldPositions | None = None
         self._max_sell_percent: Decimal = Decimal(0)
         self._max_sell_percent_tick: int = 0
         self._ticks_history: list[Tick] = []
         self._first_open_position_rate: Decimal = Decimal(0)
+        self._stats: StrategyStats = StrategyStats()
+        self._last_closed_deal: Position | None = None
 
         self._current_pl: Decimal = Decimal(0)
         self._stop_loss = StopLoss()
@@ -112,8 +115,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
-        sell_price = None if not sale_completed else self._closed_positions[-1].close_rate
-        sell_fee = None if not sale_completed else self._closed_positions[-1].close_fee
+        sell_price = None
+        sell_fee = None
+        if sale_completed and self._last_closed_deal:
+            sell_price = self._last_closed_deal.close_rate
+            sell_fee = self._last_closed_deal.close_fee
 
         previous_tick = self._get_previous_tick()
         if buy_price or sell_price or tick.ask != previous_tick.ask or tick.bid != previous_tick.bid:
@@ -129,15 +135,8 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         return True
 
     def show_debug_info(self) -> None:
-        open_positions_amount = sum(
-            [pos.amount for pos in self._open_positions]
-        )
-        closed_positions_amount = sum(
-            [pos.amount for pos in self._closed_positions]
-        )
-
-        logger.info(f'debug: {self._actual_qty_balance=}, {open_positions_amount=}, {closed_positions_amount=}')
-        logger.info(f'debug: {len(self._open_positions)=} {len(self._closed_positions)=}')
+        strategy_size = asizeof.asizeof(self) / 1024
+        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {self._stats.closed_deals_amount=} {self._stats.closed_deals_qty=} {strategy_size=}KB')
 
     def show_results(self) -> None:
         results = self.get_results()
@@ -206,24 +205,16 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         storage.save_stats(app_settings.instance_name, self.get_results())
 
     def get_results(self) -> dict:
-        buy_amount_without_current_opened = sum(
-            [pos.open_rate * pos.amount for pos in self._closed_positions]
-        )
-        buy_without_current_opened = sum(
-            [pos.amount for pos in self._closed_positions]
-        )
+        buy_amount_without_current_opened = self._stats.buy_amount_without_current_opened
+        buy_without_current_opened = self._stats.closed_deals_qty
         buy_amount_total = buy_amount_without_current_opened + sum(
             [pos.open_rate * pos.amount for pos in self._open_positions]
         )
         buy_total = buy_without_current_opened + sum(
             [pos.amount for pos in self._open_positions]
         )
-        sell_amount_without_current_opened = sum(
-            [pos.close_rate * pos.amount for pos in self._closed_positions]
-        )
-        sell_without_current_opened = sum(
-            [pos.amount for pos in self._closed_positions]
-        )
+        sell_amount_without_current_opened = self._stats.sell_amount_without_current_opened
+        sell_without_current_opened = self._stats.closed_deals_qty
         liquidation_amount = sum(
             [self.get_last_tick().bid * pos.amount for pos in self._open_positions]
         )
@@ -251,8 +242,6 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             )
             logger.debug(f'debug: {liquidation_open_amount=} {liquidation_qty=}')
             open_position_average_rate = Decimal(liquidation_open_amount / (liquidation_qty or Decimal(1)))
-
-        last_day_threshold = datetime.utcnow() - timedelta(hours=24)
 
         return {
             'start_date': self._start_date,
@@ -302,15 +291,11 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'onhold_qty': self._max_onhold_positions.quantity if self._max_onhold_positions else 0,
             'onhold_tick_number': self._max_onhold_positions.tick_number if self._max_onhold_positions else 0,
 
-            'count_buy_transactions': len(self._closed_positions) + len(self._open_positions),
-            'count_sell_transactions': len(self._closed_positions),
+            'count_buy_transactions': self._stats.closed_deals_amount + len(self._open_positions),
+            'count_sell_transactions': self._stats.closed_deals_amount,
             'count_unsuccessful_deals': len(self._open_positions),
-            'count_success_deals': len(self._closed_positions),
-            'last_24h_success_deals': len([
-                position
-                for position in self._closed_positions
-                if position.close_tick_datetime >= last_day_threshold
-            ]),
+            'count_success_deals': self._stats.closed_deals_amount,
+            'last_24h_success_deals': 0,
         }
 
     def _get_invest_body(self) -> Decimal:
@@ -453,7 +438,12 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         position_for_close.close_fee = order_response.raw_fees[0] if order_response.raw_fees else None
         position_for_close.close_tick_number = tick_number
         position_for_close.close_tick_datetime = datetime.utcnow()
-        self._closed_positions.append(position_for_close)
+
+        self._stats.buy_amount_without_current_opened += position_for_close.open_rate * position_for_close.amount
+        self._stats.sell_amount_without_current_opened += position_for_close.close_rate * position_for_close.amount
+        self._stats.closed_deals_qty += position_for_close.amount
+        self._stats.closed_deals_amount += 1
+        self._last_closed_deal = position_for_close
         return True
 
     def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:

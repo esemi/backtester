@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from mypy.state import state
+
 from app.models import Position, Tick
 from app.settings import app_settings
 from app.strategy import BasicStrategy
@@ -12,7 +14,7 @@ def test_init_buy(exchange_client_pass_mock):
 
     assert response is True
     assert len(strategy._open_positions) == 1
-    assert not strategy._closed_positions
+    assert not strategy._stats.closed_deals_amount
 
 
 def test_break_by_enable_flag(exchange_client_pass_mock, strategy_disabled):
@@ -71,12 +73,11 @@ def test_sell_something(exchange_client_pass_mock):
     assert response is True
     assert strategy._open_positions[0].open_rate == hold_price
     assert strategy._open_positions[0].open_tick_number == 2
-    assert len(strategy._closed_positions) == 3
-    for position in strategy._closed_positions:
-        assert position.open_rate == buy_price
-        assert position.open_tick_number == 0
-        assert position.close_rate > 0.0
-        assert position.close_tick_number == 3
+    assert strategy._stats.closed_deals_amount == 3
+    assert strategy._last_closed_deal.open_rate == buy_price
+    assert strategy._last_closed_deal.open_tick_number == 0
+    assert strategy._last_closed_deal.close_rate > 0.0
+    assert strategy._last_closed_deal.close_tick_number == 3
 
 
 def test_sell_something_decline_by_ask_qty(exchange_client_pass_mock):
@@ -91,7 +92,7 @@ def test_sell_something_decline_by_ask_qty(exchange_client_pass_mock):
     response = strategy.tick(Tick(number=2, bid=Decimal(minimal_sell_price), ask=Decimal(100500), bid_qty=Decimal('1.9'), ask_qty=Decimal(100500)))
 
     assert response is True
-    assert len(strategy._closed_positions) == 1
+    assert strategy._stats.closed_deals_amount == 1
 
 
 def test_hard_stop_loss_fired(exchange_client_pass_mock, hard_stop_loss_enabled: Decimal):
