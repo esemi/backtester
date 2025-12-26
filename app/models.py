@@ -9,7 +9,7 @@ class Fee:
     ticker: str
 
 
-@dataclass(slots=False)
+@dataclass
 class Position:
     amount: Decimal
 

@@ -131,9 +131,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         return True
 
     def show_debug_info(self) -> None:
-        strategy_size = asizeof.asizeof(self)
-        closed_positions_size = asizeof.asizeof(self._closed_positions)
-        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {len(self._closed_positions)=} {strategy_size=} {closed_positions_size=}')
+        strategy_size = asizeof.asizeof(self) / 1024
+        closed_positions_size = asizeof.asizeof(self._closed_positions) / 1024
+        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {len(self._closed_positions)=} {strategy_size=}KB {closed_positions_size=}KB')
 
     def show_results(self) -> None:
         results = self.get_results()
