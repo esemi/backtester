@@ -136,7 +136,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
     def show_debug_info(self) -> None:
         strategy_size = asizeof.asizeof(self) / 1024
-        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {self._stats.closed_deals_amount=} {self._stats.closed_deals_qty=} {strategy_size=}KB')
+        logger.info(f'debug: {self._actual_qty_balance=}, {len(self._open_positions)=} {self._stats.closed_deals_amount=} {self._stats.closed_deals_qty=} {self._stats.last_24h_success_deals.get_total()=} {strategy_size=}KB')
 
     def show_results(self) -> None:
         results = self.get_results()
@@ -295,7 +295,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             'count_sell_transactions': self._stats.closed_deals_amount,
             'count_unsuccessful_deals': len(self._open_positions),
             'count_success_deals': self._stats.closed_deals_amount,
-            'last_24h_success_deals': 0,
+            'last_24h_success_deals': self._stats.last_24h_success_deals.get_total(),
         }
 
     def _get_invest_body(self) -> Decimal:
@@ -444,6 +444,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
         self._stats.closed_deals_qty += position_for_close.amount
         self._stats.closed_deals_amount += 1
         self._last_closed_deal = position_for_close
+        self._stats.last_24h_success_deals.inc()
         return True
 
     def _sell_something(self, bid_price: Decimal, bid_qty: Decimal, tick_number: int) -> bool:

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
+from app.state_utils.sliding_counter import SlidingWindowCounter
+
 
 @dataclass
 class Fee:
@@ -15,6 +17,7 @@ class StrategyStats:
     sell_amount_without_current_opened: Decimal = Decimal(0)
     closed_deals_qty: Decimal = Decimal(0)
     closed_deals_amount: int = 0
+    last_24h_success_deals: SlidingWindowCounter = SlidingWindowCounter()
 
 
 @dataclass

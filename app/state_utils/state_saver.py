@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.models import OnHoldPositions, Position, Tick, StrategyStats
+from app.state_utils.sliding_counter import SlidingWindowCounter
 
 
 class StateSaverMixin:
@@ -42,7 +43,8 @@ class StateSaverMixin:
         self._stats = saved_state.get('_stats') or StrategyStats()
         self._last_closed_deal = saved_state.get('_last_closed_deal') or None
 
-        closed_positions = saved_state.get('_closed_positions') or []  # todo remove
+        # todo remove after deploy to all bots
+        closed_positions = saved_state.get('_closed_positions') or []
         if not self._last_closed_deal and closed_positions:
             self._last_closed_deal = closed_positions[-1]
             self._stats.buy_amount_without_current_opened = sum(
@@ -55,3 +57,7 @@ class StateSaverMixin:
                 [pos.amount for pos in closed_positions]
             )
             self._stats.closed_deals_amount = len(closed_positions)
+            self._stats.last_24h_success_deals = SlidingWindowCounter()
+            for pos in closed_positions:
+                self._stats.last_24h_success_deals.inc(count=1, ts=pos.close_tick_datetime.timestamp())
+            self._stats.last_24h_success_deals.get_total()
