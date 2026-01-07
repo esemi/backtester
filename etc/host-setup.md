@@ -24,15 +24,22 @@ usermod -a -G supervisor admin-agent
 add-apt-repository ppa:ondrej/php
 apt install php8.2 php8.2-fpm php8.2-curl php8.2-intl php8.2-mbstring php8.2-mysql php8.2-zip php8.2-gd php8.2-xml php8.2-soap php8.2-bcmath php8.2-bz2
 apt install nginx composer
-cp etc/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf
+cp etc/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf # нужно из папки etc файлы скопировать
 
 
 adduser -q trader1
 usermod -a -G supervisor trader1
 
-cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
+cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно из папки etc файлы скопировать
 
-# run deploy from github actions
+# run deploy from github actions (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
+# сохраняем локально проект и далее в терминале
+# git checkout master
+# git pull
+# git checkout deploy-bots
+# git pull
+# git rebase master
+# git push -f
 
 mysql_secure_installation
 mysql -u root -p
