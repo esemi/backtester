@@ -48,12 +48,14 @@ sudo service supervisor restart
 # run deploy from github actions 
 # (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
 # сохраняем локально проект и далее в терминале
+
 git checkout master      # переключиться на ветку master.
 git pull                 # подтянуть изменения с удалённого репозитория в текущую ветку (master).
 git checkout deploy-bots # переключиться на ветку deploy-bots.
 git pull                 # подтянуть изменения в deploy-bots.
 git rebase master        # перенести (перепроиграть) коммиты deploy-bots поверх актуального master.
 git push -f              # принудительно отправить изменения в удалённую deploy-bots (переписывает историю на сервере).
+
 
 mysql_secure_installation
 mysql -u root -p
