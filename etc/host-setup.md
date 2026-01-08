@@ -34,12 +34,12 @@ cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно 
 
 # run deploy from github actions (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
 # сохраняем локально проект и далее в терминале
-# git checkout master
-# git pull
-# git checkout deploy-bots
-# git pull
-# git rebase master
-# git push -f
+# git checkout master — переключиться на ветку master.
+# git pull — подтянуть изменения с удалённого репозитория в текущую ветку (master).
+# git checkout deploy-bots — переключиться на ветку deploy-bots.
+# git pull — подтянуть изменения в deploy-bots.
+# git rebase master — перенести (перепроиграть) коммиты deploy-bots поверх актуального master.
+# git push -f — принудительно отправить изменения в удалённую deploy-bots (переписывает историю на сервере).
 
 mysql_secure_installation
 mysql -u root -p
