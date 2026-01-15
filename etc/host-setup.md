@@ -63,4 +63,11 @@ FLUSH PRIVILEGES;
 service supervisor restart
 
 # repeat deploy from github actions
+
+#как пушить изменения в файле с локально на гит
+git status -sb                                                #Проверить статус:
+git add etc/host-setup.md .github/workflows/deploy-pool.yml   #Добавить нужные файлы:
+git commit -m "Update deploy pool and host setup docs"        #Сделать коммит:
+git push origin master                                        #Запушить:
+
 ```
