@@ -29,17 +29,28 @@ cp etc/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf # н�
 
 adduser -q trader1
 usermod -a -G supervisor trader1
+# чтоб массов это сделать и PASS123 меняем на свой пароль
+PASS='PASS123'
+for i in $(seq 1 50); do
+  adduser -q --disabled-password --gecos "" trader$i
+  usermod -a -G supervisor trader$i
+  echo "trader$i:$PASS" | chpasswd
+done
 
-cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно из папки etc файлы скопировать
+scp C:\Users\serjl\backtester\etc\supervisor-example.conf ubuntu@51.91.100.53:/tmp/ #Сделай так на локальной машине (PowerShell):
+#cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно из папки etc файлы скопировать
+sudo cp /tmp/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
+sudo service supervisor restart
 
-# run deploy from github actions (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
+# run deploy from github actions 
+# (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
 # сохраняем локально проект и далее в терминале
-# git checkout master — переключиться на ветку master.
-# git pull — подтянуть изменения с удалённого репозитория в текущую ветку (master).
-# git checkout deploy-bots — переключиться на ветку deploy-bots.
-# git pull — подтянуть изменения в deploy-bots.
-# git rebase master — перенести (перепроиграть) коммиты deploy-bots поверх актуального master.
-# git push -f — принудительно отправить изменения в удалённую deploy-bots (переписывает историю на сервере).
+git checkout master      # переключиться на ветку master.
+git pull                 # подтянуть изменения с удалённого репозитория в текущую ветку (master).
+git checkout deploy-bots # переключиться на ветку deploy-bots.
+git pull                 # подтянуть изменения в deploy-bots.
+git rebase master        # перенести (перепроиграть) коммиты deploy-bots поверх актуального master.
+git push -f              # принудительно отправить изменения в удалённую deploy-bots (переписывает историю на сервере).
 
 mysql_secure_installation
 mysql -u root -p
@@ -49,4 +60,11 @@ FLUSH PRIVILEGES;
 service supervisor restart
 
 # repeat deploy from github actions
+
+#как пушить изменения в файле с локально на гит
+git status -sb                                                #Проверить статус:
+git add etc/host-setup.md .github/workflows/deploy-pool.yml   #Добавить нужные файлы:
+git commit -m "Update deploy pool and host setup docs"        #Сделать коммит:
+git push origin master                                        #Запушить:
+
 ```
