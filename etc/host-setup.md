@@ -33,7 +33,7 @@ sudo service supervisor restart
 adduser -q trader1
 usermod -a -G supervisor trader1
 # чтоб массов это сделать и PASS123 меняем на свой пароль
-PASS='yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6'
+PASS='PASS123'
 for i in $(seq 1 50); do
   adduser -q --disabled-password --gecos "" trader$i
   usermod -a -G supervisor trader$i
