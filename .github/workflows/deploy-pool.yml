@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - deploy-bots
-
+  workflow_dispatch:
+    
 jobs:
   # batch1:
   #   runs-on: ubuntu-latest
