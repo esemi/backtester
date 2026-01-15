@@ -24,15 +24,29 @@ usermod -a -G supervisor admin-agent
 add-apt-repository ppa:ondrej/php
 apt install php8.2 php8.2-fpm php8.2-curl php8.2-intl php8.2-mbstring php8.2-mysql php8.2-zip php8.2-gd php8.2-xml php8.2-soap php8.2-bcmath php8.2-bz2
 apt install nginx composer
-cp etc/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf # нужно из папки etc файлы скопировать
+scp C:\Users\serjl\backtester\etc\supervisor-admin-agent.conf ubuntu@51.91.100.53:/tmp/ #Сделай так на локальной машине (PowerShell):
+#cp etc/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf # нужно из папки etc файлы скопировать
+sudo cp /tmp/supervisor-admin-agent.conf /etc/supervisor/conf.d/admin-agent.conf
+sudo service supervisor restart
 
 
 adduser -q trader1
 usermod -a -G supervisor trader1
+# чтоб массов это сделать и PASS123 меняем на свой пароль
+PASS='yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6'
+for i in $(seq 1 50); do
+  adduser -q --disabled-password --gecos "" trader$i
+  usermod -a -G supervisor trader$i
+  echo "trader$i:$PASS" | chpasswd
+done
 
-cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно из папки etc файлы скопировать
+scp C:\Users\serjl\backtester\etc\supervisor-example.conf ubuntu@51.91.100.53:/tmp/ #Сделай так на локальной машине (PowerShell):
+#cp etc/supervisor-example.conf /etc/supervisor/conf.d/traders.conf # нужно из папки etc файлы скопировать
+sudo cp /tmp/supervisor-example.conf /etc/supervisor/conf.d/traders.conf
+sudo service supervisor restart
 
-# run deploy from github actions (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
+# run deploy from github actions 
+# (нужно ещё ветку deploy-bots сделать rebase от master, а также добавить в файл deploy-pool.yml новый сервер )
 # сохраняем локально проект и далее в терминале
 # git checkout master — переключиться на ветку master.
 # git pull — подтянуть изменения с удалённого репозитория в текущую ветку (master).

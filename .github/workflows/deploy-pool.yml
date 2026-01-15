@@ -367,7 +367,7 @@ jobs:
           - 'trader49'
           - 'trader50'
         host-name:
-          - '46.224.202.76'
+          - '51.91.100.53'
     steps:
       - name: checkout
         uses: actions/checkout@v2
