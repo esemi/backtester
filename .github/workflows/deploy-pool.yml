@@ -66,9 +66,9 @@ jobs:
         host-name:
         # - '62.171.151.136' #Contabo Bots_01_test
         # - '62.171.176.152' #Contabo Bots_02_test
-         - '62.171.179.224' #Contabo Bots_03_test
-        # - '95.111.225.51'  #Contabo Bots_04_test
-        # - '95.111.230.172' #Contabo Bots_05_test
+        # - '62.171.179.224' #Contabo Bots_03_test
+         - '95.111.225.51'  #Contabo Bots_04_test
+         - '95.111.230.172' #Contabo Bots_05_test
 
     steps:
       - name: checkout
