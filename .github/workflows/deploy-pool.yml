@@ -7,208 +7,206 @@ on:
   workflow_dispatch:
     
 jobs:
-  # batch1:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     max-parallel: 20
-  #     matrix:
-  #       bot-name:
-  #         - 'trader1'
-  #         - 'trader2'
-  #         - 'trader3'
-  #         - 'trader4'
-  #         - 'trader5'
-  #         - 'trader6'
-  #         - 'trader7'
-  #         - 'trader8'
-  #         - 'trader9'
-  #         - 'trader10'
-  #         - 'trader11'
-  #         - 'trader12'
-  #         - 'trader13'
-  #         - 'trader14'
-  #         - 'trader15'
-  #         - 'trader16'
-  #         - 'trader17'
-  #         - 'trader18'
-  #         - 'trader19'
-  #         - 'trader20'
-  #         - 'trader21'
-  #         - 'trader22'
-  #         - 'trader23'
-  #         - 'trader24'
-  #         - 'trader25'
-  #         - 'trader26'
-  #         - 'trader27'
-  #         - 'trader28'
-  #         - 'trader29'
-  #         - 'trader30'
-  #         - 'trader31'
-  #         - 'trader32'
-  #         - 'trader33'
-  #         - 'trader34'
-  #         - 'trader35'
-  #         - 'trader36'
-  #         - 'trader37'
-  #         - 'trader38'
-  #         - 'trader39'
-  #         - 'trader40'
-  #         - 'trader41'
-  #         - 'trader42'
-  #         - 'trader43'
-  #         - 'trader44'
-  #         - 'trader45'
-  #         - 'trader46'
-  #         - 'trader47'
-  #         - 'trader48'
-  #         - 'trader49'
-  #         - 'trader50'
-  #       host-name:
-  #         - '128.199.114.80'
-  #         - '143.198.217.1'
-  #         - '174.138.30.186'
-  #         - '174.138.17.10'
-  #         - '174.138.22.153'
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v2
+  batch1:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 20
+      matrix:
+        bot-name:
+          - 'trader1'
+          - 'trader2'
+          - 'trader3'
+          - 'trader4'
+          - 'trader5'
+          - 'trader6'
+          - 'trader7'
+          - 'trader8'
+          - 'trader9'
+          - 'trader10'
+          - 'trader11'
+          - 'trader12'
+          - 'trader13'
+          - 'trader14'
+          - 'trader15'
+          - 'trader16'
+          - 'trader17'
+          - 'trader18'
+          - 'trader19'
+          - 'trader20'
+          - 'trader21'
+          - 'trader22'
+          - 'trader23'
+          - 'trader24'
+          - 'trader25'
+          - 'trader26'
+          - 'trader27'
+          - 'trader28'
+          - 'trader29'
+          - 'trader30'
+          - 'trader31'
+          - 'trader32'
+          - 'trader33'
+          - 'trader34'
+          - 'trader35'
+          - 'trader36'
+          - 'trader37'
+          - 'trader38'
+          - 'trader39'
+          - 'trader40'
+          - 'trader41'
+          - 'trader42'
+          - 'trader43'
+          - 'trader44'
+          - 'trader45'
+          - 'trader46'
+          - 'trader47'
+          - 'trader48'
+          - 'trader49'
+          - 'trader50'
+        host-name:
+        # - '62.171.151.136' #Contabo Bots_01_test
+         - '62.171.176.152' #Contabo Bots_02_test
+        # - '62.171.179.224' #Contabo Bots_03_test
+        # - '95.111.225.51'  #Contabo Bots_04_test
+        # - '95.111.230.172' #Contabo Bots_05_test
 
-  #     - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
-  #       uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
-  #       continue-on-error: true
-  #       env:
-  #         TARGET_DIR: /home/${{ matrix.bot-name }}
-  #         VENV_BIN: venv/bin
-  #       with:
-  #         host: ${{ matrix.host-name }}
-  #         user: ${{ matrix.bot-name }}
-  #         pass: ${{ secrets.BOT_DEFAULT_PASSWORD }}
-  #         port: 22
-  #         connect_timeout: 10s
-  #         first_ssh: |-
-  #           mkdir -p app
-  #           mkdir -p etc
-  #           test -d venv || python3.11 -m venv venv
-  #           touch .env
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
 
-  #         scp: |-
-  #           './app/*' => $TARGET_DIR/app/
-  #           './etc/float_strategy.csv' => $TARGET_DIR/etc/
-  #           ./requirements.txt => $TARGET_DIR
+      - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
+        uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
+        continue-on-error: true
+        env:
+          TARGET_DIR: /home/${{ matrix.bot-name }}
+          VENV_BIN: venv/bin
+        with:
+          host: ${{ matrix.host-name }}
+          user: ${{ matrix.bot-name }}
+          pass: ${{ secrets.BOT_DEFAULT_PASSWORD }}
+          port: 22
+          connect_timeout: 10s
+          first_ssh: |-
+            mkdir -p app
+            mkdir -p etc
+            test -d venv || python3.11 -m venv venv
+            touch .env
 
-  #         last_ssh: |-
-  #           $VENV_BIN/pip install pip setuptools --upgrade
-  #           $VENV_BIN/pip install -r requirements.txt
-  #           $VENV_BIN/pip cache purge
-  #           chown :supervisor .
-  #           chmod 771 .
-  #           chown -R :supervisor ./etc
-  #           chmod -R 760 ./etc
-  #           chown :supervisor .env 
-  #           chmod 760 .env
-  #           supervisorctl restart ${{ matrix.bot-name }}
+          scp: |-
+            './app/*' => $TARGET_DIR/app/
+            './etc/float_strategy.csv' => $TARGET_DIR/etc/
+            ./requirements.txt => $TARGET_DIR
+
+          last_ssh: |-
+            $VENV_BIN/pip install pip setuptools --upgrade
+            $VENV_BIN/pip install -r requirements.txt
+            $VENV_BIN/pip cache purge
+            chown :supervisor .
+            chmod 771 .
+            chown -R :supervisor ./etc
+            chmod -R 760 ./etc
+            chown :supervisor .env 
+            chmod 760 .env
+            supervisorctl restart ${{ matrix.bot-name }}
 
 
-  # batch2:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     max-parallel: 20
-  #     matrix:
-  #       bot-name:
-  #         - 'trader1'
-  #         - 'trader2'
-  #         - 'trader3'
-  #         - 'trader4'
-  #         - 'trader5'
-  #         - 'trader6'
-  #         - 'trader7'
-  #         - 'trader8'
-  #         - 'trader9'
-  #         - 'trader10'
-  #         - 'trader11'
-  #         - 'trader12'
-  #         - 'trader13'
-  #         - 'trader14'
-  #         - 'trader15'
-  #         - 'trader16'
-  #         - 'trader17'
-  #         - 'trader18'
-  #         - 'trader19'
-  #         - 'trader20'
-  #         - 'trader21'
-  #         - 'trader22'
-  #         - 'trader23'
-  #         - 'trader24'
-  #         - 'trader25'
-  #         - 'trader26'
-  #         - 'trader27'
-  #         - 'trader28'
-  #         - 'trader29'
-  #         - 'trader30'
-  #         - 'trader31'
-  #         - 'trader32'
-  #         - 'trader33'
-  #         - 'trader34'
-  #         - 'trader35'
-  #         - 'trader36'
-  #         - 'trader37'
-  #         - 'trader38'
-  #         - 'trader39'
-  #         - 'trader40'
-  #         - 'trader41'
-  #         - 'trader42'
-  #         - 'trader43'
-  #         - 'trader44'
-  #         - 'trader45'
-  #         - 'trader46'
-  #         - 'trader47'
-  #         - 'trader48'
-  #         - 'trader49'
-  #         - 'trader50'
-  #       host-name:
-  #         - '152.42.160.128'
-  #         - '152.42.186.58'
-  #         - '146.190.82.202'
-  #         - '152.42.162.239'
-  #         - '159.89.205.52'
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v2
+  batch2:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 20
+      matrix:
+        bot-name:
+          - 'trader1'
+          - 'trader2'
+          - 'trader3'
+          - 'trader4'
+          - 'trader5'
+          - 'trader6'
+          - 'trader7'
+          - 'trader8'
+          - 'trader9'
+          - 'trader10'
+          - 'trader11'
+          - 'trader12'
+          - 'trader13'
+          - 'trader14'
+          - 'trader15'
+          - 'trader16'
+          - 'trader17'
+          - 'trader18'
+          - 'trader19'
+          - 'trader20'
+          - 'trader21'
+          - 'trader22'
+          - 'trader23'
+          - 'trader24'
+          - 'trader25'
+          - 'trader26'
+          - 'trader27'
+          - 'trader28'
+          - 'trader29'
+          - 'trader30'
+          - 'trader31'
+          - 'trader32'
+          - 'trader33'
+          - 'trader34'
+          - 'trader35'
+          - 'trader36'
+          - 'trader37'
+          - 'trader38'
+          - 'trader39'
+          - 'trader40'
+          - 'trader41'
+          - 'trader42'
+          - 'trader43'
+          - 'trader44'
+          - 'trader45'
+          - 'trader46'
+          - 'trader47'
+          - 'trader48'
+          - 'trader49'
+          - 'trader50'
+        host-name:
+        # - '95.111.255.67' #Contabo Bots_06_test
+        # - '161.97.79.2'   #Contabo Bots_07_test
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
 
-  #     - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
-  #       uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
-  #       continue-on-error: true
-  #       env:
-  #         TARGET_DIR: /home/${{ matrix.bot-name }}
-  #         VENV_BIN: venv/bin
-  #       with:
-  #         host: ${{ matrix.host-name }}
-  #         user: ${{ matrix.bot-name }}
-  #         pass: ${{ secrets.BOT_DEFAULT_PASSWORD }}
-  #         port: 22
-  #         connect_timeout: 10s
-  #         first_ssh: |-
-  #           mkdir -p app
-  #           mkdir -p etc
-  #           test -d venv || python3.11 -m venv venv
-  #           touch .env
+      - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
+        uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
+        continue-on-error: true
+        env:
+          TARGET_DIR: /home/${{ matrix.bot-name }}
+          VENV_BIN: venv/bin
+        with:
+          host: ${{ matrix.host-name }}
+          user: ${{ matrix.bot-name }}
+          pass: ${{ secrets.BOT_DEFAULT_PASSWORD }}
+          port: 22
+          connect_timeout: 10s
+          first_ssh: |-
+            mkdir -p app
+            mkdir -p etc
+            test -d venv || python3.11 -m venv venv
+            touch .env
 
-  #         scp: |-
-  #           './app/*' => $TARGET_DIR/app/
-  #           './etc/float_strategy.csv' => $TARGET_DIR/etc/
-  #           ./requirements.txt => $TARGET_DIR
+          scp: |-
+            './app/*' => $TARGET_DIR/app/
+            './etc/float_strategy.csv' => $TARGET_DIR/etc/
+            ./requirements.txt => $TARGET_DIR
 
-  #         last_ssh: |-
-  #           $VENV_BIN/pip install pip setuptools --upgrade
-  #           $VENV_BIN/pip install -r requirements.txt
-  #           $VENV_BIN/pip cache purge
-  #           chown :supervisor .
-  #           chmod 771 .
-  #           chown -R :supervisor ./etc
-  #           chmod -R 760 ./etc
-  #           chown :supervisor .env 
-  #           chmod 760 .env
-  #           supervisorctl restart ${{ matrix.bot-name }}
+          last_ssh: |-
+            $VENV_BIN/pip install pip setuptools --upgrade
+            $VENV_BIN/pip install -r requirements.txt
+            $VENV_BIN/pip cache purge
+            chown :supervisor .
+            chmod 771 .
+            chown -R :supervisor ./etc
+            chmod -R 760 ./etc
+            chown :supervisor .env 
+            chmod 760 .env
+            supervisorctl restart ${{ matrix.bot-name }}
 
   # batch3:
   #   runs-on: ubuntu-latest
@@ -369,9 +367,8 @@ jobs:
           - 'trader50'
         host-name:
           # - '51.91.100.53' #OVH
-            - '135.125.101.31' #OVH
+          # - '135.125.101.31' #OVH
           # - '159.195.45.16' #netcup
-          # - '62.171.151.136' #Contabo
           # - '46.38.233.178' #netcup
     steps:
       - name: checkout
