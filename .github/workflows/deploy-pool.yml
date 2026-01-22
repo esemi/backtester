@@ -369,9 +369,10 @@ jobs:
           - 'trader50'
         host-name:
           # - '51.91.100.53' #OVH
+            - '135.125.101.31' #OVH
           # - '159.195.45.16' #netcup
           # - '62.171.151.136' #Contabo
-          - '46.38.233.178' #netcup
+          # - '46.38.233.178' #netcup
     steps:
       - name: checkout
         uses: actions/checkout@v2
