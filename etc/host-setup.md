@@ -71,7 +71,7 @@ service supervisor restart
 git status -sb                                                #Проверить статус:
 git add etc/host-setup.md .github/workflows/deploy-pool.yml   #Добавить нужные файлы:
 git commit -m "Update deploy pool and host setup docs"        #Сделать коммит:
-
+git push origin master
 
 #------------------------------------SASHA SETUP--------------------------------------------
 
