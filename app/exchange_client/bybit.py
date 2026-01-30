@@ -11,6 +11,17 @@ from app.models import Fee, Tick
 
 logger = logging.getLogger(__name__)
 
+def _log_bybit_exception(exc: Exception) -> None:
+    """Best-effort logging of Bybit API error details."""
+    logger.exception(exc)
+    # pybit sometimes attaches response data or includes it in args
+    response = getattr(exc, 'response', None)
+    if response:
+        logger.error('bybit error response: %r', response)
+        return
+    if exc.args:
+        logger.error('bybit error args: %r', exc.args)
+
 
 class ByBit(BaseClient):
     def __init__(
@@ -51,7 +62,7 @@ class ByBit(BaseClient):
                     actual_ticker_balance=self.get_asset_balance_cached(),
                 )
             except Exception as e:
-                logger.exception(e)
+                _log_bybit_exception(e)
                 yield None
 
     def get_klines(self, interval: str, start_ms: int, limit: int) -> list[HistoryPrice]:
@@ -94,7 +105,7 @@ class ByBit(BaseClient):
             time.sleep(2)
 
         except Exception as exc:
-            logger.exception(exc)
+            _log_bybit_exception(exc)
             return None
 
         return self.get_order(
@@ -116,7 +127,7 @@ class ByBit(BaseClient):
             time.sleep(2)
 
         except Exception as exc:
-            logger.exception(exc)
+            _log_bybit_exception(exc)
             return None
 
         return self.get_order(
@@ -135,7 +146,7 @@ class ByBit(BaseClient):
             )
             time.sleep(5)
         except Exception as exc:
-            logger.exception(exc)
+            _log_bybit_exception(exc)
             return None
 
         order_response = self.get_order(
@@ -168,7 +179,7 @@ class ByBit(BaseClient):
             order_response = order_response.get('result')['list'][0]
 
         except Exception as exc:
-            logger.exception(exc)
+            _log_bybit_exception(exc)
             return None
 
         actual_qty = Decimal(order_response['cumExecQty'] or 0)
@@ -199,7 +210,7 @@ class ByBit(BaseClient):
             )
 
         except Exception as exc:
-            logger.exception(exc)
+            _log_bybit_exception(exc)
             return None
 
         logger.info(f"cancel order: {cancel_response}")
