@@ -1,4 +1,16 @@
 ```shell
+
+#--------------root доступ-------------------------
+sudo passwd root
+sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+su
+#-------------установка время UTC-------------------
+sudo timedatectl set-timezone UTC
+sudo timedatectl set-ntp true
+timedatectl
+
+#------------------------------------SEMEN SETUP--------------------------------------------
 apt-get update
 apt-get install software-properties-common
 add-apt-repository ppa:deadsnakes/ppa
@@ -96,7 +108,7 @@ chmod 0600 ~/.ssh/config && chmod 0600 ~/.ssh/id_rsa
 su
 # ввести рут пароль, ентер
 mkdir -p /home/admin-agent/www #создать папку если нет
-rm -rf ./www/* #если папка была удаляет всё содержимое внутри папки www в текущей директории
+#rm -rf ./www/* #если папка была удаляет всё содержимое внутри папки www в текущей директории
 sudo chown -R admin-agent:admin-agent ./www
 bash -c 'echo "# Файл конфига
 	server {
@@ -167,6 +179,47 @@ php artisan app:setup-token
 # yes
 php artisan optimize:clear && php artisan queue:restart
 
+crontab -l # должно написать no crontab for admin-agent
+(crontab -l 2>/dev/null; echo "* * * * * cd /home/admin-agent/www && php artisan schedule:run >> /dev/null 2>&1") | crontab -
+crontab -l # * * * * * cd /home/admin-agent/www && php artisan schedule:run >> /dev/null 2>&1
+
+
+# команды для supervisor
+# Статус всех программ
+sudo supervisorctl status
+
+# Перезапустить supervisor (сервис)
+sudo systemctl restart supervisor
+
+# Подтянуть изменения в конфиге
+sudo supervisorctl reread
+sudo supervisorctl update
+
+# Запуск / остановка / рестарт одной программы
+sudo supervisorctl start <name>
+sudo supervisorctl stop <name>
+sudo supervisorctl restart <name>
+
+# Запустить/остановить все программы
+sudo supervisorctl start all
+sudo supervisorctl stop all
+sudo supervisorctl restart all
+
+# Перезапустить все программы из конфигов
+sudo supervisorctl restart all
+
+# Запустить серию трейдеров 1..50
+for i in $(seq 1 50); do sudo supervisorctl start trader$i; done
+
+# Статус только трейдеров
+sudo supervisorctl status | grep trader
+
+# Автозапуск ботов после обновления/ребута
+# (включить autostart/autorestart для всех trader*)
+sudo sed -i 's/^autostart=false/autostart=true/g; s/^autorestart=false/autorestart=true/g' /etc/supervisor/conf.d/traders.conf
+sudo supervisorctl reread
+sudo supervisorctl update
 
 
 ```
+tail -n 200 /var/log/trader/trader1-log.txt | egrep "tick |skip buy|invest body|debug:|state saved|ERROR|Traceback"
