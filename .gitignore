@@ -6,3 +6,5 @@ backtest.log
 *.pickle
 *.bin
 *.html
+etc/dop/id_rsa
+etc/dop/rclone.conf

@@ -1,0 +1,4 @@
+# Example rclone config (replace with real values locally)
+[remote]
+type = drive
+scope = drive
