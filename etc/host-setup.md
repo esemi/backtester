@@ -184,42 +184,5 @@ crontab -l # должно написать no crontab for admin-agent
 crontab -l # * * * * * cd /home/admin-agent/www && php artisan schedule:run >> /dev/null 2>&1
 
 
-# команды для supervisor
-# Статус всех программ
-sudo supervisorctl status
-
-# Перезапустить supervisor (сервис)
-sudo systemctl restart supervisor
-
-# Подтянуть изменения в конфиге
-sudo supervisorctl reread
-sudo supervisorctl update
-
-# Запуск / остановка / рестарт одной программы
-sudo supervisorctl start <name>
-sudo supervisorctl stop <name>
-sudo supervisorctl restart <name>
-
-# Запустить/остановить все программы
-sudo supervisorctl start all
-sudo supervisorctl stop all
-sudo supervisorctl restart all
-
-# Перезапустить все программы из конфигов
-sudo supervisorctl restart all
-
-# Запустить серию трейдеров 1..50
-for i in $(seq 1 50); do sudo supervisorctl start trader$i; done
-
-# Статус только трейдеров
-sudo supervisorctl status | grep trader
-
-# Автозапуск ботов после обновления/ребута
-# (включить autostart/autorestart для всех trader*)
-sudo sed -i 's/^autostart=false/autostart=true/g; s/^autorestart=false/autorestart=true/g' /etc/supervisor/conf.d/traders.conf
-sudo supervisorctl reread
-sudo supervisorctl update
-
-
 ```
-tail -n 200 /var/log/trader/trader1-log.txt | egrep "tick |skip buy|invest body|debug:|state saved|ERROR|Traceback"
+
