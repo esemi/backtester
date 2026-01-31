@@ -67,5 +67,14 @@ tail -n 20 -f /var/log/trader/trader1-log.txt
 
 rg -n "price limit|out of range|exceeds" /var/log/trader/trader1-log.txt
 
+#добавить в БД на сервер 3 колонки
+mysql -uroot -p
+USE thesim;
+ALTER TABLE telemetry
+  ADD COLUMN profit_usdt DECIMAL(40,20) NULL,
+  ADD COLUMN profit_percent DECIMAL(40,20) NULL,
+  ADD COLUMN bnb_rate DECIMAL(40,20) NULL;
+
+sudo supervisorctl restart all
 ```
 

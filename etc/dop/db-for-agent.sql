@@ -157,7 +157,10 @@ CREATE TABLE `telemetry` (
   `buy_fee_qty` decimal(40,20) DEFAULT NULL,
   `buy_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sell_fee_qty` decimal(40,20) DEFAULT NULL,
-  `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `profit_usdt` decimal(40,20) DEFAULT NULL,
+  `profit_percent` decimal(40,20) DEFAULT NULL,
+  `bnb_rate` decimal(40,20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
