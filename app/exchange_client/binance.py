@@ -29,6 +29,8 @@ class Binance(BaseClient):
             base_url='https://testnet.binance.vision' if test_mode else 'https://api.binance.com',
         )
         self._rebate_code = rebate_code
+        self._bnb_rate_cache_ttl: int = 0
+        self._bnb_rate_cache_value: Decimal | None = None
 
     def next_price(self, start_tick_numeration: int = -1) -> Generator[Tick | None, None, None]:
         tick_number: int = start_tick_numeration
@@ -208,6 +210,24 @@ class Binance(BaseClient):
 
         logger.info(f"cancel order: {response}")
         return response
+
+    def get_bnb_rate(self) -> Decimal | None:
+        now = int(datetime.utcnow().timestamp())
+        if self._bnb_rate_cache_ttl > now and self._bnb_rate_cache_value is not None:
+            return self._bnb_rate_cache_value
+
+        try:
+            response = self._client_spot.book_ticker(
+                symbol='BNBUSDT',
+            )
+            price = Decimal(response.get('askPrice'))
+        except Exception as exc:
+            logger.exception(exc)
+            return None
+
+        self._bnb_rate_cache_value = price
+        self._bnb_rate_cache_ttl = now + 30
+        return price
 
     def _get_client_order_id(self) -> str:
         uid = uuid4().hex
