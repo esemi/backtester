@@ -74,6 +74,10 @@ class BaseClient(ABC):
     def cancel_order(self, order_id: str | int) -> dict | None:
         pass
 
+    @abstractmethod
+    def get_bnb_rate(self) -> Decimal | None:
+        pass
+
     def _get_raw_symbol(self) -> str:
         pattern_str = '|'.join(
             f'({asset}$)'

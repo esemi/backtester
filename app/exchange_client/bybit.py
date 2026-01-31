@@ -215,3 +215,6 @@ class ByBit(BaseClient):
 
         logger.info(f"cancel order: {cancel_response}")
         return cancel_response
+
+    def get_bnb_rate(self) -> Decimal | None:
+        return None
