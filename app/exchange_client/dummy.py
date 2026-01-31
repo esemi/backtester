@@ -30,3 +30,6 @@ class Dummy(BaseClient):
 
     def cancel_order(self, order_id: str | int) -> dict | None:
         raise NotImplementedError
+
+    def get_bnb_rate(self) -> Decimal | None:
+        return None

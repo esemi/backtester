@@ -5,8 +5,8 @@ from app.models import Fee, Tick
 from app.storage import connection_mysql
 
 _insert_query = """INSERT INTO `telemetry` 
-(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`, `profit_usdt`, `profit_percent`)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`, `profit_usdt`, `profit_percent`, `bnb_rate`)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 _cleanup_query = 'DELETE FROM `telemetry` WHERE `bot_name` = %s'
 
 
@@ -24,6 +24,7 @@ class TelemetryClient:
         sell_fee: Fee | None = None,
         profit_usdt: Decimal | None = None,
         profit_percent: Decimal | None = None,
+        bnb_rate: Decimal | None = None,
     ):
         if buy_price or sell_price:
             with connection_mysql.cursor() as cursor:
@@ -41,6 +42,7 @@ class TelemetryClient:
                     None if not sell_fee else sell_fee.ticker,
                     profit_usdt,
                     profit_percent,
+                    bnb_rate,
                 ))
 
     def cleanup(self) -> None:
