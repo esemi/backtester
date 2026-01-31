@@ -265,11 +265,11 @@ jobs:
   #         - 'trader49'
   #         - 'trader50'
   #       host-name:
-  #         - '165.22.254.164'
-  #         - '165.22.254.175'
-  #         - '167.71.211.126'
-  #         - '143.198.195.227'
-  #         - '104.248.158.84'
+  #         - '135.125.100.179' #OVH Bots_04
+  #         - '135.125.103.224' #OVH Bots_05
+  #         - '135.125.103.185' #OVH Bots_06
+  #         - '135.125.103.123' #OVH Bots_07
+  #         - '135.125.100.178' #OVH Bots_08
   #   steps:
   #     - name: checkout
   #       uses: actions/checkout@v2
@@ -366,10 +366,11 @@ jobs:
           - 'trader49'
           - 'trader50'
         host-name:
-          #  - '51.91.100.53' #OVH
-          #  - '135.125.101.31' #OVH
-           - '159.195.45.16' #netcup
-           - '46.38.233.178' #netcup
+          #  - '51.91.100.53'    #OVH Bots_01
+          #  - '135.125.101.31'  #OVH Bots_02
+          #  - '152.228.135.107' #OVH Bots_03
+           - '159.195.45.16'   #netcup
+          #  - '46.38.233.178'   #netcup
     steps:
       - name: checkout
         uses: actions/checkout@v2
