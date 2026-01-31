@@ -365,15 +365,14 @@ jobs:
           # - 'trader48'
           # - 'trader49'
           # - 'trader50'
-        host-name:
-          #  - '51.91.100.53'    #OVH Bots_01
-          #  - '135.125.101.31'  #OVH Bots_02
-          #  - '152.228.135.107' #OVH Bots_03
-           - '159.195.45.16'   #netcup
-          #  - '46.38.233.178'   #netcup
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
+        # host-name:
+          #  - '51.91.100.53' #OVH
+          #  - '135.125.101.31' #OVH
+          #  - '159.195.45.16' #netcup
+          #  - '46.38.233.178' #netcup
+    # steps:
+      # - name: checkout
+        # uses: actions/checkout@v2
 
       - name: deploy ${{ matrix.host-name }} ${{ matrix.bot-name }}
         uses: antonov1991/ssh-scp-ssh-pipelines@v1.1.4
