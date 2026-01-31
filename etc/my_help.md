@@ -76,5 +76,37 @@ ALTER TABLE telemetry
   ADD COLUMN bnb_rate DECIMAL(40,20) NULL;
 
 sudo supervisorctl restart all
+
+# смотреть таблицу телеметрии одного бота
+
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim \
+  -e "SELECT id, bot_name, tick_number, bid, ask, buy_price, sell_price, created_at,
+             ROUND(profit_usdt, 3) AS profit_usdt,
+             ROUND(profit_percent, 2) AS profit_percent
+      FROM telemetry
+      WHERE bot_name='trader3'
+      ORDER BY tick_number DESC
+      LIMIT 100;" \
+  -B | column -t -s $'\t' | less -S
+
+"
+
+# смотреть таблицу телеметрии одного бота
+
+for i in $(seq 1 50); do
+  echo "===== trader$i ====="
+  mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim \
+    -e "SELECT id, bot_name, tick_number, bid, ask, buy_price, sell_price, created_at,
+               ROUND(profit_usdt, 3) AS profit_usdt,
+               ROUND(profit_percent, 2) AS profit_percent
+        FROM telemetry
+        WHERE bot_name='trader$i'
+        ORDER BY tick_number DESC
+        LIMIT 20;" -B | column -t -s $'\t'
+  echo
+done
+
+"
+
 ```
 
