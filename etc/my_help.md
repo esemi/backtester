@@ -152,5 +152,90 @@ done
 
 "
 
+# добавлять в msql колонки в каждый сервер
+
+$hosts = @(
+  "51.91.100.53",
+  "159.195.45.16",
+  "46.38.233.178",
+  "135.125.101.31",
+  "152.228.135.107",
+  "135.125.100.179",
+  "135.125.103.224",
+  "135.125.103.185",
+  "135.125.103.123",
+  "135.125.100.178"
+)
+
+$script = @'
+cat <<'SQL' > /tmp/telemetry_cols.sql
+SET @db := DATABASE();
+SET @col1 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='profit_usdt');
+SET @col2 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='profit_percent');
+SET @col3 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='bnb_rate');
+SET @col4 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='open_price');
+SET @sql := CONCAT('ALTER TABLE telemetry',
+  IF(@col1=0, ' ADD COLUMN profit_usdt DECIMAL(40,20) NULL,', ''),
+  IF(@col2=0, ' ADD COLUMN profit_percent DECIMAL(40,20) NULL,', ''),
+  IF(@col3=0, ' ADD COLUMN bnb_rate DECIMAL(40,20) NULL,', ''),
+  IF(@col4=0, ' ADD COLUMN open_price DECIMAL(40,20) NULL,', ''),
+  ' DROP COLUMN __dummy__');
+SET @sql := REPLACE(@sql, ', DROP COLUMN __dummy__', '');
+SET @sql := REPLACE(@sql, 'ALTER TABLE telemetry DROP COLUMN __dummy__', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SQL
+
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim < /tmp/telemetry_cols.sql
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim -e "DESCRIBE telemetry;"
+'@
+
+foreach ($h in $hosts) {
+  Write-Host "=== $h ==="
+  ssh root@$h $script
+}
+
+$hosts = @(
+  "62.171.151.136",
+  "161.97.79.2",
+  "62.171.176.152",
+  "62.171.179.224",
+  "95.111.225.51",
+  "95.111.230.172",
+  "95.111.255.67"
+)
+
+$script = @'
+cat <<'SQL' > /tmp/telemetry_cols.sql
+SET @db := DATABASE();
+SET @col1 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='profit_usdt');
+SET @col2 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='profit_percent');
+SET @col3 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='bnb_rate');
+SET @col4 := (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='telemetry' AND COLUMN_NAME='open_price');
+SET @sql := CONCAT('ALTER TABLE telemetry',
+  IF(@col1=0, ' ADD COLUMN profit_usdt DECIMAL(40,20) NULL,', ''),
+  IF(@col2=0, ' ADD COLUMN profit_percent DECIMAL(40,20) NULL,', ''),
+  IF(@col3=0, ' ADD COLUMN bnb_rate DECIMAL(40,20) NULL,', ''),
+  IF(@col4=0, ' ADD COLUMN open_price DECIMAL(40,20) NULL,', ''),
+  ' DROP COLUMN __dummy__');
+SET @sql := REPLACE(@sql, ', DROP COLUMN __dummy__', '');
+SET @sql := REPLACE(@sql, 'ALTER TABLE telemetry DROP COLUMN __dummy__', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SQL
+
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim < /tmp/telemetry_cols.sql
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim -e "DESCRIBE telemetry;"
+'@
+
+$b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($script))
+
+foreach ($h in $hosts) {
+  Write-Host "=== $h ==="
+  ssh root@$h "echo $b64 | base64 -d | bash"
+}
+
 ```
 
