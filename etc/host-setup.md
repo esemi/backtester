@@ -5,10 +5,34 @@ sudo passwd root
 sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sudo systemctl restart ssh
 su
-#-------------установка время UTC-------------------
-sudo timedatectl set-timezone UTC
-sudo timedatectl set-ntp true
-timedatectl
+#----------добавить ключ на сервер----------------------------------
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@IP "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@IP
+
+#-------------установка время UTC и таймер обновления-------------------
+timedatectl set-timezone UTC
+
+mkdir -p /etc/systemd/system/apt-daily.timer.d
+cat >/etc/systemd/system/apt-daily.timer.d/override.conf <<'EOT'
+[Timer]
+OnCalendar=
+OnCalendar=Sat *-*-* 03:00:00
+RandomizedDelaySec=0
+Persistent=true
+EOT
+
+mkdir -p /etc/systemd/system/apt-daily-upgrade.timer.d
+cat >/etc/systemd/system/apt-daily-upgrade.timer.d/override.conf <<'EOT'
+[Timer]
+OnCalendar=
+OnCalendar=Sat *-*-* 03:10:00
+RandomizedDelaySec=0
+Persistent=true
+EOT
+
+systemctl daemon-reload
+systemctl restart apt-daily.timer apt-daily-upgrade.timer
+systemctl list-timers | grep apt-daily
 
 #------------------------------------SEMEN SETUP--------------------------------------------
 apt-get update

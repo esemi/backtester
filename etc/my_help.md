@@ -59,10 +59,21 @@ tail -f /var/log/trader/trader1-log.txt \
 tail -n 20 -f /var/log/trader/trader1-log.txt
 
 #Чтобы вывести последние 20 строк (однократно):
-tail -n 20 /var/log/trader/trader1-log.txt
+tail -n 20 /var/log/trader/trader8-log.txt
 
 #А только строки с ошибками:
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
+
+#Вот команды для ошибок и последних строк:
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt | grep -i error"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt"
+
+# перезапуск ботов на нужно серевере массово
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.255.67 "supervisorctl status trader30 trader28 trader27"
+
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.151.136 "sudo supervisorctl restart all"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.225.51 "sudo supervisorctl status"
+
 
 #переключение веток
 git checkout master     
