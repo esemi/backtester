@@ -219,3 +219,47 @@ df -h /
 
 ```
 
+
+#------------------------------------BACKUP (rclone)--------------------------------------------
+# rclone config example: /home/admin-agent/.config/rclone/rclone.conf
+# Upload backups
+# rclone copy /path/to/backups gdrive:sim-backups --log-file=/var/log/backup.log
+#
+# Delete old files without trash (avoid Google Drive trash growth):
+# rclone delete gdrive:sim-backups --min-age 48h --drive-use-trash=false --log-file=/var/log/backup.log
+#
+# Full cleanup without trash:
+# rclone purge gdrive:sim-backups --drive-use-trash=false --log-file=/var/log/backup.log
+#
+# Cron example (every 10 minutes):
+# */10 * * * * /usr/bin/rclone copy /path/to/backups gdrive:sim-backups --log-file=/var/log/backup.log
+# */10 * * * * /usr/bin/rclone delete gdrive:sim-backups --min-age 48h --drive-use-trash=false --log-file=/var/log/backup.log
+
+#----------------------------BACKUP SETUP (short)----------------------------
+# Full instructions: etc/backup-setup.md
+# 1) rclone
+#   apt update && apt install -y rclone
+#   mkdir -p /root/.config/rclone
+#   nano /root/.config/rclone/rclone.conf
+#   rclone lsd gdrive:
+# 2) mysql backup user
+#   sudo mysql -u root -p
+#   CREATE USER 'backup'@'localhost' IDENTIFIED BY '<PASS>'; 
+#   GRANT SELECT, LOCK TABLES, SHOW VIEW, TRIGGER ON thesim.* TO 'backup'@'localhost';
+#   GRANT PROCESS ON *.* TO 'backup'@'localhost';
+#   FLUSH PRIVILEGES; exit
+#   nano /root/.my.cnf
+#   [client]
+#   user=backup
+#   password=<PASS>
+#   chmod 600 /root/.my.cnf
+# 3) backup script + systemd timer
+#   mkdir -p /opt/thesim/backups/scripts /opt/thesim/backups/tmp
+#   nano /opt/thesim/backups/scripts/backup.sh
+#   chmod +x /opt/thesim/backups/scripts/backup.sh
+#   nano /etc/systemd/system/thesim-backup.service
+#   nano /etc/systemd/system/thesim-backup.timer
+#   systemctl daemon-reload
+#   systemctl enable --now thesim-backup.timer
+# 4) delete old backups without trash
+#   rclone delete gdrive:thesim_backups/<SERVER_ID> --min-age 48h --drive-use-trash=false

@@ -73,6 +73,7 @@ echo "[+] Cleanup old backups on Drive"
 # удаляем только архивы .tar.gz старше KEEP_MINUTES в папке конкретного сервера
 rclone delete "${RCLONE_REMOTE}/${SERVER_ID}" \
   --min-age "${KEEP_MINUTES}m" \
-  --include "*.tar.gz"
+  --include "*.tar.gz" \
+  --drive-use-trash=false
 
 echo "[✓] Backup finished: ${TS}"
