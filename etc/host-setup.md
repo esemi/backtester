@@ -207,6 +207,15 @@ crontab -l # должно написать no crontab for admin-agent
 (crontab -l 2>/dev/null; echo "* * * * * cd /home/admin-agent/www && php artisan schedule:run >> /dev/null 2>&1") | crontab -
 crontab -l # * * * * * cd /home/admin-agent/www && php artisan schedule:run >> /dev/null 2>&1
 
+#Поставить лимит на binlog (3 дня) через MySQL
+mysql -u root -p -e "SET PERSIST binlog_expire_logs_seconds=259200;"
+mysql -u root -p -e "SHOW VARIABLES LIKE 'binlog_expire_logs_seconds';"
+
+#(Опционально) сразу очистить старые binlog:
+mysql -u root -p -e "PURGE BINARY LOGS BEFORE NOW() - INTERVAL 1 DAY;"
+
+#Проверка места:
+df -h /
 
 ```
 

@@ -65,15 +65,16 @@ tail -n 20 /var/log/trader/trader8-log.txt
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
 
 #Вот команды для ошибок и последних строк:
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt | grep -i error"
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@51.91.100.53 "tail -n 200 /var/log/trader/trader33-log.txt | grep -i error"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@51.91.100.53 "tail -n 200 /var/log/trader/trader33-log.txt"
 
 # перезапуск ботов на нужно серевере массово
 ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.255.67 "supervisorctl status trader30 trader28 trader27"
 
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.151.136 "sudo supervisorctl restart all"
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.225.51 "sudo supervisorctl status"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@51.91.100.53 "sudo supervisorctl restart all"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@51.91.100.53 "systemctl list-timers | grep apt-daily"
 
+systemctl list-timers | grep apt-daily
 
 #переключение веток
 git checkout master     
