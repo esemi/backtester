@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.models import Fee, Tick
-from app.storage import connection_mysql
+from app.storage import buffer_telemetry, flush_telemetry, mysql_execute
 
 _insert_query = """INSERT INTO `telemetry` 
 (`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`, `profit_usdt`, `profit_percent`, `bnb_rate`, `open_price`)
@@ -28,28 +28,29 @@ class TelemetryClient:
         open_price: Decimal | None = None,
     ):
         if buy_price or sell_price:
-            with connection_mysql.cursor() as cursor:
-                cursor.execute(_insert_query, (
-                    self._bot_name,
-                    tick.number,
-                    int(datetime.utcnow().timestamp()),
-                    tick.bid,
-                    tick.ask,
-                    buy_price,
-                    sell_price,
-                    None if not buy_fee else buy_fee.qty,
-                    None if not buy_fee else buy_fee.ticker,
-                    None if not sell_fee else sell_fee.qty,
-                    None if not sell_fee else sell_fee.ticker,
-                    profit_usdt,
-                    profit_percent,
-                    bnb_rate,
-                    open_price,
-                ))
+            params = (
+                self._bot_name,
+                tick.number,
+                int(datetime.utcnow().timestamp()),
+                tick.bid,
+                tick.ask,
+                buy_price,
+                sell_price,
+                None if not buy_fee else buy_fee.qty,
+                None if not buy_fee else buy_fee.ticker,
+                None if not sell_fee else sell_fee.qty,
+                None if not sell_fee else sell_fee.ticker,
+                profit_usdt,
+                profit_percent,
+                bnb_rate,
+                open_price,
+            )
+            flush_telemetry(self._bot_name, _insert_query)
+            if not mysql_execute(_insert_query, params):
+                buffer_telemetry(self._bot_name, params)
 
     def cleanup(self) -> None:
-        with connection_mysql.cursor() as cursor:
-            cursor.execute(_cleanup_query, (self._bot_name,))
+        mysql_execute(_cleanup_query, (self._bot_name,))
 
 
 class DummyClient(TelemetryClient):

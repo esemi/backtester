@@ -30,6 +30,11 @@ class AppSettings(BaseSettings, extra='ignore'):
     mysql_user: str = Field(default='root')
     mysql_password: str = Field(default='root')
     mysql_db: str = Field(default='thesim')
+    mysql_retry_attempts: int = Field(default=5, description='Количество попыток записи в MySQL')
+    mysql_retry_base_delay: float = Field(default=0.5, description='Базовая задержка ретраев MySQL (сек)')
+    mysql_retry_max_delay: float = Field(default=4.0, description='Макс задержка ретраев MySQL (сек)')
+    mysql_buffer_max_len: int = Field(default=5000, description='Макс длина буфера телеметрии в Redis')
+    mysql_buffer_flush_batch: int = Field(default=200, description='Размер батча для сброса телеметрии в MySQL')
     float_steps_path: str = os.path.join(APP_PATH, 'etc', 'float_strategy.csv')
     state_filepath: str = os.path.join(APP_PATH, 'state.pickle')
 
