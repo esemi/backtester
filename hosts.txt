@@ -1,0 +1,23 @@
+51.91.100.53        # server - 16
+159.195.45.16       # server - 17
+62.171.151.136      # server - 18    
+46.38.233.178       # server - 19
+135.125.101.31      # server - 20
+161.97.79.2         # server - 21
+62.171.176.152      # server - 22
+62.171.179.224      # server - 23
+95.111.225.51       # server - 24
+95.111.230.172      # server - 25
+95.111.255.67       # server - 26
+152.228.135.107     # server - 27 -28
+135.125.100.179     # server - 28 -29 
+135.125.103.224     # server - 29 -30
+135.125.103.185     # server - 30 -31
+135.125.103.123     # server - 31 -32
+135.125.100.178     # server - 32 -33
+
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@IP
+
+ssh -i "$env:USERPROFILE\.ssh\id_ed25519" root@95.111.255.67 "apt update && apt install -y htop"
+ssh -t -i "$env:USERPROFILE\.ssh\id_ed25519" root@95.111.255.67 htop
+
