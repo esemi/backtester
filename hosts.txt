@@ -17,3 +17,7 @@
 135.125.100.178     # server - 32 -33
 
 ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@IP
+
+ssh -i "$env:USERPROFILE\.ssh\id_ed25519" root@95.111.255.67 "apt update && apt install -y htop"
+ssh -t -i "$env:USERPROFILE\.ssh\id_ed25519" root@95.111.255.67 htop
+
