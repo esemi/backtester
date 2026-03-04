@@ -104,3 +104,13 @@ def test_hard_stop_loss_fired(exchange_client_pass_mock, hard_stop_loss_enabled:
     response = strategy.tick(Tick(number=2, bid=hard_stop_loss_enabled, ask=Decimal(100500), bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
 
     assert response is False
+
+
+def test_tick_no_previous_tick_does_not_fail(exchange_client_pass_mock):
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
+
+    response = strategy.tick(
+        Tick(number=1, bid=Decimal(10), ask=Decimal(11), bid_qty=Decimal(100500), ask_qty=Decimal(100500)),
+    )
+
+    assert response is True

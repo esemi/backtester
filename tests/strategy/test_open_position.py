@@ -45,3 +45,15 @@ def test_open_position_filled(exchange_client_pass_mock):
     assert strategy._open_positions[0].open_rate == Decimal('35.4050279')
     assert strategy._open_positions[0].open_tick_number == 0
     assert strategy._open_positions[0].grid_number == '123'
+
+
+def test_open_position_dry_run_fee_ticker_uses_base_asset():
+    mock = Mock()
+    mock.symbol = 'FLUID-USDT'
+
+    strategy = BasicStrategy(exchange_client=mock, dry_run=True)
+    response = strategy._open_position(quantity=Decimal('1.1'), price=Decimal('2.2'), tick_number=0, grid_number='123')
+
+    assert response is True
+    assert strategy._open_positions[0].open_fee is not None
+    assert strategy._open_positions[0].open_fee.ticker == 'FLUID'
