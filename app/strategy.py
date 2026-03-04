@@ -142,7 +142,13 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 ) * Decimal(100)
 
         previous_tick = self._get_previous_tick()
-        if buy_price or sell_price or tick.ask != previous_tick.ask or tick.bid != previous_tick.bid:
+        if (
+            buy_price
+            or sell_price
+            or not previous_tick
+            or tick.ask != previous_tick.ask
+            or tick.bid != previous_tick.bid
+        ):
             self._telemetry.push(
                 tick,
                 buy_price=buy_price,
@@ -358,7 +364,12 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             logger.info('skip buy: already sale on tick')
             return False
 
-        is_red_candle = tick.bid < self._get_previous_tick().bid
+        previous_tick = self._get_previous_tick()
+        if previous_tick is None:
+            logger.info('skip buy: waiting previous tick')
+            return False
+
+        is_red_candle = tick.bid < previous_tick.bid
         if app_settings.buy_only_red_candles and not is_red_candle:
             logger.info('skip buy: red candles mode')
             return False
@@ -390,7 +401,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 price=price,
                 fee=quantity * Decimal('0.001'),
                 raw_fees=[
-                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                    Fee(qty=Decimal(0), ticker=self._get_default_fee_ticker()),
                 ],
                 raw_response={'dry_run': True},
             )
@@ -434,7 +445,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 price=price,
                 fee=price * position_for_close.amount * Decimal('0.001'),
                 raw_fees=[
-                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                    Fee(qty=Decimal(0), ticker=self._get_default_fee_ticker()),
                 ],
                 raw_response={'dry_run': True},
             )
@@ -576,7 +587,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                     price=tick.bid,
                     fee=Decimal(0),
                     raw_fees=[
-                        Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                        Fee(qty=Decimal(0), ticker=self._get_default_fee_ticker()),
                     ],
                     raw_response={'reason': 'dry run execution'},
                 )
@@ -645,7 +656,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 price=price,
                 fee=Decimal(0),
                 raw_fees=[
-                    Fee(qty=Decimal(0), ticker=self._exchange_client.symbol),
+                    Fee(qty=Decimal(0), ticker=self._get_default_fee_ticker()),
                 ],
                 order_id='id-dry-run',
                 raw_response={'dry_run': True},
@@ -672,8 +683,20 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
     def _get_ticks_history(self) -> list[Tick]:
         return self._ticks_history
 
-    def _get_previous_tick(self) -> Tick:
+    def _get_previous_tick(self) -> Tick | None:
+        if len(self._ticks_history) < 2:
+            return None
         return self._get_ticks_history()[-2]
+
+    def _get_default_fee_ticker(self) -> str:
+        symbol = self._exchange_client.symbol.upper()
+        for quote_asset in app_settings.symbol_pairs:
+            pair = quote_asset.upper()
+            if symbol.endswith('-{0}'.format(pair)):
+                return symbol[:-len(pair) - 1]
+            if symbol.endswith(pair):
+                return symbol[:-len(pair)]
+        return symbol
 
 
 class FloatingStrategy(BasicStrategy):
