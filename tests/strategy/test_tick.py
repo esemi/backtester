@@ -95,6 +95,22 @@ def test_sell_something_decline_by_ask_qty(exchange_client_pass_mock):
     assert strategy._stats.closed_deals_amount == 1
 
 
+def test_sell_something_when_bid_qty_unknown(exchange_client_pass_mock):
+    strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
+    buy_price = Decimal('10.0')
+    minimal_sell_price = buy_price + buy_price * app_settings.avg_rate_sell_limit / Decimal(100)
+    strategy._open_positions.append(Position(amount=Decimal(1), open_tick_number=0, open_rate=buy_price))
+    strategy._push_ticks_history(Tick(0, bid=Decimal(1), ask=buy_price, bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
+    strategy._push_ticks_history(Tick(1, bid=Decimal(1), ask=buy_price, bid_qty=Decimal(100500), ask_qty=Decimal(100500)))
+
+    response = strategy.tick(
+        Tick(number=2, bid=Decimal(minimal_sell_price), ask=Decimal(100500), bid_qty=Decimal(0), ask_qty=Decimal(100500)),
+    )
+
+    assert response is True
+    assert strategy._stats.closed_deals_amount == 1
+
+
 def test_hard_stop_loss_fired(exchange_client_pass_mock, hard_stop_loss_enabled: Decimal):
     strategy = BasicStrategy(exchange_client=exchange_client_pass_mock)
     buy_price = Decimal('10.0')

@@ -501,7 +501,10 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
                 bid_price >= minimal_sell_price,
             ))
 
-            if bid_price >= minimal_sell_price and qty_left >= position.amount:
+            # Some exchanges may not provide top-of-book size in ticker payload.
+            # Keep behavior consistent with buy-side qty check: treat zero as "unknown".
+            is_sell_available_by_qty = qty_left >= position.amount or qty_left == 0
+            if bid_price >= minimal_sell_price and is_sell_available_by_qty:
                 sell_price = bid_price.quantize(app_settings.ticker_price_digits)
                 sell_response = self._close_position(
                     position_for_close=position,
