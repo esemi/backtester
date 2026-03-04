@@ -739,7 +739,10 @@ class FloatingStrategy(BasicStrategy):
 
             sell_price = bid_price.quantize(app_settings.ticker_price_digits)
 
-            if qty_left >= position.amount:
+            # Some exchanges may not provide top-of-book size in ticker payload.
+            # Keep behavior consistent with buy-side qty check: treat zero as "unknown".
+            is_sell_available_by_qty = qty_left >= position.amount or qty_left == 0
+            if is_sell_available_by_qty:
                 has_sale_try = True
 
                 if bid_price >= position.open_rate * step_percent:
