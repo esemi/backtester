@@ -128,7 +128,7 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
              ROUND(profit_usdt, 3) AS profit_usdt,
              ROUND(profit_percent, 2) AS profit_percent
       FROM telemetry
-      WHERE bot_name='trader3'
+      WHERE bot_name='trader1'
       ORDER BY tick_number DESC
       LIMIT 100;" \
   -B | column -t -s $'\t' | less -S
