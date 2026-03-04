@@ -28,6 +28,27 @@ def test_next_price_happy_path():
     assert response.actual_ticker_balance == Decimal('0.5')
 
 
+def test_next_price_list_payload_happy_path():
+    client = BingX(symbol='FLUIDUSDT')
+    client._request = Mock(return_value={  # type: ignore
+        'code': 0,
+        'data': [{
+            'bidPrice': '0.9',
+            'askPrice': '1.0',
+            'bidQty': '10',
+            'askQty': '11',
+        }],
+    })
+    client.get_asset_balance = Mock(return_value=Decimal('12'))  # type: ignore
+
+    response = next(client.next_price())
+
+    assert response is not None
+    assert response.bid == Decimal('0.9')
+    assert response.ask == Decimal('1.0')
+    assert response.actual_ticker_balance == Decimal('12')
+
+
 def test_get_klines_happy_path():
     client = BingX(symbol='BTCUSDT')
     client._request = Mock(return_value={  # type: ignore
@@ -71,3 +92,8 @@ def test_get_order_happy_path():
     assert response.price == Decimal('100')
     assert response.fee == Decimal('0.1')
     assert response.raw_fees[0].ticker == 'USDT'
+
+
+def test_symbol_normalization_happy_path():
+    client = BingX(symbol='FLUIDUSDT')
+    assert client._api_symbol == 'FLUID-USDT'
