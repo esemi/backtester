@@ -1,6 +1,6 @@
 Crypto trading robot
 ---
-Trading strategy backtesting utility and trading robot implementation for Binance and ByBit cryptocurrency exchanges.
+Trading strategy backtesting utility and trading robot implementation for Binance, ByBit and BingX cryptocurrency exchanges.
 
 
 ### Setup on windows

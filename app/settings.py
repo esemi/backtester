@@ -107,7 +107,7 @@ class AppSettings(BaseSettings, extra='ignore'):
     )
 
     # trader settings
-    exchange: Literal['binance', 'bybit'] = 'binance'
+    exchange: Literal['binance', 'bybit', 'bingx'] = 'binance'
     throttling_failure_time: int = 15
     throttling_time: int = Field(default=5, description='Минимальная частота тика в секундах')
     throttling_time_small_tick: int = 3
@@ -120,6 +120,8 @@ class AppSettings(BaseSettings, extra='ignore'):
     binance_rebate_code: str = 'KG9TQ93V'
     bybit_api_key: str = ''
     bybit_api_secret: str = ''
+    bingx_api_key: str = ''
+    bingx_api_secret: str = ''
     dry_run: bool = Field(default=True)
     exchange_test_mode: bool = Field(default=False)
     telemetry_enabled: bool = Field(default=False, description='вкл/выкл запись телеметрии в мускуль')

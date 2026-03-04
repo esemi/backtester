@@ -4,6 +4,7 @@ import os
 from datetime import datetime, time, timezone
 
 from app.exchange_client.binance import Binance
+from app.exchange_client.bingx import BingX
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
 
@@ -25,6 +26,10 @@ def main(
             test_mode=False,
         ),
         'bybit': ByBit(
+            symbol=symbol,
+            test_mode=False,
+        ),
+        'bingx': BingX(
             symbol=symbol,
             test_mode=False,
         ),
@@ -96,7 +101,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--exchange',
-        choices=['binance', 'bybit'],
+        choices=['binance', 'bybit', 'bingx'],
         help='Exchange name',
         default='binance',
     )
