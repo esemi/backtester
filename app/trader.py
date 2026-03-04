@@ -8,6 +8,7 @@ from datetime import datetime
 from app import storage
 from app.exchange_client.base import BaseClient
 from app.exchange_client.binance import Binance
+from app.exchange_client.bingx import BingX
 from app.exchange_client.bybit import ByBit
 from app.settings import app_settings
 from app.storage import connection_mysql, drop_state
@@ -86,6 +87,12 @@ def _get_exchange_client(name: str) -> BaseClient:
             symbol=app_settings.symbol,
             api_key=app_settings.bybit_api_key,
             api_secret=app_settings.bybit_api_secret,
+            test_mode=app_settings.exchange_test_mode,
+        ),
+        'bingx': BingX(
+            symbol=app_settings.symbol,
+            api_key=app_settings.bingx_api_key,
+            api_secret=app_settings.bingx_api_secret,
             test_mode=app_settings.exchange_test_mode,
         ),
     }[name]
