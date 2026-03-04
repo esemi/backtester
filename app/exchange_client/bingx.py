@@ -27,6 +27,8 @@ class BingX(BaseClient):
         self._api_key = api_key
         self._api_secret = api_secret
         self._base_url = 'https://open-api.bingx.com'
+        self._api_symbol = self._normalize_symbol(symbol)
+        self._base_asset = self._extract_base_asset(self._api_symbol)
         if test_mode:
             logger.warning('BingX test mode flag is set, public endpoint is used: %s', self._base_url)
 
@@ -37,9 +39,11 @@ class BingX(BaseClient):
                 response = self._public_request(
                     method='GET',
                     path='/openApi/spot/v1/ticker/bookTicker',
-                    params={'symbol': self.symbol},
+                    params={'symbol': self._api_symbol},
                 )
                 payload = self._extract_data(response)
+                if isinstance(payload, list):
+                    payload = payload[0] if payload else {}
                 tick_number += 1
                 yield Tick(
                     number=tick_number,
@@ -58,7 +62,7 @@ class BingX(BaseClient):
             method='GET',
             path='/openApi/spot/v1/market/kline',
             params={
-                'symbol': self.symbol,
+                'symbol': self._api_symbol,
                 'interval': interval,
                 'startTime': start_ms,
                 'limit': limit,
@@ -95,7 +99,7 @@ class BingX(BaseClient):
                 method='POST',
                 path='/openApi/spot/v1/trade/order',
                 params={
-                    'symbol': self.symbol,
+                    'symbol': self._api_symbol,
                     'side': 'SELL',
                     'type': 'MARKET',
                     'quantity': str(quantity),
@@ -117,7 +121,7 @@ class BingX(BaseClient):
             path='/openApi/spot/v1/account/balance',
         )
         payload = self._extract_data(response)
-        raw_symbol = self._get_raw_symbol()
+        raw_symbol = self._base_asset
         for row in payload.get('balances', payload if isinstance(payload, list) else []):
             asset = row.get('asset') or row.get('coin') or row.get('currency')
             if asset != raw_symbol:
@@ -133,7 +137,7 @@ class BingX(BaseClient):
                 method='GET',
                 path='/openApi/spot/v1/trade/order',
                 params={
-                    'symbol': self.symbol,
+                    'symbol': self._api_symbol,
                     'orderId': order_id,
                 },
             )
@@ -149,7 +153,7 @@ class BingX(BaseClient):
                 method='DELETE',
                 path='/openApi/spot/v1/trade/order',
                 params={
-                    'symbol': self.symbol,
+                    'symbol': self._api_symbol,
                     'orderId': order_id,
                 },
             )
@@ -167,7 +171,7 @@ class BingX(BaseClient):
                 method='POST',
                 path='/openApi/spot/v1/trade/order',
                 params={
-                    'symbol': self.symbol,
+                    'symbol': self._api_symbol,
                     'side': side,
                     'type': 'LIMIT',
                     'quantity': str(quantity),
@@ -229,6 +233,23 @@ class BingX(BaseClient):
     @classmethod
     def _build_query(cls, params: dict[str, Any]) -> str:
         return urlencode(sorted((key, value) for key, value in params.items() if value is not None))
+
+    @classmethod
+    def _normalize_symbol(cls, symbol: str) -> str:
+        raw = symbol.upper()
+        if '-' in raw:
+            return raw
+        for quote_asset in ('USDT', 'USDC', 'BTC', 'ETH'):
+            if raw.endswith(quote_asset) and len(raw) > len(quote_asset):
+                base = raw[:-len(quote_asset)]
+                return '{0}-{1}'.format(base, quote_asset)
+        return raw
+
+    @classmethod
+    def _extract_base_asset(cls, api_symbol: str) -> str:
+        if '-' in api_symbol:
+            return api_symbol.split('-', 1)[0]
+        return api_symbol
 
     def _request(self, method: str, path: str, params: dict[str, Any], is_signed: bool) -> dict[str, Any]:
         query = self._build_query(params)
