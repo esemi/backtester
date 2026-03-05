@@ -67,3 +67,5 @@ ALTER TABLE telemetry ADD `buy_fee_qty` decimal(40,20) DEFAULT NULL;
 ALTER TABLE telemetry ADD `buy_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
 ALTER TABLE telemetry ADD `sell_fee_qty` decimal(40,20) DEFAULT NULL;
 ALTER TABLE telemetry ADD `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL;
+ALTER TABLE telemetry ADD `buy_qty` decimal(40,20) DEFAULT NULL;
+ALTER TABLE telemetry ADD `sell_qty` decimal(40,20) DEFAULT NULL;

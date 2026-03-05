@@ -148,7 +148,7 @@ for i in $(seq 1 50); do
         ORDER BY tick_number DESC
         LIMIT 20;" -B | column -t -s $'\t'
   echo
-done
+doneclear
 
 "
 
