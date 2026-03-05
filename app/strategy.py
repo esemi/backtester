@@ -82,7 +82,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
             buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
-            buy_qty = None if not buy_completed else self._open_positions[-1].amount
+            buy_qty = None if not buy_completed else self._open_positions[-1].open_rate * self._open_positions[-1].amount
             bnb_rate = None
             if buy_completed and app_settings.exchange == 'binance':
                 bnb_rate = self._exchange_client.get_bnb_rate()
@@ -133,7 +133,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             bnb_rate = self._exchange_client.get_bnb_rate()
         if sale_completed and self._last_closed_deal:
             sell_price = self._last_closed_deal.close_rate
-            sell_qty = self._last_closed_deal.amount
+            sell_qty = self._last_closed_deal.close_rate * self._last_closed_deal.amount
             sell_fee = self._last_closed_deal.close_fee
             open_price = self._last_closed_deal.open_rate
             if self._last_closed_deal.open_rate:
