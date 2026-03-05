@@ -5,8 +5,8 @@ from app.models import Fee, Tick
 from app.storage import buffer_telemetry, flush_telemetry, mysql_execute
 
 _insert_query = """INSERT INTO `telemetry` 
-(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`, `profit_usdt`, `profit_percent`, `bnb_rate`, `open_price`)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+(`bot_name`, `tick_number`, `tick_timestamp`, `bid`, `ask`, `buy_price`, `sell_price`, `buy_qty`, `sell_qty`, `buy_fee_qty`, `buy_fee_ticker`, `sell_fee_qty`, `sell_fee_ticker`, `profit_usdt`, `profit_percent`, `bnb_rate`, `open_price`)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 _cleanup_query = 'DELETE FROM `telemetry` WHERE `bot_name` = %s'
 
 
@@ -22,6 +22,8 @@ class TelemetryClient:
         sell_price: Decimal | None = None,
         buy_fee: Fee | None = None,
         sell_fee: Fee | None = None,
+        buy_qty: Decimal | None = None,
+        sell_qty: Decimal | None = None,
         profit_usdt: Decimal | None = None,
         profit_percent: Decimal | None = None,
         bnb_rate: Decimal | None = None,
@@ -36,6 +38,8 @@ class TelemetryClient:
                 tick.ask,
                 buy_price,
                 sell_price,
+                buy_qty,
+                sell_qty,
                 None if not buy_fee else buy_fee.qty,
                 None if not buy_fee else buy_fee.ticker,
                 None if not sell_fee else sell_fee.qty,

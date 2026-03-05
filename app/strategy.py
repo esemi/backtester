@@ -82,12 +82,14 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
             buy_price = None if not buy_completed else self._open_positions[-1].open_rate
             buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
+            buy_qty = None if not buy_completed else self._open_positions[-1].amount
             bnb_rate = None
             if buy_completed and app_settings.exchange == 'binance':
                 bnb_rate = self._exchange_client.get_bnb_rate()
             self._telemetry.push(
                 tick,
                 buy_price=buy_price,
+                buy_qty=buy_qty,
                 buy_fee=buy_fee,
                 bnb_rate=bnb_rate,
             )
@@ -119,7 +121,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
+        buy_qty = None if not buy_completed else self._open_positions[-1].amount
         sell_price = None
+        sell_qty = None
         sell_fee = None
         sell_profit_usdt = None
         sell_profit_percent = None
@@ -129,6 +133,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             bnb_rate = self._exchange_client.get_bnb_rate()
         if sale_completed and self._last_closed_deal:
             sell_price = self._last_closed_deal.close_rate
+            sell_qty = self._last_closed_deal.amount
             sell_fee = self._last_closed_deal.close_fee
             open_price = self._last_closed_deal.open_rate
             if self._last_closed_deal.open_rate:
@@ -152,7 +157,9 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
             self._telemetry.push(
                 tick,
                 buy_price=buy_price,
+                buy_qty=buy_qty,
                 sell_price=sell_price,
+                sell_qty=sell_qty,
                 buy_fee=buy_fee,
                 sell_fee=sell_fee,
                 profit_usdt=sell_profit_usdt,
