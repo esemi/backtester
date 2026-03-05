@@ -124,7 +124,7 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
 # смотреть таблицу телеметрии одного бота
 
 mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim \
-  -e "SELECT id, bot_name, tick_number, bid, ask, buy_price, sell_price, created_at, bnb_rate,
+  -e "SELECT id, tick_number, open_price, buy_price, buy_qty, sell_price, sell_qty,
              ROUND(profit_usdt, 3) AS profit_usdt,
              ROUND(profit_percent, 2) AS profit_percent
       FROM telemetry
