@@ -79,6 +79,7 @@ ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.225.51 "sudo supervisorctl s
 git checkout master     
 git checkout deploy-bots
 git checkout bybit
+git checkout bingx
 git checkout feature-telemetry-profit
 git branch --show-current
 
@@ -145,6 +146,8 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
   -B | column -t -s $'\t' | less -S
 
 "
+#смотреть бд в реально времени
+watch -n 2 'mysql -h localhost -u root -p'\''yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!'\'' thesim -e "SELECT id, tick_number, open_price, buy_price, buy_qty, sell_price, sell_qty, ROUND(profit_usdt, 3) AS profit_usdt, ROUND(profit_percent, 2) AS profit_percent FROM telemetry WHERE bot_name='\''trader1'\'' ORDER BY tick_number DESC LIMIT 30;" -B | column -t -s $'\''\t'\'''
 
 # смотреть таблицу телеметрии одного бота
 

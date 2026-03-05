@@ -121,7 +121,7 @@ class BasicStrategy(StateSaverMixin, FeesAccountingMixin):
 
         buy_price = None if not buy_completed else self._open_positions[-1].open_rate
         buy_fee = None if not buy_completed else self._open_positions[-1].open_fee
-        buy_qty = None if not buy_completed else self._open_positions[-1].amount
+        buy_qty = None if not buy_completed else self._open_positions[-1].open_rate * self._open_positions[-1].amount
         sell_price = None
         sell_qty = None
         sell_fee = None
