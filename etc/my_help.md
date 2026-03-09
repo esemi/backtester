@@ -66,10 +66,25 @@ tail -f /var/log/trader/trader1-log.txt \
 tail -n 20 -f /var/log/trader/trader1-log.txt
 
 #Чтобы вывести последние 20 строк (однократно):
+<<<<<<< HEAD
+tail -n 20 /var/log/trader/trader8-log.txt
+=======
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
+>>>>>>> 310d1ca (update bingx)
 
 #А только строки с ошибками:
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
+
+#Вот команды для ошибок и последних строк:
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt | grep -i error"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt"
+
+# перезапуск ботов на нужно серевере массово
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.255.67 "supervisorctl status trader30 trader28 trader27"
+
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.151.136 "sudo supervisorctl restart all"
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.225.51 "sudo supervisorctl status"
+
 
 #переключение веток
 git checkout master     
@@ -136,7 +151,7 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
              ROUND(profit_usdt, 3) AS profit_usdt,
              ROUND(profit_percent, 2) AS profit_percent
       FROM telemetry
-      WHERE bot_name='trader1'
+      WHERE bot_name='trader3'
       ORDER BY tick_number DESC
       LIMIT 100;" \
   -B | column -t -s $'\t' | less -S
