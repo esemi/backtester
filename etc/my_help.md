@@ -24,6 +24,13 @@ sudo supervisorctl restart all
 # Перезапустить все программы из конфигов
 sudo supervisorctl restart all
 
+# Цикл очистки бота
+supervisorctl stop trader1
+rm -f /home/trader1/state.pickle
+mysql -h localhost -u root -p -D thesim -e "DELETE FROM telemetry WHERE bot_name='trader1'; DELETE FROM bot_stats WHERE bot_name='trader1';"
+redis-cli --scan --pattern "trader1*" | xargs -r redis-cli del
+supervisorctl start trader1
+
 # Запустить серию трейдеров 1..50
 for i in $(seq 1 50); do sudo supervisorctl start trader$i; done
 
@@ -59,21 +66,10 @@ tail -f /var/log/trader/trader1-log.txt \
 tail -n 20 -f /var/log/trader/trader1-log.txt
 
 #Чтобы вывести последние 20 строк (однократно):
-tail -n 20 /var/log/trader/trader8-log.txt
+tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
 
 #А только строки с ошибками:
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
-
-#Вот команды для ошибок и последних строк:
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt | grep -i error"
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.179.224 "tail -n 200 /var/log/trader/trader3-log.txt"
-
-# перезапуск ботов на нужно серевере массово
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.255.67 "supervisorctl status trader30 trader28 trader27"
-
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@62.171.151.136 "sudo supervisorctl restart all"
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@95.111.225.51 "sudo supervisorctl status"
-
 
 #переключение веток
 git checkout master     
@@ -140,14 +136,18 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
              ROUND(profit_usdt, 3) AS profit_usdt,
              ROUND(profit_percent, 2) AS profit_percent
       FROM telemetry
-      WHERE bot_name='trader3'
+      WHERE bot_name='trader1'
       ORDER BY tick_number DESC
       LIMIT 100;" \
   -B | column -t -s $'\t' | less -S
 
 "
 #смотреть бд в реально времени
-watch -n 2 'mysql -h localhost -u root -p'\''yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!'\'' thesim -e "SELECT id, tick_number, open_price, buy_price, buy_qty, sell_price, sell_qty, ROUND(profit_usdt, 3) AS profit_usdt, ROUND(profit_percent, 2) AS profit_percent FROM telemetry WHERE bot_name='\''trader1'\'' ORDER BY tick_number DESC LIMIT 30;" -B | column -t -s $'\''\t'\'''
+watch -n 2 'mysql -h localhost -u root -p'\''yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!'\'' thesim -e "SELECT id, FROM_UNIXTIME(tick_timestamp) AS tick_time, tick_number, open_price, buy_price, buy_qty, sell_price, sell_qty, ROUND(profit_usdt, 3) AS profit_usdt, ROUND(profit_percent, 2) AS profit_percent FROM telemetry WHERE bot_name='\''trader1'\'' ORDER BY tick_number DESC LIMIT 30;" -B | column -t -s $'\''\t'\'''
+
+# текущие данные торговли
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' -D thesim -e "SELECT * FROM bot_stats ORDER BY id DESC LIMIT 2\G"
+
 
 # смотреть таблицу телеметрии одного бота
 

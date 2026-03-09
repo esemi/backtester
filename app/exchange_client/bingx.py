@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import json
 import logging
+import socket
 import time
 from datetime import datetime
 from decimal import Decimal
@@ -13,6 +14,23 @@ from app.exchange_client.base import BaseClient, HistoryPrice, OrderResult
 from app.models import Fee, Tick
 
 logger = logging.getLogger(__name__)
+
+
+class _IPv4OnlySocket:
+    """Context manager that temporarily forces urllib sockets to use IPv4."""
+
+    def __enter__(self):
+        self._original_socket = socket.socket
+
+        def _socket_factory(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None):
+            return self._original_socket(socket.AF_INET, type, proto, fileno)
+
+        socket.socket = _socket_factory  # type: ignore[assignment]
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        socket.socket = self._original_socket  # type: ignore[assignment]
+        return False
 
 
 class BingX(BaseClient):
@@ -265,8 +283,9 @@ class BingX(BaseClient):
             headers=headers,
             method=method,
         )
-        with urlopen(request, timeout=30) as response:
-            body = response.read().decode('utf-8')
+        with _IPv4OnlySocket():
+            with urlopen(request, timeout=30) as response:
+                body = response.read().decode('utf-8')
         decoded = json.loads(body)
         if str(decoded.get('code', '0')) not in {'0', ''}:
             raise ValueError('bingx api error: {0}'.format(decoded))
