@@ -17,19 +17,19 @@ logger = logging.getLogger(__name__)
 
 
 class _IPv4OnlySocket:
-    """Context manager that temporarily forces urllib sockets to use IPv4."""
+    """Context manager that temporarily forces urllib DNS resolution to IPv4."""
 
     def __enter__(self):
-        self._original_socket = socket.socket
+        self._original_getaddrinfo = socket.getaddrinfo
 
-        def _socket_factory(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None):
-            return self._original_socket(socket.AF_INET, type, proto, fileno)
+        def _getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+            return self._original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
 
-        socket.socket = _socket_factory  # type: ignore[assignment]
+        socket.getaddrinfo = _getaddrinfo  # type: ignore[assignment]
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        socket.socket = self._original_socket  # type: ignore[assignment]
+        socket.getaddrinfo = self._original_getaddrinfo  # type: ignore[assignment]
         return False
 
 
