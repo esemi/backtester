@@ -66,11 +66,7 @@ tail -f /var/log/trader/trader1-log.txt \
 tail -n 20 -f /var/log/trader/trader1-log.txt
 
 #Чтобы вывести последние 20 строк (однократно):
-<<<<<<< HEAD
-tail -n 20 /var/log/trader/trader8-log.txt
-=======
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
->>>>>>> 310d1ca (update bingx)
 
 #А только строки с ошибками:
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
