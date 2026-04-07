@@ -152,6 +152,8 @@ CREATE TABLE `telemetry` (
   `ask` decimal(40,20) NOT NULL,
   `buy_price` decimal(40,20) DEFAULT NULL,
   `sell_price` decimal(40,20) DEFAULT NULL,
+  `buy_qty` decimal(40,20) DEFAULT NULL,
+  `sell_qty` decimal(40,20) DEFAULT NULL,
   `dirty_pl_amount` decimal(40,20) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `buy_fee_qty` decimal(40,20) DEFAULT NULL,
@@ -159,6 +161,7 @@ CREATE TABLE `telemetry` (
   `sell_fee_qty` decimal(40,20) DEFAULT NULL,
   `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 --
 -- Индексы сохранённых таблиц
