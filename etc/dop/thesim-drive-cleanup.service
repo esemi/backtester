@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodic remote cleanup on Google Drive
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/thesim/backups/scripts/drive_cleanup.sh
+TimeoutStartSec=1800

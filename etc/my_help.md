@@ -66,11 +66,7 @@ tail -f /var/log/trader/trader1-log.txt \
 tail -n 20 -f /var/log/trader/trader1-log.txt
 
 #Чтобы вывести последние 20 строк (однократно):
-<<<<<<< HEAD
 tail -n 20 /var/log/trader/trader8-log.txt
-=======
-tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
->>>>>>> 310d1ca (update bingx)
 
 #А только строки с ошибками:
 tail -n 200 /var/log/trader/trader1-log.txt | grep -i error | tail -n 20
@@ -161,7 +157,7 @@ mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' thesim 
 watch -n 2 'mysql -h localhost -u root -p'\''yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!'\'' thesim -e "SELECT id, FROM_UNIXTIME(tick_timestamp) AS tick_time, tick_number, open_price, buy_price, buy_qty, sell_price, sell_qty, ROUND(profit_usdt, 3) AS profit_usdt, ROUND(profit_percent, 2) AS profit_percent FROM telemetry WHERE bot_name='\''trader1'\'' ORDER BY tick_number DESC LIMIT 30;" -B | column -t -s $'\''\t'\'''
 
 # текущие данные торговли
-mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' -D thesim -e "SELECT * FROM bot_stats ORDER BY id DESC LIMIT 2\G"
+mysql -h localhost -u root -p'yLMReqr7ofPt9E2pgslYXwhchRAKDnvqBddjkua6!' -D thesim -e "SELECT * FROM bot_stats ORDER BY id DESC LIMIT 1\G"
 
 
 # смотреть таблицу телеметрии одного бота

@@ -1,0 +1,10 @@
+[Unit]
+Description=Upload queued TheSIM archives to Google Drive every 30 minutes
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/flock -n /var/lock/thesim-upload.lock /opt/thesim/backups/scripts/upload_missing_backups.sh
+TimeoutStartSec=1800
