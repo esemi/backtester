@@ -1,0 +1,10 @@
+[Unit]
+Description=TheSIM local backup every 10 minutes
+Wants=network-online.target
+After=network-online.target mysql.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/flock -n /var/lock/thesim-backup.lock /opt/thesim/backups/scripts/backup_local.sh
+TimeoutStartSec=1800

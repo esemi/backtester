@@ -1,0 +1,11 @@
+[Unit]
+Description=Run backup pipeline monitor every 10 minutes
+
+[Timer]
+OnCalendar=*:0/10
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=true
+
+[Install]
+WantedBy=timers.target
