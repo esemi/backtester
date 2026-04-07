@@ -1,0 +1,11 @@
+[Unit]
+Description=Run upload sync for TheSIM archives every 30 minutes (spread 20 min)
+
+[Timer]
+OnCalendar=*:0/30
+AccuracySec=1s
+RandomizedDelaySec=1200
+Persistent=true
+
+[Install]
+WantedBy=timers.target
