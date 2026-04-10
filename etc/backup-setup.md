@@ -109,16 +109,20 @@ systemctl enable --now thesim-backup-monitor.timer
 
 ## 9. Что делает каждый процесс
 - `thesim-backup.timer` (`*:0/10`): создает локальный архив в `tmp`.
-- `thesim-upload.timer` (`*:0/30`, `RandomizedDelaySec=1200`): выгружает очередь на Drive.
+- `thesim-upload.timer` (`*:0/30`, `RandomizedDelaySec=1200`): запускает выгрузку очереди на Drive.
+  - обычный режим: до 3 файлов за цикл;
+  - adaptive режим: если `pending > 5`, скрипт продолжает выгрузку в рабочем окне до 10 минут.
 - `thesim-drive-cleanup.timer` (раз в 6 часов): удаляет старые архивы на Drive.
 - `thesim-backup-monitor.timer` (`*:0/10`): контроль пайплайна и алерты.
 
 ## 10. Актуальные параметры (важно)
 В текущих шаблонах:
 - локальное хранение: `LOCAL_KEEP_MINUTES=4320` (3 дня),
-- выгрузка за цикл: `MAX_FILES_PER_RUN=3`,
+- базовая выгрузка за цикл: `BASE_MAX_FILES=3`,
 - джиттер внутри upload-скрипта: до 20 минут,
-- удаленное хранение: `REMOTE_KEEP_MINUTES=240` (4 часа),
+- adaptive порог очереди: `PENDING_HIGH_WATERMARK=5`,
+- активное окно adaptive-выгрузки: `MAX_ACTIVE_SECONDS=600` (10 минут),
+- удаленное хранение: `REMOTE_KEEP_MINUTES=4320` (3 дня),
 - алерт по очереди: `MAX_PENDING_FILES=9`,
 - алерт по отсутствию выгрузки: `MAX_STALE_MINUTES=60`.
 
