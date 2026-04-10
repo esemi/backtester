@@ -152,18 +152,15 @@ CREATE TABLE `telemetry` (
   `ask` decimal(40,20) NOT NULL,
   `buy_price` decimal(40,20) DEFAULT NULL,
   `sell_price` decimal(40,20) DEFAULT NULL,
+  `buy_qty` decimal(40,20) DEFAULT NULL,
+  `sell_qty` decimal(40,20) DEFAULT NULL,
   `dirty_pl_amount` decimal(40,20) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `buy_fee_qty` decimal(40,20) DEFAULT NULL,
   `buy_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sell_fee_qty` decimal(40,20) DEFAULT NULL,
-  `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `profit_usdt` decimal(40,20) DEFAULT NULL,
-  `profit_percent` decimal(40,20) DEFAULT NULL,
-  `bnb_rate` decimal(40,20) DEFAULT NULL,
-  `open_price` decimal(40,20) DEFAULT NULL
+  `sell_fee_ticker` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 --
 -- Индексы сохранённых таблиц
 --
